@@ -1099,30 +1099,64 @@ struct ContentView: View {
     private func moveRight() {
         if !isTransitioning {
             let sourceItems = getSourceItems()
-            let currentVisibleCount = min(4, sourceItems.count - (currentPage * 4))
+            let totalItems = sourceItems.count
+            let itemsPerPage = 4
+            let lastPage = (totalItems - 1) / itemsPerPage
+            let itemsOnLastPage = totalItems % itemsPerPage == 0 ? itemsPerPage : totalItems % itemsPerPage
             
-            if selectedIndex == currentVisibleCount - 1 && currentPage < (sourceItems.count - 1) / 4 {
+            // If we're on the last item of the last page
+            if currentPage == lastPage && selectedIndex == itemsOnLastPage - 1 {
+                // Wrap to the beginning
                 isTransitioning = true
                 animationDirection = 1
                 showingNextSet = true
                 nextSlideOffset = windowWidth
                 
-                selectedIndex = 0
-                
                 withAnimation(slideAnimation) {
                     currentSlideOffset = -windowWidth
-                    nextSlideOffset = 0
+                    opacity = 0
                 }
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    currentPage += 1
+                    currentPage = 0
                     selectedIndex = 0
                     currentSlideOffset = 0
+                    nextSlideOffset = 0
                     showingNextSet = false
                     isTransitioning = false
+                    
+                    withAnimation(slideAnimation) {
+                        opacity = 1
+                    }
                 }
-            } else if selectedIndex < currentVisibleCount - 1 {
-                selectedIndex += 1
+            } else {
+                // Normal right movement
+                if selectedIndex < min(4, sourceItems.count - (currentPage * 4)) - 1 {
+                    selectedIndex += 1
+                } else if currentPage < lastPage {
+                    isTransitioning = true
+                    animationDirection = 1
+                    showingNextSet = true
+                    nextSlideOffset = windowWidth
+                    
+                    withAnimation(slideAnimation) {
+                        currentSlideOffset = -windowWidth
+                        opacity = 0
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        currentPage += 1
+                        selectedIndex = 0
+                        currentSlideOffset = 0
+                        nextSlideOffset = 0
+                        showingNextSet = false
+                        isTransitioning = false
+                        
+                        withAnimation(slideAnimation) {
+                            opacity = 1
+                        }
+                    }
+                }
             }
         }
     }

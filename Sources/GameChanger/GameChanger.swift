@@ -13,12 +13,16 @@ private struct AppConfig {
     static let enableScreenshots = false  // Set to true to enable screenshots
     static let mouseSensitivity: CGFloat = 100.0  // Added mouse sensitivity setting
     
+    // Add new animation control flags
+    static let AllowFadeAnimation = true
+    static let AllowSlideAnimation = true
+    
     // Title font sizes
     struct TitleFont {
-        static let fontName = "Avenir Next Medium"
-        static let size720p: CGFloat = 18.0
-        static let size1080p: CGFloat = 42.0
-        static let size1440p: CGFloat = 56.0
+        static let fontName = "Futura-Medium"
+        static let size1440p: CGFloat = 72
+        static let size1080p: CGFloat = 54
+        static let size720p: CGFloat = 36
     }
     
     // Label font sizes (for icon labels)

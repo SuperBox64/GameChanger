@@ -1,5 +1,5 @@
 {
-    "SuperBox64": [
+    "Game Changer": [
         {
             "name": "Arcade",
             "systemIcon": "arcade",
@@ -35,73 +35,73 @@
         {
             "name": "Atari",
             "systemIcon": "atari-arcade",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Capcom",
             "systemIcon": "capcom",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Data East",
             "systemIcon": "dataeast",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Namco Midway",
             "systemIcon": "namco",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Nintendo",
             "systemIcon": "nintendo",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Sega",
             "systemIcon": "sega",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Taito",
             "systemIcon": "taito",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Konami",
             "systemIcon": "konami",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Arcade64",
             "systemIcon": "mame",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Pac Man",
             "systemIcon": "pacman",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Ghost Man",
             "systemIcon": "ghostman",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Pinball",
             "systemIcon": "pinball",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         }
     ],
@@ -109,73 +109,73 @@
         {
             "name": "Nintendo 64",
             "systemIcon": "nintendo64",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "PlayStation",
             "systemIcon": "playstation",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "PlayStation 2",
             "systemIcon": "ps2",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "GameCube",
             "systemIcon": "gamecube",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Dreamcast",
             "systemIcon": "dreamcast",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Sega Genesis",
             "systemIcon": "segagenesis",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Sega CD",
             "systemIcon": "segacd",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Sega Saturn",
             "systemIcon": "segasaturn",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "NES",
             "systemIcon": "nes",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "SNES",
             "systemIcon": "snes",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Wii",
             "systemIcon": "wii",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         },
         {
             "name": "Xbox",
             "systemIcon": "xbox",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": ""
         }
     ],
@@ -183,25 +183,25 @@
         {
             "name": "Quit",
             "systemIcon": "quit",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": "quit"
         },
         {
             "name": "Sleep",
             "systemIcon": "sleep",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": "sleep"
         },
         {
             "name": "Restart",
             "systemIcon": "restart",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": "restart"
         },
         {
             "name": "Power",
             "systemIcon": "power",
-            "parent": "SuperBox64",
+            "parent": "Game Changer",
             "action": "logout"
         }
     ]

@@ -15,7 +15,7 @@ private struct AppConfig {
 
 // Types needed for items
 enum Section: String {
-    case box = "SuperBox64"
+    case box = "Game Changer"
     case arcade = "Arcade"
     case console = "Console"
     case system = "System"
@@ -116,7 +116,7 @@ struct AppItemManager {
                 print("JSON Content:", String(data: data, encoding: .utf8) ?? "Could not read JSON content")
                 self.items = try JSONDecoder().decode([String: [AppItem]].self, from: data)
                 print("Successfully loaded sections:", self.items.keys)
-                print("Items in SuperBox64 section:", self.items["SuperBox64"]?.count ?? 0)
+                print("Items in Game Changer section:", self.items["Game Changer"]?.count ?? 0)
             } catch {
                 print("Error loading/decoding JSON:", error)
                 print("Error description:", error.localizedDescription)
@@ -145,8 +145,58 @@ struct GameChangerApp: App {
     
     var body: some Scene {
         WindowGroup {
-            MainWindowView()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            ZStack {
+                BackgroundView()
+                MainWindowView()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+}
+
+struct BackgroundView: View {
+    @State private var sizing: InterfaceSizing = SizingGuide.getSizing(for: NSScreen.main!.frame.size)
+    
+    var body: some View {
+        ZStack {
+            // Background image and gradient
+            GeometryReader { geometry in
+                Group {
+                    if let backgroundURL = Bundle.main.url(forResource: "backgroundimage", withExtension: "jpg", subdirectory: "images/jpg"),
+                       let backgroundImage = NSImage(contentsOf: backgroundURL) {
+                        Image(nsImage: backgroundImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .clipped()
+                    } else {
+                        Color.black
+                    }
+                }
+                
+                // Gradient overlay
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color.black.opacity(0.7),
+                        Color.black.opacity(0.5)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+            .edgesIgnoringSafeArea(.all)
+            
+            // Logo
+            if let logoURL = Bundle.main.url(forResource: "superbox64headerlogo", withExtension: "svg", subdirectory: "images/logo"),
+               let logoImage = NSImage(contentsOf: logoURL) {
+                Image(nsImage: logoImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: sizing.titleSize * 6.8)
+                    .padding(.leading, 30)
+                    .padding(.top, 30)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
         }
     }
 }
@@ -240,8 +290,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("SVG Directory exists:", Bundle.main.url(forResource: nil, withExtension: nil, subdirectory: "images/svg") != nil)
         
         // Preload all sections
-        let superboxItems = AppItemManager.shared.getItems(for: "SuperBox64")
-        print("SuperBox64 items:", superboxItems.map { $0.name })
+        let superboxItems = AppItemManager.shared.getItems(for: "Game Changer")
+        print("Game Changer items:", superboxItems.map { $0.name })
         ImageCache.shared.preloadImages(from: superboxItems)
         
         let arcadeItems = AppItemManager.shared.getItems(for: "Arcade")
@@ -395,7 +445,7 @@ struct ContentView: View {
     @State private var isTransitioning = false
     @State private var opacity: Double = 1
     @State private var titleOpacity: Double = 1
-    @State private var currentSection: String = "SuperBox64"
+    @State private var currentSection: String = "Game Changer"
     
     private let mouseSensitivity: CGFloat = 50.0
     

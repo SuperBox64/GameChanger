@@ -432,13 +432,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 struct InterfaceSizing: Codable {
+    let carousel: CarouselSizing
+    let mouseIndicator: MouseIndicatorSettings
+    let animations: AnimationSettings
     let title: TitleSettings
     let label: LabelSettings
     let clock: ClockSettings
-    let mouseIndicator: MouseIndicatorSettings
     let navigationDots: NavigationSettings
-    let carousel: CarouselSizing
-    let animations: AnimationSettings
+    let layout: LayoutSettings
 }
 
 struct TitleSettings: Codable {
@@ -845,7 +846,7 @@ struct ContentView: View {
                     ))
                     .foregroundColor(.white)
                     .opacity(titleOpacity)
-                    .padding(.top, 200)
+                    .padding(.top, SizingGuide.getCurrentSettings()?.layout.title.topPadding ?? 200)
                 Spacer()
             }
             
@@ -1350,8 +1351,8 @@ struct ClockView: View {
                 ))
                 .foregroundColor(.white.opacity(0.7))
         }
-        .padding(.top, 30)
-        .padding(.trailing, 40)
+        .padding(.top, SizingGuide.getCurrentSettings()?.layout.clock.topPadding ?? 30)
+        .padding(.trailing, SizingGuide.getCurrentSettings()?.layout.clock.trailingPadding ?? 40)
         .frame(maxWidth: .infinity, alignment: .trailing)
         .onReceive(timer) { input in
             currentTime = input
@@ -1412,7 +1413,7 @@ struct MouseProgressView: View {
                 .font(.system(size: settings.size * 0.28, weight: .semibold))
                 .foregroundColor(settings.progressColorUI)
         }
-        .padding(.bottom, 170)
+        .padding(.bottom, SizingGuide.getCurrentSettings()?.layout.mouseIndicator.bottomPadding ?? 170)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
     }
 }
@@ -1521,3 +1522,23 @@ private let defaultNavigationSettings = NavigationSettings(
 // Add these constants at the top level
 private let mouseSensitivity: CGFloat = 100.0
 private let enableScreenshots = true 
+
+// Add LayoutSettings struct
+struct LayoutSettings: Codable {
+    let title: TitleLayout
+    let clock: ClockLayout
+    let mouseIndicator: MouseIndicatorLayout
+}
+
+struct TitleLayout: Codable {
+    let topPadding: CGFloat
+}
+
+struct ClockLayout: Codable {
+    let topPadding: CGFloat
+    let trailingPadding: CGFloat
+}
+
+struct MouseIndicatorLayout: Codable {
+    let bottomPadding: CGFloat
+} 

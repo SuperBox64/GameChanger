@@ -1,5 +1,22 @@
 {
     "GameChangerUI": {
+        "common": {
+            "mouseSensitivity": 100.0,
+            "enableScreenshots": true,
+            "opacities": {
+                "selectionHighlight": 0.2,
+                "clockDateText": 0.7
+            },
+            "fontWeights": {
+                "mouseIndicatorIcon": "semibold"
+            },
+            "multipliers": {
+                "iconSize": 2.0,
+                "cornerRadius": 1.334,
+                "gridSpacing": 0.4,
+                "mouseIndicatorIconSize": 0.28
+            }
+        },
         "1280x720": {
             "carousel": {
                 "iconSize": 86,
@@ -51,6 +68,18 @@
                 },
                 "fade": {
                     "duration": 0.3
+                }
+            },
+            "layout": {
+                "title": {
+                    "topPadding": 150
+                },
+                "clock": {
+                    "topPadding": 20,
+                    "trailingPadding": 30
+                },
+                "mouseIndicator": {
+                    "bottomPadding": 130
                 }
             }
         },
@@ -106,6 +135,18 @@
                 "fade": {
                     "duration": 0.3
                 }
+            },
+            "layout": {
+                "title": {
+                    "topPadding": 200
+                },
+                "clock": {
+                    "topPadding": 30,
+                    "trailingPadding": 40
+                },
+                "mouseIndicator": {
+                    "bottomPadding": 170
+                }
             }
         },
         "2560x1440": {
@@ -159,6 +200,18 @@
                 },
                 "fade": {
                     "duration": 0.3
+                }
+            },
+            "layout": {
+                "title": {
+                    "topPadding": 250
+                },
+                "clock": {
+                    "topPadding": 40,
+                    "trailingPadding": 50
+                },
+                "mouseIndicator": {
+                    "bottomPadding": 210
                 }
             }
         }

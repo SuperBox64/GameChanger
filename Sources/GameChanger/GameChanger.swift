@@ -177,6 +177,7 @@ struct BackgroundView: View {
     
     var body: some View {
         ZStack {
+
             // Background image and gradient
             GeometryReader { geometry in
                 Group {
@@ -204,7 +205,7 @@ struct BackgroundView: View {
             }
             .edgesIgnoringSafeArea(.all)
             
-            // Logo
+             // Logo
             if let logoURL = Bundle.main.url(forResource: "superbox64headerlogo", withExtension: "svg", subdirectory: "images/logo"),
                let logoImage = NSImage(contentsOf: logoURL) {
                 Image(nsImage: logoImage)
@@ -536,49 +537,6 @@ struct ContentView: View {
                 ZStack {  // Main container
                     // Background and animated content
                     ZStack {
-                        // Background layer
-                        GeometryReader { geometry in
-                            Group {
-                                if let backgroundURL = Bundle.main.url(forResource: "backgroundimage", withExtension: "jpg", subdirectory: "images/jpg"),
-                                   let backgroundImage = NSImage(contentsOf: backgroundURL) {
-                                    Image(nsImage: backgroundImage)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(width: geometry.size.width, height: geometry.size.height)
-                                        .clipped()
-                                } else {
-                                    Color.black
-                                }
-                            }
-                            
-                            // Gradient overlay
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    Color.black.opacity(0.7),
-                                    Color.black.opacity(0.5)
-                                ]),
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        }
-                        .edgesIgnoringSafeArea(.all)
-                        
-                        VStack {
-                            HStack {
-                                if let logoURL = Bundle.main.url(forResource: "superbox64headerlogo", withExtension: "svg", subdirectory: "images/logo"),
-                                let logoImage = NSImage(contentsOf: logoURL) {
-                                    Image(nsImage: logoImage)
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: sizing.titleSize * 6.8)
-                                        .padding(.leading, 30)
-                                        .padding(.top, 30)
-                                }
-                                Spacer()
-                            }
-                            Spacer()
-                        }
-                        .animation(nil)
 
                         // Animated content
                         VStack(spacing: 0) {

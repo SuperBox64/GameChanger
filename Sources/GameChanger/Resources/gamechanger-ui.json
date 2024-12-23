@@ -11,17 +11,25 @@
                 "selectionPadding": 27
             },
             "title": {
-                "size": 18.0,
-                "fontName": "Avenir Next Medium"
+                "fontName": "Avenir Next Medium",
+                "size": 36
             },
             "label": {
-                "size": 12.0,
-                "fontName": "Avenir Next"
+                "fontName": "Avenir Next",
+                "size": 12.0
             },
             "clock": {
+                "fontName": "Avenir Next Medium",
                 "timeSize": 24.0,
                 "dateSize": 10.0,
-                "fontName": "Avenir Next Medium"
+                "spacing": 2.0
+            },
+            "mouseIndicator": {
+                "inactivityTimeout": 5.0,
+                "size": 96.0,
+                "strokeWidth": 4.5,
+                "backgroundColor": [0.5, 0.5, 0.5, 0.2],
+                "progressColor": [0.0, 1.0, 0.0, 0.8]
             },
             "navigationDots": {
                 "size": 8.0,
@@ -29,12 +37,21 @@
                 "opacity": 0.3,
                 "bottomPadding": 20.0
             },
-            "mouseIndicator": {
-                "size": 64.0,
-                "strokeWidth": 3.0,
-                "inactivityTimeout": 5.0,
-                "backgroundColor": [0.5, 0.5, 0.5, 0.2],
-                "progressColor": [0.0, 1.0, 0.0, 0.8]
+            "animations": {
+                "slideEnabled": true,
+                "fadeEnabled": true,
+                "slide": {
+                    "duration": 0.6,
+                    "curve": {
+                        "x1": 0.33,
+                        "y1": 0.0,
+                        "x2": 0.1,
+                        "y2": 1.0
+                    }
+                },
+                "fade": {
+                    "duration": 0.3
+                }
             }
         },
         "1920x1080": {
@@ -48,17 +65,25 @@
                 "selectionPadding": 40
             },
             "title": {
-                "size": 42.0,
-                "fontName": "Avenir Next Medium"
+                "fontName": "Avenir Next Medium",
+                "size": 54
             },
             "label": {
-                "size": 22.0,
-                "fontName": "Avenir Next"
+                "fontName": "Avenir Next",
+                "size": 22.0
             },
             "clock": {
+                "fontName": "Avenir Next Medium",
                 "timeSize": 42.0,
                 "dateSize": 18.0,
-                "fontName": "Avenir Next Medium"
+                "spacing": 2.0
+            },
+            "mouseIndicator": {
+                "inactivityTimeout": 5.0,
+                "size": 96.0,
+                "strokeWidth": 4.5,
+                "backgroundColor": [0.5, 0.5, 0.5, 0.2],
+                "progressColor": [0.0, 1.0, 0.0, 0.8]
             },
             "navigationDots": {
                 "size": 12.0,
@@ -66,12 +91,21 @@
                 "opacity": 0.3,
                 "bottomPadding": 40.0
             },
-            "mouseIndicator": {
-                "size": 64.0,
-                "strokeWidth": 3.0,
-                "inactivityTimeout": 5.0,
-                "backgroundColor": [0.5, 0.5, 0.5, 0.2],
-                "progressColor": [0.0, 1.0, 0.0, 0.8]
+            "animations": {
+                "slideEnabled": true,
+                "fadeEnabled": true,
+                "slide": {
+                    "duration": 0.6,
+                    "curve": {
+                        "x1": 0.33,
+                        "y1": 0.0,
+                        "x2": 0.1,
+                        "y2": 1.0
+                    }
+                },
+                "fade": {
+                    "duration": 0.3
+                }
             }
         },
         "2560x1440": {
@@ -85,17 +119,25 @@
                 "selectionPadding": 50
             },
             "title": {
-                "size": 56.0,
-                "fontName": "Avenir Next Medium"
+                "fontName": "Avenir Next Medium",
+                "size": 72
             },
             "label": {
-                "size": 30.0,
-                "fontName": "Avenir Next"
+                "fontName": "Avenir Next",
+                "size": 30.0
             },
             "clock": {
+                "fontName": "Avenir Next Medium",
                 "timeSize": 56.0,
                 "dateSize": 24.0,
-                "fontName": "Avenir Next Medium"
+                "spacing": 2.0
+            },
+            "mouseIndicator": {
+                "inactivityTimeout": 5.0,
+                "size": 96.0,
+                "strokeWidth": 4.5,
+                "backgroundColor": [0.5, 0.5, 0.5, 0.2],
+                "progressColor": [0.0, 1.0, 0.0, 0.8]
             },
             "navigationDots": {
                 "size": 16.0,
@@ -103,12 +145,21 @@
                 "opacity": 0.3,
                 "bottomPadding": 60.0
             },
-            "mouseIndicator": {
-                "size": 64.0,
-                "strokeWidth": 3.0,
-                "inactivityTimeout": 5.0,
-                "backgroundColor": [0.5, 0.5, 0.5, 0.2],
-                "progressColor": [0.0, 1.0, 0.0, 0.8]
+            "animations": {
+                "slideEnabled": true,
+                "fadeEnabled": true,
+                "slide": {
+                    "duration": 0.6,
+                    "curve": {
+                        "x1": 0.33,
+                        "y1": 0.0,
+                        "x2": 0.1,
+                        "y2": 1.0
+                    }
+                },
+                "fade": {
+                    "duration": 0.3
+                }
             }
         }
     }

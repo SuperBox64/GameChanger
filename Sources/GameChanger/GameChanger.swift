@@ -8,82 +8,6 @@ import AppKit
 import GameController
 import Carbon.HIToolbox
 
-// Configuration settings
-private struct AppConfig {
-    static let enableScreenshots = false  // Set to true to enable screenshots
-    static let mouseSensitivity: CGFloat = 100.0  // Added mouse sensitivity setting
-    
-    // Add new animation control flags
-    static let AllowFadeAnimation = true
-    static let AllowSlideAnimation = true
-    
-    // Title font sizes
-    struct TitleFont {
-        static let fontName = "Futura-Medium"
-        static let size1440p: CGFloat = 72
-        static let size1080p: CGFloat = 54
-        static let size720p: CGFloat = 36
-    }
-    
-    // Label font sizes (for icon labels)
-    struct LabelFont {
-        static let fontName = "Avenir Next"
-        static let size720p: CGFloat = 12.0
-        static let size1080p: CGFloat = 22.0
-        static let size1440p: CGFloat = 30.0
-    }
-    
-    // Clock font sizes
-    struct ClockFont {
-        static let fontName = "Avenir Next Medium"
-        static let time720p: CGFloat = 24.0
-        static let time1080p: CGFloat = 42.0
-        static let time1440p: CGFloat = 56.0
-        
-        static let date720p: CGFloat = 10.0
-        static let date1080p: CGFloat = 18.0
-        static let date1440p: CGFloat = 24.0
-    }
-    
-    // Mouse indicator settings
-    struct MouseIndicator {
-        static let inactivityTimeout: TimeInterval = 5.0  // Reset after 10 seconds
-        static let size: CGFloat = 64.0
-        static let strokeWidth: CGFloat = 3.0
-        static let backgroundColor = Color.gray.opacity(0.2)
-        static let progressColor = Color.green.opacity(0.8)
-    }
-    
-    // Navigation Dots settings
-    struct NavigationDots {
-        static let fontName = "Avenir Next"
-        static let size720p: CGFloat = 8.0
-        static let size1080p: CGFloat = 12.0
-        static let size1440p: CGFloat = 16.0
-        static let spacing720p: CGFloat = 16.0
-        static let spacing1080p: CGFloat = 24.0
-        static let spacing1440p: CGFloat = 32.0
-        static let opacity: CGFloat = 0.3
-        static let bottomPadding720p: CGFloat = 20.0
-        static let bottomPadding1080p: CGFloat = 40.0
-        static let bottomPadding1440p: CGFloat = 60.0
-    }
-    
-    static func getFont(size: CGFloat) -> Font {
-        if let _ = NSFont(name: LabelFont.fontName, size: size) {
-            return Font.custom(LabelFont.fontName, size: size)
-        }
-        return Font.system(size: size, design: .default)
-    }
-    
-    static func getTitleFont(size: CGFloat) -> Font {
-        if let _ = NSFont(name: TitleFont.fontName, size: size) {
-            return Font.custom(TitleFont.fontName, size: size)
-        }
-        return Font.system(size: size, design: .default)
-    }
-}
-
 // Types needed for items
 enum Section: String {
     case box = "Game Changer"
@@ -261,14 +185,10 @@ struct BackgroundView: View {
     @State private var sizing: CarouselSizing = SizingGuide.getSizing(for: NSScreen.main!.frame.size)
     
     private var logoSize: CGFloat {
-        let screenWidth = NSScreen.main?.frame.width ?? 1920
-        if screenWidth >= 2560 {
-            return AppConfig.TitleFont.size1440p * 6.8
-        } else if screenWidth >= 1920 {
-            return AppConfig.TitleFont.size1080p * 6.8
-        } else {
-            return AppConfig.TitleFont.size720p * 6.8
+        if let settings = SizingGuide.getCurrentSettings() {
+            return settings.title.size * 6.8
         }
+        return 54.0 * 6.8  // Default size
     }
     
     var body: some View {
@@ -485,7 +405,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func takeScreenshot() {
-        guard AppConfig.enableScreenshots else { return }
+        guard enableScreenshots else { return }
         
         if let window = NSApp.windows.first,
            let cgImage = CGWindowListCreateImage(
@@ -512,8 +432,61 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 struct InterfaceSizing: Codable {
-    let carousel: CarouselSizing
+    let title: TitleSettings
+    let label: LabelSettings
+    let clock: ClockSettings
     let mouseIndicator: MouseIndicatorSettings
+    let navigationDots: NavigationSettings
+    let carousel: CarouselSizing
+    let animations: AnimationSettings
+}
+
+struct TitleSettings: Codable {
+    let fontName: String
+    let size: CGFloat
+}
+
+struct LabelSettings: Codable {
+    let fontName: String
+    let size: CGFloat
+}
+
+struct ClockSettings: Codable {
+    let fontName: String
+    let timeSize: CGFloat
+    let dateSize: CGFloat
+    let spacing: CGFloat
+}
+
+struct MouseIndicatorSettings: Codable {
+    let size: CGFloat
+    let strokeWidth: CGFloat
+    let inactivityTimeout: TimeInterval
+    let backgroundColor: [Double]  // [r, g, b, a]
+    let progressColor: [Double]    // [r, g, b, a]
+    
+    var backgroundColorUI: Color {
+        Color(.sRGB, 
+              red: backgroundColor[0],
+              green: backgroundColor[1], 
+              blue: backgroundColor[2], 
+              opacity: backgroundColor[3])
+    }
+    
+    var progressColorUI: Color {
+        Color(.sRGB, 
+              red: progressColor[0], 
+              green: progressColor[1], 
+              blue: progressColor[2], 
+              opacity: progressColor[3])
+    }
+}
+
+struct NavigationSettings: Codable {
+    let size: CGFloat
+    let spacing: CGFloat
+    let opacity: CGFloat
+    let bottomPadding: CGFloat
 }
 
 struct CarouselSizing: Codable {
@@ -534,22 +507,40 @@ struct SizingGuide {
     static private var settings: GUISettings?
     
     static func loadSettings() {
+        // Only load if not already loaded
+        guard settings == nil else { return }
+        
         if let url = Bundle.main.url(forResource: "gamechanger-ui", withExtension: "json"),
            let data = try? Data(contentsOf: url) {
             settings = try? JSONDecoder().decode(GUISettings.self, from: data)
         }
     }
     
+    static func getCurrentSettings() -> InterfaceSizing? {
+        // Load settings if needed
+        loadSettings()
+        
+        if let screen = NSScreen.main {
+            let resolution = getResolutionKey(for: screen.frame.size)
+            return settings?.GameChangerUI[resolution]
+        }
+        return nil
+    }
+    
+    static func getSettings(for resolution: String) -> InterfaceSizing? {
+        loadSettings()
+        return settings?.GameChangerUI[resolution]
+    }
+    
     static func getSizing(for screenSize: CGSize) -> CarouselSizing {
+        // Load settings if needed
+        loadSettings()
+        
         let resolution = getResolutionKey(for: screenSize)
         return settings?.GameChangerUI[resolution]?.carousel ?? getDefaultCarouselSizing()
     }
     
-    static func getSettings(for resolution: String) -> InterfaceSizing? {
-        return settings?.GameChangerUI[resolution]
-    }
-    
-    private static func getResolutionKey(for screenSize: CGSize) -> String {
+    static func getResolutionKey(for screenSize: CGSize) -> String {
         if screenSize.width >= 2560 {
             return "2560x1440"
         } else if screenSize.width >= 1920 {
@@ -595,20 +586,47 @@ struct CarouselView: View {
     let visibleItems: [AppItem]
     let selectedIndex: Int
     let sizing: CarouselSizing
+    let currentOffset: CGFloat
+    let showingNextItems: Bool
+    let nextOffset: CGFloat
+    let nextItems: [AppItem]
     
     var body: some View {
-        LazyVGrid(columns: [
-            GridItem(.flexible(), spacing: sizing.gridSpacing),
-            GridItem(.flexible(), spacing: sizing.gridSpacing),
-            GridItem(.flexible(), spacing: sizing.gridSpacing),
-            GridItem(.flexible(), spacing: sizing.gridSpacing)
-        ], spacing: sizing.gridSpacing) {
-            ForEach(0..<visibleItems.count, id: \.self) { index in
-                AppIconView(
-                    item: visibleItems[index],
-                    isSelected: index == selectedIndex,
-                    sizing: sizing
-                )
+        ZStack {
+            // Current items
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: sizing.gridSpacing),
+                GridItem(.flexible(), spacing: sizing.gridSpacing),
+                GridItem(.flexible(), spacing: sizing.gridSpacing),
+                GridItem(.flexible(), spacing: sizing.gridSpacing)
+            ], spacing: sizing.gridSpacing) {
+                ForEach(0..<visibleItems.count, id: \.self) { index in
+                    AppIconView(
+                        item: visibleItems[index],
+                        isSelected: index == selectedIndex,
+                        sizing: sizing
+                    )
+                }
+            }
+            .offset(x: currentOffset)
+            
+            // Next items (if showing)
+            if showingNextItems {
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: sizing.gridSpacing),
+                    GridItem(.flexible(), spacing: sizing.gridSpacing),
+                    GridItem(.flexible(), spacing: sizing.gridSpacing),
+                    GridItem(.flexible(), spacing: sizing.gridSpacing)
+                ], spacing: sizing.gridSpacing) {
+                    ForEach(0..<nextItems.count, id: \.self) { index in
+                        AppIconView(
+                            item: nextItems[index],
+                            isSelected: false,
+                            sizing: sizing
+                        )
+                    }
+                }
+                .offset(x: nextOffset)
             }
         }
         .padding(sizing.gridSpacing)
@@ -641,6 +659,10 @@ struct ContentView: View {
     @State private var mouseTimer: Timer?
     @StateObject private var navigationState = NavigationState.shared
     @StateObject private var mouseState = MouseIndicatorState.shared
+    @State private var currentOffset: CGFloat = 0
+    @State private var nextOffset: CGFloat = 0
+    @State private var isAnimating = false
+    @State private var showingNextItems = false
     
     private var visibleItems: [AppItem] {
         let sourceItems = getSourceItems()
@@ -661,7 +683,7 @@ struct ContentView: View {
     }
     
     private var normalizedMouseProgress: CGFloat {
-        min(abs(accumulatedMouseX) / AppConfig.mouseSensitivity, 1.0)
+        min(abs(accumulatedMouseX) / mouseSensitivity, 1.0)
     }
     
     private func handleSelection() {
@@ -675,7 +697,7 @@ struct ContentView: View {
             return
         }
         
-        if let parentSection = selectedItem.parent, 
+        if let _ = selectedItem.parent, 
            !AppItemManager.shared.getItems(for: selectedItem.name).isEmpty {
             selectedIndex = 0
             currentPage = 0
@@ -701,18 +723,6 @@ struct ContentView: View {
             .onAppear {
                 NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
                     switch Int(event.keyCode) {
-                    case kVK_LeftArrow:
-                        resetMouseState()
-                        moveLeft()
-                    case kVK_RightArrow:
-                        resetMouseState()
-                        moveRight()
-                    case kVK_UpArrow:
-                        resetMouseState()
-                        moveUp()
-                    case kVK_DownArrow:
-                        resetMouseState()
-                        moveDown()
                     case kVK_Return:
                         resetMouseState()
                         handleSelection()
@@ -728,14 +738,7 @@ struct ContentView: View {
     }
     
     private var titleFontSize: CGFloat {
-        let screenWidth = NSScreen.main?.frame.width ?? 1920
-        if screenWidth >= 2560 {
-            return AppConfig.TitleFont.size1440p
-        } else if screenWidth >= 1920 {
-            return AppConfig.TitleFont.size1080p
-        } else {
-            return AppConfig.TitleFont.size720p
-        }
+        SizingGuide.getCurrentSettings()?.title.size ?? 54.0
     }
     
     private func updateNavigationState() {
@@ -757,8 +760,10 @@ struct ContentView: View {
         
         // Reset and restart inactivity timer
         mouseTimer?.invalidate()
-        mouseTimer = Timer.scheduledTimer(withTimeInterval: AppConfig.MouseIndicator.inactivityTimeout, 
-                                       repeats: false) { _ in
+        mouseTimer = Timer.scheduledTimer(
+            withTimeInterval: SizingGuide.getCurrentSettings()?.mouseIndicator.inactivityTimeout ?? 5.0,
+            repeats: false
+        ) { _ in
             self.resetMouseState()
         }
         
@@ -776,9 +781,9 @@ struct ContentView: View {
         }
         
         accumulatedMouseX += deltaX
-        mouseProgress = normalizedMouseProgress  // This is already normalized
+        mouseProgress = normalizedMouseProgress
         
-        if abs(accumulatedMouseX) > AppConfig.mouseSensitivity {
+        if abs(accumulatedMouseX) > mouseSensitivity {
             if accumulatedMouseX < 0 {
                 moveLeft()
             } else {
@@ -791,7 +796,7 @@ struct ContentView: View {
         }
         
         mouseState.showingProgress = showingProgress
-        mouseState.mouseProgress = mouseProgress  // Pass the normalized progress
+        mouseState.mouseProgress = mouseProgress
         mouseState.mouseDirection = mouseDirection
     }
     
@@ -803,15 +808,44 @@ struct ContentView: View {
         }
     }
     
+    // Add this property to get animation settings
+    private var animationSettings: AnimationSettings {
+        if let screen = NSScreen.main {
+            let resolution = SizingGuide.getResolutionKey(for: screen.frame.size)
+            return SizingGuide.getSettings(for: resolution)?.animations ?? 
+                   AnimationSettings(
+                       slideEnabled: true,
+                       fadeEnabled: true,
+                       slide: SlideAnimation(
+                           duration: 0.6,
+                           curve: CubicCurve(x1: 0.33, y1: 0.0, x2: 0.1, y2: 1.0)
+                       ),
+                       fade: FadeAnimation(duration: 0.3)
+                   )
+        }
+        return AnimationSettings(
+            slideEnabled: true,
+            fadeEnabled: true,
+            slide: SlideAnimation(
+                duration: 0.6,
+                curve: CubicCurve(x1: 0.33, y1: 0.0, x2: 0.1, y2: 1.0)
+            ),
+            fade: FadeAnimation(duration: 0.3)
+        )
+    }
+    
     var body: some View {
         ZStack {
             // Title at the top
             VStack {
                 Text(currentSection)
-                    .font(.custom(AppConfig.TitleFont.fontName, size: titleFontSize))
+                    .font(.custom(
+                        SizingGuide.getCurrentSettings()?.title.fontName ?? "Futura-Medium",
+                        size: SizingGuide.getCurrentSettings()?.title.size ?? 54.0
+                    ))
                     .foregroundColor(.white)
                     .opacity(titleOpacity)
-                    .padding(.top, 150)
+                    .padding(.top, 200)
                 Spacer()
             }
             
@@ -819,7 +853,11 @@ struct ContentView: View {
             CarouselView(
                 visibleItems: visibleItems,
                 selectedIndex: selectedIndex,
-                sizing: sizing
+                sizing: sizing,
+                currentOffset: currentOffset,
+                showingNextItems: showingNextItems,
+                nextOffset: nextOffset,
+                nextItems: nextItems
             )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1029,51 +1067,109 @@ struct ContentView: View {
     }
     
     private func moveLeft() {
-        if !isTransitioning {
+        if !isAnimating {
             let sourceItems = getSourceItems()
             let totalItems = sourceItems.count
             let itemsPerPage = 4
             
-            // If we're on the first item of the first page
-            if currentPage == 0 && selectedIndex == 0 {
-                // Wrap to the end
-                let lastPage = (totalItems - 1) / itemsPerPage
-                let itemsOnLastPage = totalItems % itemsPerPage == 0 ? itemsPerPage : totalItems % itemsPerPage
-                currentPage = lastPage
-                selectedIndex = itemsOnLastPage - 1
-            } else {
-                // Normal left movement
-                if selectedIndex > 0 {
-                    selectedIndex -= 1
-                } else if currentPage > 0 {
-                    currentPage -= 1
-                    selectedIndex = 3
+            if selectedIndex == 0 {
+                if currentPage > 0 {
+                    guard SizingGuide.getCurrentSettings()?.animations.slideEnabled ?? true else { return }
+                    isAnimating = true
+                    showingNextItems = true
+                    nextOffset = -windowWidth
+                    
+                    withAnimation(.carouselSlide(settings: animationSettings)) {
+                        currentOffset = windowWidth
+                        nextOffset = 0
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
+                        currentPage -= 1
+                        selectedIndex = 3
+                        currentOffset = 0
+                        nextOffset = 0
+                        showingNextItems = false
+                        isAnimating = false
+                    }
+                } else {
+                    guard SizingGuide.getCurrentSettings()?.animations.slideEnabled ?? true else { return }
+                    isAnimating = true
+                    showingNextItems = true
+                    nextOffset = -windowWidth
+                    
+                    withAnimation(.carouselSlide(settings: animationSettings)) {
+                        currentOffset = windowWidth
+                        nextOffset = 0
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
+                        let lastPage = (totalItems - 1) / itemsPerPage
+                        let itemsOnLastPage = totalItems % itemsPerPage == 0 ? itemsPerPage : totalItems % itemsPerPage
+                        currentPage = lastPage
+                        selectedIndex = itemsOnLastPage - 1
+                        currentOffset = 0
+                        nextOffset = 0
+                        showingNextItems = false
+                        isAnimating = false
+                    }
                 }
+            } else {
+                selectedIndex -= 1
             }
         }
     }
     
     private func moveRight() {
-        if !isTransitioning {
+        if !isAnimating {
             let sourceItems = getSourceItems()
             let totalItems = sourceItems.count
             let itemsPerPage = 4
             let lastPage = (totalItems - 1) / itemsPerPage
             let itemsOnLastPage = totalItems % itemsPerPage == 0 ? itemsPerPage : totalItems % itemsPerPage
             
-            // If we're on the last item of the last page
-            if currentPage == lastPage && selectedIndex == itemsOnLastPage - 1 {
-                // Wrap to beginning
-                currentPage = 0
-                selectedIndex = 0
-            } else {
-                // Normal right movement
-                if selectedIndex < min(4, sourceItems.count - (currentPage * 4)) - 1 {
-                    selectedIndex += 1
-                } else if currentPage < lastPage {
-                    currentPage += 1
-                    selectedIndex = 0
+            if selectedIndex == min(4, sourceItems.count - (currentPage * 4)) - 1 {
+                if currentPage < lastPage {
+                    guard SizingGuide.getCurrentSettings()?.animations.slideEnabled ?? true else { return }
+                    isAnimating = true
+                    showingNextItems = true
+                    nextOffset = windowWidth
+                    
+                    withAnimation(.carouselSlide(settings: animationSettings)) {
+                        currentOffset = -windowWidth
+                        nextOffset = 0
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
+                        currentPage += 1
+                        selectedIndex = 0
+                        currentOffset = 0
+                        nextOffset = 0
+                        showingNextItems = false
+                        isAnimating = false
+                    }
+                } else if currentPage == lastPage && selectedIndex == itemsOnLastPage - 1 {
+                    guard SizingGuide.getCurrentSettings()?.animations.slideEnabled ?? true else { return }
+                    isAnimating = true
+                    showingNextItems = true
+                    nextOffset = windowWidth
+                    
+                    withAnimation(.carouselSlide(settings: animationSettings)) {
+                        currentOffset = -windowWidth
+                        nextOffset = 0
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
+                        currentPage = 0
+                        selectedIndex = 0
+                        currentOffset = 0
+                        nextOffset = 0
+                        showingNextItems = false
+                        isAnimating = false
+                    }
                 }
+            } else {
+                selectedIndex += 1
             }
         }
     }
@@ -1108,6 +1204,25 @@ struct ContentView: View {
     
     private func getSourceItems() -> [AppItem] {
         return AppItemManager.shared.getItems(for: currentSection)
+    }
+    
+    private var nextItems: [AppItem] {
+        let sourceItems = getSourceItems()
+        let totalItems = sourceItems.count
+        let itemsPerPage = 4
+        let lastPage = (totalItems - 1) / itemsPerPage
+        
+        // If we're on the last page, get items from first page
+        if currentPage == lastPage {
+            let startIndex = 0
+            let endIndex = min(4, sourceItems.count)
+            return Array(sourceItems[startIndex..<endIndex])
+        } else {
+            // Get items from next page
+            let startIndex = (currentPage + 1) * 4
+            let endIndex = min(startIndex + 4, sourceItems.count)
+            return Array(sourceItems[startIndex..<endIndex])
+        }
     }
 }
 
@@ -1159,14 +1274,7 @@ struct AppIconView: View {
     }
     
     private var labelFontSize: CGFloat {
-        let screenWidth = NSScreen.main?.frame.width ?? 1920
-        if screenWidth >= 2560 {
-            return AppConfig.LabelFont.size1440p
-        } else if screenWidth >= 1920 {
-            return AppConfig.LabelFont.size1080p
-        } else {
-            return AppConfig.LabelFont.size720p
-        }
+        SizingGuide.getCurrentSettings()?.label.size ?? 22.0
     }
     
     var body: some View {
@@ -1192,7 +1300,10 @@ struct AppIconView: View {
             }
             
             Text(item.name)
-                .font(.custom(AppConfig.LabelFont.fontName, size: labelFontSize))
+                .font(.custom(
+                    SizingGuide.getCurrentSettings()?.label.fontName ?? "Avenir Next",
+                    size: labelFontSize
+                ))
                 .foregroundColor(isSelected ? .white : .blue)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1216,35 +1327,27 @@ struct ClockView: View {
     }()
     
     private var clockFontSize: CGFloat {
-        let screenWidth = NSScreen.main?.frame.width ?? 1920
-        if screenWidth >= 2560 {
-            return AppConfig.ClockFont.time1440p
-        } else if screenWidth >= 1920 {
-            return AppConfig.ClockFont.time1080p
-        } else {
-            return AppConfig.ClockFont.time720p
-        }
+        SizingGuide.getCurrentSettings()?.clock.timeSize ?? 42.0
     }
     
     private var dateFontSize: CGFloat {
-        let screenWidth = NSScreen.main?.frame.width ?? 1920
-        if screenWidth >= 2560 {
-            return AppConfig.ClockFont.date1440p
-        } else if screenWidth >= 1920 {
-            return AppConfig.ClockFont.date1080p
-        } else {
-            return AppConfig.ClockFont.date720p
-        }
+        SizingGuide.getCurrentSettings()?.clock.dateSize ?? 18.0
     }
     
     var body: some View {
-        VStack(alignment: .trailing, spacing: 4) {
+        VStack(alignment: .trailing, spacing: SizingGuide.getCurrentSettings()?.clock.spacing ?? 2.0) {
             Text(timeFormatter.string(from: currentTime))
-                .font(.custom(AppConfig.ClockFont.fontName, size: clockFontSize))
+                .font(.custom(
+                    SizingGuide.getCurrentSettings()?.clock.fontName ?? "Avenir Next Medium",
+                    size: clockFontSize
+                ))
                 .foregroundColor(.white)
             
             Text(dateFormatter.string(from: currentTime))
-                .font(.custom(AppConfig.ClockFont.fontName, size: dateFontSize))
+                .font(.custom(
+                    SizingGuide.getCurrentSettings()?.clock.fontName ?? "Avenir Next Medium",
+                    size: dateFontSize
+                ))
                 .foregroundColor(.white.opacity(0.7))
         }
         .padding(.top, 30)
@@ -1253,31 +1356,6 @@ struct ClockView: View {
         .onReceive(timer) { input in
             currentTime = input
         }
-    }
-}
-
-// Add these structs for decoding
-struct MouseIndicatorSettings: Codable {
-    let size: CGFloat
-    let strokeWidth: CGFloat
-    let inactivityTimeout: TimeInterval
-    let backgroundColor: [CGFloat]  // [r,g,b,a]
-    let progressColor: [CGFloat]    // [r,g,b,a]
-    
-    var backgroundColorUI: Color {
-        Color(.sRGB, 
-              red: Double(backgroundColor[0]),
-              green: Double(backgroundColor[1]), 
-              blue: Double(backgroundColor[2]), 
-              opacity: Double(backgroundColor[3]))
-    }
-    
-    var progressColorUI: Color {
-        Color(.sRGB, 
-              red: Double(progressColor[0]), 
-              green: Double(progressColor[1]), 
-              blue: Double(progressColor[2]), 
-              opacity: Double(progressColor[3]))
     }
 }
 
@@ -1293,8 +1371,8 @@ struct MouseProgressView: View {
         
         return SizingGuide.getSettings(for: resolution)?.mouseIndicator ?? 
                MouseIndicatorSettings(
-                   size: 64.0,
-                   strokeWidth: 3.0,
+                   size: 96.0,
+                   strokeWidth: 4.5,
                    inactivityTimeout: 5.0,
                    backgroundColor: [0.5, 0.5, 0.5, 0.2],
                    progressColor: [0.0, 1.0, 0.0, 0.8]
@@ -1334,7 +1412,7 @@ struct MouseProgressView: View {
                 .font(.system(size: settings.size * 0.28, weight: .semibold))
                 .foregroundColor(settings.progressColorUI)
         }
-        .padding(.bottom, 100)
+        .padding(.bottom, 170)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
     }
 }
@@ -1344,36 +1422,19 @@ struct NavigationDotsView: View {
     let totalPages: Int
     
     private var dotSize: CGFloat {
-        let screenWidth = NSScreen.main?.frame.width ?? 1920
-        if screenWidth >= 2560 {
-            return AppConfig.NavigationDots.size1440p
-        } else if screenWidth >= 1920 {
-            return AppConfig.NavigationDots.size1080p
-        } else {
-            return AppConfig.NavigationDots.size720p
-        }
+        SizingGuide.getCurrentSettings()?.navigationDots.size ?? 12.0
     }
     
     private var dotSpacing: CGFloat {
-        let screenWidth = NSScreen.main?.frame.width ?? 1920
-        if screenWidth >= 2560 {
-            return AppConfig.NavigationDots.spacing1440p
-        } else if screenWidth >= 1920 {
-            return AppConfig.NavigationDots.spacing1080p
-        } else {
-            return AppConfig.NavigationDots.spacing720p
-        }
+        SizingGuide.getCurrentSettings()?.navigationDots.spacing ?? 24.0
+    }
+    
+    private var dotOpacity: CGFloat {
+        SizingGuide.getCurrentSettings()?.navigationDots.opacity ?? 0.3
     }
     
     private var bottomPadding: CGFloat {
-        let screenWidth = NSScreen.main?.frame.width ?? 1920
-        if screenWidth >= 2560 {
-            return AppConfig.NavigationDots.bottomPadding1440p
-        } else if screenWidth >= 1920 {
-            return AppConfig.NavigationDots.bottomPadding1080p
-        } else {
-            return AppConfig.NavigationDots.bottomPadding720p
-        }
+        SizingGuide.getCurrentSettings()?.navigationDots.bottomPadding ?? 40.0
     }
     
     var body: some View {
@@ -1382,7 +1443,8 @@ struct NavigationDotsView: View {
                 Circle()
                     .fill(Color.white)
                     .frame(width: dotSize, height: dotSize)
-                    .opacity(index == currentPage ? 1 : AppConfig.NavigationDots.opacity)
+                    .opacity(index == currentPage ? 1 : 
+                        SizingGuide.getCurrentSettings()?.navigationDots.opacity ?? 0.3)
             }
         }
         .padding(.bottom, bottomPadding)
@@ -1410,4 +1472,52 @@ struct MouseIndicatorView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-} 
+}
+
+// Add this at the top level with other animation-related properties
+extension Animation {
+    static func carouselSlide(settings: AnimationSettings) -> Animation {
+        let curve = settings.slide.curve
+        return .timingCurve(curve.x1, curve.y1, curve.x2, curve.y2, 
+                           duration: settings.slide.duration)
+    }
+    
+    static func carouselFade(settings: AnimationSettings) -> Animation {
+        return .easeInOut(duration: settings.fade.duration)
+    }
+}
+
+// Add new animation settings structs
+struct AnimationSettings: Codable {
+    let slideEnabled: Bool
+    let fadeEnabled: Bool
+    let slide: SlideAnimation
+    let fade: FadeAnimation
+}
+
+struct SlideAnimation: Codable {
+    let duration: Double
+    let curve: CubicCurve
+}
+
+struct CubicCurve: Codable {
+    let x1: Double
+    let y1: Double
+    let x2: Double
+    let y2: Double
+}
+
+struct FadeAnimation: Codable {
+    let duration: Double
+}
+
+private let defaultNavigationSettings = NavigationSettings(
+    size: 12.0,
+    spacing: 24.0,
+    opacity: 0.3,
+    bottomPadding: 40.0
+) 
+
+// Add these constants at the top level
+private let mouseSensitivity: CGFloat = 100.0
+private let enableScreenshots = true 

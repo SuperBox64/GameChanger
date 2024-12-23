@@ -140,14 +140,20 @@ extension Notification.Name {
 }
 
 @main
-struct LaunchManApp: App {
+struct GameChangerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainWindowView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+    }
+}
+
+struct MainWindowView: View {
+    var body: some View {
+        ContentView()
     }
 }
 

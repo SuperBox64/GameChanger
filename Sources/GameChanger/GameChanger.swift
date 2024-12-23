@@ -13,6 +13,7 @@ private struct AppConfig {
     static let enableScreenshots = false  // Set to true to enable screenshots
     static let fontName = "Avenir Next"
     static let titleFontName = "Avenir Next Medium"  // or "Avenir Next Bold" for bolder text
+    static let mouseSensitivity: CGFloat = 100.0  // Added mouse sensitivity setting
     
     static func getFont(size: CGFloat) -> Font {
         // First try to load custom font, fallback to system font if not available
@@ -471,8 +472,9 @@ struct ContentView: View {
     @State private var opacity: Double = 1
     @State private var titleOpacity: Double = 1
     @State private var currentSection: String = "Game Changer"
-    
-    private let mouseSensitivity: CGFloat = 50.0
+    @State private var mouseProgress: CGFloat = 0
+    @State private var mouseDirection: Int = 0
+    @State private var showingProgress = false
     
     private var visibleItems: [AppItem] {
         let sourceItems = getSourceItems()
@@ -490,6 +492,10 @@ struct ContentView: View {
     private var numberOfPages: Int {
         let sourceItems = getSourceItems()
         return (sourceItems.count + 3) / 4
+    }
+    
+    private var normalizedMouseProgress: CGFloat {
+        min(abs(accumulatedMouseX) / AppConfig.mouseSensitivity, 1.0)
     }
     
     private func handleSelection() {
@@ -542,6 +548,46 @@ struct ContentView: View {
     }
     
     private let slideAnimation = Animation.timingCurve(0.1, 0.3, 0.3, 1, duration: 0.5)  // More gradual curve
+    
+    private func resetMouseState() {
+        accumulatedMouseX = 0
+        mouseProgress = 0
+        mouseDirection = 0
+        showingProgress = false
+    }
+    
+    // Update keyboard handling
+    private var keyboardHandler: some View {
+        Color.clear
+            .focusable()
+            .onAppear {
+                NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+                    switch Int(event.keyCode) {
+                    case kVK_LeftArrow:
+                        resetMouseState()
+                        moveLeft()
+                    case kVK_RightArrow:
+                        resetMouseState()
+                        moveRight()
+                    case kVK_UpArrow:
+                        resetMouseState()
+                        moveUp()
+                    case kVK_DownArrow:
+                        resetMouseState()
+                        moveDown()
+                    case kVK_Return:
+                        resetMouseState()
+                        handleSelection()
+                    case kVK_Escape:
+                        resetMouseState()
+                        back()
+                    default:
+                        break
+                    }
+                    return event
+                }
+            }
+    }
     
     var body: some View {
         Group {
@@ -629,6 +675,11 @@ struct ContentView: View {
                             .padding(.top, 20)
                         }
                     }
+                    
+                    if showingProgress {
+                        MouseProgressView(progress: mouseProgress, direction: mouseDirection)
+                            .transition(.opacity)
+                    }
                 }
                 
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -660,18 +711,25 @@ struct ContentView: View {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             switch Int(event.keyCode) {
             case 53: // Escape
+                resetMouseState()
                 back()
             case 126: // Up Arrow
+                resetMouseState()
                 back()
             case 125: // Down Arrow
+                resetMouseState()
                 handleSelection()
             case 123: // Left Arrow
+                resetMouseState()
                 moveLeft()
             case 124: // Right Arrow
+                resetMouseState()
                 moveRight()
             case 36: // Return
+                resetMouseState()
                 handleSelection()
             case 49: // Space
+                resetMouseState()
                 handleSelection()
             default: break
             }
@@ -711,6 +769,7 @@ struct ContentView: View {
             // D-pad
             gamepad.dpad.valueChangedHandler = { (_, xValue, yValue) in
                 DispatchQueue.main.async {
+                    resetMouseState()
                     if yValue == 1 {  // Up
                         back()
                     } else if yValue == -1 {  // Down
@@ -729,6 +788,7 @@ struct ContentView: View {
             gamepad.buttonA.valueChangedHandler = { (_, _, pressed) in
                 if pressed {
                     DispatchQueue.main.async {
+                        resetMouseState()
                         self.handleSelection()
                     }
                 }
@@ -737,6 +797,7 @@ struct ContentView: View {
             gamepad.buttonB.valueChangedHandler = { (_, _, pressed) in
                 if pressed {
                     DispatchQueue.main.async {
+                        resetMouseState()
                         self.moveRight()
                     }
                 }
@@ -745,6 +806,7 @@ struct ContentView: View {
             gamepad.buttonX.valueChangedHandler = { (_, _, pressed) in
                 if pressed {
                     DispatchQueue.main.async {
+                        resetMouseState()
                         self.moveLeft()
                     }
                 }
@@ -753,6 +815,7 @@ struct ContentView: View {
             gamepad.buttonY.valueChangedHandler = { (_, _, pressed) in
                 if pressed {
                     DispatchQueue.main.async {
+                        resetMouseState()
                         self.back()
                     }
                 }
@@ -762,30 +825,40 @@ struct ContentView: View {
     
     private func setupMouseMonitor() {
         mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { event in
-            // Get relative movement
             let deltaX = event.deltaX
-            let deltaY = event.deltaY
+            
+            // Check for direction change
+            if deltaX != 0 {
+                let newDirection = deltaX < 0 ? -1 : 1
+                
+                // If direction changed, reset progress
+                if newDirection != mouseDirection {
+                    accumulatedMouseX = 0
+                    mouseProgress = 0
+                    showingProgress = true
+                }
+                
+                mouseDirection = newDirection
+            }
             
             accumulatedMouseX += deltaX
-            accumulatedMouseY += deltaY
+            accumulatedMouseY += event.deltaY
+            
+            // Update progress
+            mouseProgress = normalizedMouseProgress
             
             // Check if accumulated movement exceeds threshold
-            if abs(accumulatedMouseX) > mouseSensitivity {
+            if abs(accumulatedMouseX) > AppConfig.mouseSensitivity {
                 if accumulatedMouseX < 0 {
                     moveLeft()
                 } else {
                     moveRight()
                 }
+                // Reset after movement
                 accumulatedMouseX = 0
-            }
-            
-            if abs(accumulatedMouseY) > mouseSensitivity {
-                if accumulatedMouseY < 0 {
-                    back()
-                } else {
-                    self.handleSelection()
-                }
-                accumulatedMouseY = 0
+                mouseDirection = 0
+                mouseProgress = 0
+                showingProgress = false
             }
             
             return event
@@ -1034,5 +1107,47 @@ struct ClockView: View {
         .onReceive(timer) { input in
             currentTime = input
         }
+    }
+}
+
+struct MouseProgressView: View {
+    let progress: CGFloat
+    let direction: Int
+    
+    private let indicatorSize: CGFloat = 64
+    private let strokeWidth: CGFloat = 3
+    
+    var body: some View {
+        ZStack {
+            // Background circle
+            Circle()
+                .stroke(Color.gray.opacity(0.2), lineWidth: strokeWidth)
+                .frame(width: indicatorSize, height: indicatorSize)
+            
+            // Progress arc
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(
+                    Color.green.opacity(0.8),
+                    style: StrokeStyle(
+                        lineWidth: strokeWidth,
+                        lineCap: .round
+                    )
+                )
+                .frame(width: indicatorSize, height: indicatorSize)
+                .rotationEffect(
+                    direction == -1 ? 
+                        .degrees(Double(-90) - (Double(progress) * 360)) : 
+                        .degrees(-90)
+                )
+            
+            // Direction indicator
+            Image(systemName: direction == -1 ? "chevron.left" :
+                            direction == 1 ? "chevron.right" : "")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.green.opacity(0.8))
+        }
+        .padding(.bottom, 100)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
     }
 } 

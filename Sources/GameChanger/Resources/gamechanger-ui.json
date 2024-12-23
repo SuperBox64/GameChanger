@@ -39,7 +39,7 @@
                 "fontName": "Avenir Next Medium",
                 "timeSize": 24.0,
                 "dateSize": 10.0,
-                "spacing": 2.0
+                "spacing": 1.0
             },
             "mouseIndicator": {
                 "inactivityTimeout": 5.0,
@@ -78,6 +78,10 @@
                     "topPadding": 20,
                     "trailingPadding": 30
                 },
+                "logo": {
+                    "topPadding": 30,
+                    "leadingPadding": 30
+                },
                 "mouseIndicator": {
                     "bottomPadding": 130
                 }
@@ -105,7 +109,7 @@
                 "fontName": "Avenir Next Medium",
                 "timeSize": 42.0,
                 "dateSize": 18.0,
-                "spacing": 2.0
+                "spacing": 1.0
             },
             "mouseIndicator": {
                 "inactivityTimeout": 5.0,
@@ -141,8 +145,8 @@
                     "topPadding": 200
                 },
                 "clock": {
-                    "topPadding": 30,
-                    "trailingPadding": 40
+                    "topPadding": 20,
+                    "trailingPadding": 30
                 },
                 "mouseIndicator": {
                     "bottomPadding": 170
@@ -171,7 +175,7 @@
                 "fontName": "Avenir Next Medium",
                 "timeSize": 56.0,
                 "dateSize": 24.0,
-                "spacing": 2.0
+                "spacing": 1.0
             },
             "mouseIndicator": {
                 "inactivityTimeout": 5.0,
@@ -207,8 +211,8 @@
                     "topPadding": 250
                 },
                 "clock": {
-                    "topPadding": 40,
-                    "trailingPadding": 50
+                    "topPadding": 20,
+                    "trailingPadding": 30
                 },
                 "mouseIndicator": {
                     "bottomPadding": 210

@@ -166,10 +166,7 @@ struct GameChangerApp: App {
             ZStack {
                 BackgroundView()  // Background layer
                 
-                VStack {  // Clock layer
-                    ClockView()
-                    Spacer()
-                }
+                ClockView()  // Remove the VStack wrapper
                 
                 ContentView()     // Main content layer
                 MouseIndicatorView()  // Mouse indicator overlay
@@ -228,8 +225,8 @@ struct BackgroundView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: logoSize)
-                    .padding(.leading, 30)
-                    .padding(.top, 30)
+                    .padding(.leading, SizingGuide.getCurrentSettings()?.layout.logo.leadingPadding ?? 30)
+                    .padding(.top, SizingGuide.getCurrentSettings()?.layout.logo.topPadding ?? 30)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
         }
@@ -405,7 +402,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func takeScreenshot() {
-        guard enableScreenshots else { return }
+        guard SizingGuide.getSettings(for: "common")?.enableScreenshots ?? true else { return }
         
         if let window = NSApp.windows.first,
            let cgImage = CGWindowListCreateImage(
@@ -440,6 +437,11 @@ struct InterfaceSizing: Codable {
     let clock: ClockSettings
     let navigationDots: NavigationSettings
     let layout: LayoutSettings
+    // Add common settings
+    let enableScreenshots: Bool?
+    let multipliers: MultiplierSettings?
+    let opacities: OpacitySettings?
+    let fontWeights: FontWeightSettings?
 }
 
 struct TitleSettings: Codable {
@@ -508,19 +510,26 @@ struct SizingGuide {
     static private var settings: GUISettings?
     
     static func loadSettings() {
-        // Only load if not already loaded
         guard settings == nil else { return }
         
-        if let url = Bundle.main.url(forResource: "gamechanger-ui", withExtension: "json"),
-           let data = try? Data(contentsOf: url) {
-            settings = try? JSONDecoder().decode(GUISettings.self, from: data)
+        print("DEBUG: Loading UI settings from JSON")
+        if let url = Bundle.main.url(forResource: "gamechanger-ui", withExtension: "json") {
+            print("DEBUG: Found JSON file at \(url)")
+            do {
+                let data = try Data(contentsOf: url)
+                settings = try JSONDecoder().decode(GUISettings.self, from: data)
+                print("DEBUG: Successfully loaded UI settings")
+                print("DEBUG: Available resolutions: \(settings?.GameChangerUI.keys ?? [])")
+            } catch {
+                print("ERROR: Failed to load UI settings - \(error)")
+            }
+        } else {
+            print("ERROR: Could not find gamechanger-ui.json")
         }
     }
     
     static func getCurrentSettings() -> InterfaceSizing? {
-        // Load settings if needed
         loadSettings()
-        
         if let screen = NSScreen.main {
             let resolution = getResolutionKey(for: screen.frame.size)
             return settings?.GameChangerUI[resolution]
@@ -1279,21 +1288,22 @@ struct AppIconView: View {
     }
     
     var body: some View {
-        VStack(spacing: sizing.gridSpacing * 0.4) {
+        let multipliers = SizingGuide.getSettings(for: "common")?.multipliers
+        VStack(spacing: sizing.gridSpacing * (multipliers?.gridSpacing ?? 0.4)) {
             ZStack {
-                RoundedRectangle(cornerRadius: sizing.cornerRadius * 1.334)
+                RoundedRectangle(cornerRadius: sizing.cornerRadius * (multipliers?.cornerRadius ?? 1.334))
                     .fill(Color.clear)
                     .frame(
-                        width: sizing.iconSize * 2 + sizing.selectionPadding,
-                        height: sizing.iconSize * 2 + sizing.selectionPadding
+                        width: sizing.iconSize * (multipliers?.iconSize ?? 2.0) + sizing.selectionPadding,
+                        height: sizing.iconSize * (multipliers?.iconSize ?? 2.0) + sizing.selectionPadding
                     )
                 
                 if isSelected {
-                    RoundedRectangle(cornerRadius: sizing.cornerRadius * 1.334)
-                        .fill(Color.white.opacity(0.2))
+                    RoundedRectangle(cornerRadius: sizing.cornerRadius * (multipliers?.cornerRadius ?? 1.334))
+                        .fill(Color.white.opacity(SizingGuide.getSettings(for: "common")?.opacities?.selectionHighlight ?? 0.2))
                         .frame(
-                            width: sizing.iconSize * 2 + sizing.selectionPadding,
-                            height: sizing.iconSize * 2 + sizing.selectionPadding
+                            width: sizing.iconSize * (multipliers?.iconSize ?? 2.0) + sizing.selectionPadding,
+                            height: sizing.iconSize * (multipliers?.iconSize ?? 2.0) + sizing.selectionPadding
                         )
                 }
                 
@@ -1336,7 +1346,10 @@ struct ClockView: View {
     }
     
     var body: some View {
-        VStack(alignment: .trailing, spacing: SizingGuide.getCurrentSettings()?.clock.spacing ?? 2.0) {
+        let clockSettings = SizingGuide.getCurrentSettings()?.clock
+        print("DEBUG: Clock settings loaded - spacing: \(clockSettings?.spacing ?? -1)")  // Should never see -1
+        
+        VStack(alignment: .trailing, spacing: clockSettings?.spacing ?? 1.0) {
             Text(timeFormatter.string(from: currentTime))
                 .font(.custom(
                     SizingGuide.getCurrentSettings()?.clock.fontName ?? "Avenir Next Medium",
@@ -1349,11 +1362,11 @@ struct ClockView: View {
                     SizingGuide.getCurrentSettings()?.clock.fontName ?? "Avenir Next Medium",
                     size: dateFontSize
                 ))
-                .foregroundColor(.white.opacity(0.7))
+                .foregroundColor(.white.opacity(SizingGuide.getSettings(for: "common")?.opacities?.clockDateText ?? 0.7))
         }
-        .padding(.top, SizingGuide.getCurrentSettings()?.layout.clock.topPadding ?? 30)
-        .padding(.trailing, SizingGuide.getCurrentSettings()?.layout.clock.trailingPadding ?? 40)
-        .frame(maxWidth: .infinity, alignment: .trailing)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+        .padding(.trailing, SizingGuide.getCurrentSettings()?.layout.clock.trailingPadding ?? 30)
+        .padding(.top, SizingGuide.getCurrentSettings()?.layout.clock.topPadding ?? 20)
         .onReceive(timer) { input in
             currentTime = input
         }
@@ -1382,14 +1395,12 @@ struct MouseProgressView: View {
     
     var body: some View {
         ZStack {
-            // Background circle
             Circle()
                 .stroke(settings.backgroundColorUI,
                        lineWidth: settings.strokeWidth)
                 .frame(width: settings.size,
                        height: settings.size)
             
-            // Progress arc
             Circle()
                 .trim(from: 0, to: progress)
                 .stroke(
@@ -1407,10 +1418,12 @@ struct MouseProgressView: View {
                         .degrees(-90)
                 )
             
-            // Direction indicator
             Image(systemName: direction == -1 ? "chevron.left" :
                             direction == 1 ? "chevron.right" : "")
-                .font(.system(size: settings.size * 0.28, weight: .semibold))
+                .font(.system(
+                    size: settings.size * (SizingGuide.getSettings(for: "common")?.multipliers?.mouseIndicatorIconSize ?? 0.28),
+                    weight: .semibold
+                ))
                 .foregroundColor(settings.progressColorUI)
         }
         .padding(.bottom, SizingGuide.getCurrentSettings()?.layout.mouseIndicator.bottomPadding ?? 170)
@@ -1528,6 +1541,7 @@ struct LayoutSettings: Codable {
     let title: TitleLayout
     let clock: ClockLayout
     let mouseIndicator: MouseIndicatorLayout
+    let logo: LogoLayout
 }
 
 struct TitleLayout: Codable {
@@ -1541,4 +1555,34 @@ struct ClockLayout: Codable {
 
 struct MouseIndicatorLayout: Codable {
     let bottomPadding: CGFloat
+}
+
+struct LogoLayout: Codable {
+    let topPadding: CGFloat
+    let leadingPadding: CGFloat
+}
+
+// Add CommonSettings struct
+struct CommonSettings: Codable {
+    let mouseSensitivity: CGFloat
+    let enableScreenshots: Bool
+    let opacities: OpacitySettings
+    let fontWeights: FontWeightSettings
+    let multipliers: MultiplierSettings
+}
+
+struct OpacitySettings: Codable {
+    let selectionHighlight: Double
+    let clockDateText: Double
+}
+
+struct FontWeightSettings: Codable {
+    let mouseIndicatorIcon: String
+}
+
+struct MultiplierSettings: Codable {
+    let iconSize: Double
+    let cornerRadius: Double
+    let gridSpacing: Double
+    let mouseIndicatorIconSize: Double
 } 

@@ -590,28 +590,22 @@ class ImageCache {
 struct CarouselView: View {
     let visibleItems: [AppItem]
     let selectedIndex: Int
-    let currentSlideOffset: CGFloat
-    let opacity: Double
     let sizing: CarouselSizing
     
     var body: some View {
-        ZStack {
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: sizing.gridSpacing),
-                GridItem(.flexible(), spacing: sizing.gridSpacing),
-                GridItem(.flexible(), spacing: sizing.gridSpacing),
-                GridItem(.flexible(), spacing: sizing.gridSpacing)
-            ], spacing: sizing.gridSpacing) {
-                ForEach(0..<visibleItems.count, id: \.self) { index in
-                    AppIconView(
-                        item: visibleItems[index],
-                        isSelected: index == selectedIndex,
-                        sizing: sizing
-                    )
-                }
+        LazyVGrid(columns: [
+            GridItem(.flexible(), spacing: sizing.gridSpacing),
+            GridItem(.flexible(), spacing: sizing.gridSpacing),
+            GridItem(.flexible(), spacing: sizing.gridSpacing),
+            GridItem(.flexible(), spacing: sizing.gridSpacing)
+        ], spacing: sizing.gridSpacing) {
+            ForEach(0..<visibleItems.count, id: \.self) { index in
+                AppIconView(
+                    item: visibleItems[index],
+                    isSelected: index == selectedIndex,
+                    sizing: sizing
+                )
             }
-            .offset(x: currentSlideOffset)
-            .opacity(opacity)
         }
         .padding(sizing.gridSpacing)
     }
@@ -632,7 +626,7 @@ struct ContentView: View {
     @State private var nextSlideOffset: CGFloat = 0
     @State private var showingNextSet = false
     @State private var windowWidth: CGFloat = 0
-    @State private var animationDirection: Int = 0  // -1 for left, 1 for right
+    @State private var animationDirection: Int = 0
     @State private var isTransitioning = false
     @State private var opacity: Double = 1
     @State private var titleOpacity: Double = 1
@@ -672,50 +666,18 @@ struct ContentView: View {
         let actualIndex = visibleStartIndex + selectedIndex
         let selectedItem = sourceItems[actualIndex]
         
-        // Debug print
-        print("Selected item: \(selectedItem.name)")
-        print("Action: \(String(describing: selectedItem.action))")
-        print("Action enum: \(selectedItem.actionEnum)")
-        
-        // Handle system actions
         if selectedItem.actionEnum != .none {
-            print("Executing action: \(selectedItem.actionEnum)")
             selectedItem.actionEnum.execute()
             return
         }
         
-        // Only navigate if there's both a parent section AND items to navigate to
         if let parentSection = selectedItem.parent, 
            !AppItemManager.shared.getItems(for: selectedItem.name).isEmpty {
-            // Fade out
-            print("parentSection: \(parentSection)")
-            withAnimation(slideAnimation) {
-                opacity = 0
-                titleOpacity = 0
-            }
-            
-            // Wait for fade out, then change section and fade in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.52) {
-                // Handle navigation
-                selectedIndex = 0
-                currentPage = 0
-                showingNextSet = false
-                currentSlideOffset = 0
-                nextSlideOffset = 0
-                animationDirection = 0
-                currentSection = selectedItem.sectionEnum.rawValue
-                
-                // Fade in
-                withAnimation(slideAnimation) {
-                    opacity = 1
-                    titleOpacity = 1
-                }
-            }
+            selectedIndex = 0
+            currentPage = 0
+            currentSection = selectedItem.sectionEnum.rawValue
         }
-        // Do nothing if there's no navigation possible
     }
-    
-    private let slideAnimation = Animation.timingCurve(0.1, 0.3, 0.3, 1, duration: 0.5)  // More gradual curve
     
     private func resetMouseState() {
         mouseTimer?.invalidate()
@@ -853,8 +815,6 @@ struct ContentView: View {
             CarouselView(
                 visibleItems: visibleItems,
                 selectedIndex: selectedIndex,
-                currentSlideOffset: currentSlideOffset,
-                opacity: opacity,
                 sizing: sizing
             )
         }
@@ -1067,31 +1027,24 @@ struct ContentView: View {
     private func moveLeft() {
         if !isTransitioning {
             let sourceItems = getSourceItems()
+            let totalItems = sourceItems.count
+            let itemsPerPage = 4
             
-            if selectedIndex == 0 && currentPage > 0 {
-                isTransitioning = true
-                animationDirection = -1
-                showingNextSet = true
-                nextSlideOffset = -windowWidth
-                
-                // Calculate the number of items on the previous page
-                let prevPageStart = (currentPage - 1) * 4
-                let itemsOnPrevPage = min(4, sourceItems.count - prevPageStart)
-                selectedIndex = itemsOnPrevPage - 1  // Select the last item on the previous page
-                
-                withAnimation(slideAnimation) {
-                    currentSlideOffset = windowWidth
-                    nextSlideOffset = 0
+            // If we're on the first item of the first page
+            if currentPage == 0 && selectedIndex == 0 {
+                // Wrap to the end
+                let lastPage = (totalItems - 1) / itemsPerPage
+                let itemsOnLastPage = totalItems % itemsPerPage == 0 ? itemsPerPage : totalItems % itemsPerPage
+                currentPage = lastPage
+                selectedIndex = itemsOnLastPage - 1
+            } else {
+                // Normal left movement
+                if selectedIndex > 0 {
+                    selectedIndex -= 1
+                } else if currentPage > 0 {
+                    currentPage -= 1
+                    selectedIndex = 3
                 }
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    currentPage = max(0, currentPage - 1)  // Ensure it doesn't go negative
-                    currentSlideOffset = 0
-                    showingNextSet = false
-                    isTransitioning = false
-                }
-            } else if selectedIndex > 0 {
-                selectedIndex -= 1
             }
         }
     }
@@ -1106,56 +1059,16 @@ struct ContentView: View {
             
             // If we're on the last item of the last page
             if currentPage == lastPage && selectedIndex == itemsOnLastPage - 1 {
-                // Wrap to the beginning
-                isTransitioning = true
-                animationDirection = 1
-                showingNextSet = true
-                nextSlideOffset = windowWidth
-                
-                withAnimation(slideAnimation) {
-                    currentSlideOffset = -windowWidth
-                    opacity = 0
-                }
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    currentPage = 0
-                    selectedIndex = 0
-                    currentSlideOffset = 0
-                    nextSlideOffset = 0
-                    showingNextSet = false
-                    isTransitioning = false
-                    
-                    withAnimation(slideAnimation) {
-                        opacity = 1
-                    }
-                }
+                // Wrap to beginning
+                currentPage = 0
+                selectedIndex = 0
             } else {
                 // Normal right movement
                 if selectedIndex < min(4, sourceItems.count - (currentPage * 4)) - 1 {
                     selectedIndex += 1
                 } else if currentPage < lastPage {
-                    isTransitioning = true
-                    animationDirection = 1
-                    showingNextSet = true
-                    nextSlideOffset = windowWidth
-                    
-                    withAnimation(slideAnimation) {
-                        currentSlideOffset = -windowWidth
-                        opacity = 0
-                    }
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        currentPage += 1
-                        selectedIndex = 0
-                        currentSlideOffset = 0
-                        nextSlideOffset = 0
-                        showingNextSet = false
-                        isTransitioning = false
-                        
-                        withAnimation(slideAnimation) {
-                            opacity = 1
-                        }
-                    }
+                    currentPage += 1
+                    selectedIndex = 0
                 }
             }
         }
@@ -1183,21 +1096,9 @@ struct ContentView: View {
     public func back() {
         let sourceItems = getSourceItems()
         if !sourceItems.isEmpty, let parentSection = sourceItems[0].parentEnum {
-            withAnimation(slideAnimation) {
-                opacity = 0
-                titleOpacity = 0
-            }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.52) {
-                currentSection = parentSection.rawValue
-                selectedIndex = 0
-                currentPage = 0
-                
-                withAnimation(slideAnimation) {
-                    opacity = 1
-                    titleOpacity = 1
-                }
-            }
+            currentSection = parentSection.rawValue
+            selectedIndex = 0
+            currentPage = 0
         }
     }
     

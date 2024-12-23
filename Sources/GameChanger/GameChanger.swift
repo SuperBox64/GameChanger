@@ -165,6 +165,12 @@ struct GameChangerApp: App {
         WindowGroup {
             ZStack {
                 BackgroundView()
+                
+                VStack {
+                    ClockView()
+                    Spacer()
+                }
+                
                 MainWindowView()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -471,8 +477,14 @@ struct ContentView: View {
     private var visibleItems: [AppItem] {
         let sourceItems = getSourceItems()
         let startIndex = currentPage * 4
-        let visibleSet = Array(sourceItems[startIndex..<min(startIndex + 4, sourceItems.count)])
-        return visibleSet
+        
+        // Add bounds checking
+        guard startIndex >= 0 && startIndex < sourceItems.count else {
+            return []
+        }
+        
+        let endIndex = min(startIndex + 4, sourceItems.count)
+        return Array(sourceItems[startIndex..<endIndex])
     }
     
     private var numberOfPages: Int {
@@ -836,11 +848,10 @@ struct ContentView: View {
                 showingNextSet = true
                 nextSlideOffset = -windowWidth
                 
+                // Calculate the number of items on the previous page
                 let prevPageStart = (currentPage - 1) * 4
-                let prevPageEnd = min(prevPageStart + 4, sourceItems.count)
-                let lastVisibleIndex = (prevPageEnd - prevPageStart) - 1
-                
-                selectedIndex = 0
+                let itemsOnPrevPage = min(4, sourceItems.count - prevPageStart)
+                selectedIndex = itemsOnPrevPage - 1  // Select the last item on the previous page
                 
                 withAnimation(slideAnimation) {
                     currentSlideOffset = windowWidth
@@ -848,8 +859,7 @@ struct ContentView: View {
                 }
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    currentPage -= 1
-                    selectedIndex = lastVisibleIndex
+                    currentPage = max(0, currentPage - 1)  // Ensure it doesn't go negative
                     currentSlideOffset = 0
                     showingNextSet = false
                     isTransitioning = false
@@ -989,5 +999,40 @@ struct AppIconView: View {
                 .foregroundColor(isSelected ? .white : .blue)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+struct ClockView: View {
+    @State private var currentTime = Date()
+    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    
+    private let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter
+    }()
+    
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, MMM d"
+        return formatter
+    }()
+    
+    var body: some View {
+        VStack(alignment: .trailing, spacing: 4) {
+            Text(timeFormatter.string(from: currentTime))
+                .font(AppConfig.getTitleFont(size: 42))
+                .foregroundColor(.white)
+            
+            Text(dateFormatter.string(from: currentTime))
+                .font(AppConfig.getFont(size: 18))
+                .foregroundColor(.white.opacity(0.7))
+        }
+        .padding(.top, 30)
+        .padding(.trailing, 40)
+        .frame(maxWidth: .infinity, alignment: .trailing)
+        .onReceive(timer) { input in
+            currentTime = input
+        }
     }
 } 

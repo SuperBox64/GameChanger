@@ -15,6 +15,15 @@ private struct AppConfig {
     static let titleFontName = "Avenir Next Medium"  // or "Avenir Next Bold" for bolder text
     static let mouseSensitivity: CGFloat = 100.0  // Added mouse sensitivity setting
     
+    // Mouse indicator settings
+    struct MouseIndicator {
+        static let inactivityTimeout: TimeInterval = 5.0  // Reset after 10 seconds
+        static let size: CGFloat = 64.0
+        static let strokeWidth: CGFloat = 3.0
+        static let backgroundColor = Color.gray.opacity(0.2)
+        static let progressColor = Color.green.opacity(0.8)
+    }
+    
     static func getFont(size: CGFloat) -> Font {
         // First try to load custom font, fallback to system font if not available
         if let _ = NSFont(name: fontName, size: size) {
@@ -475,6 +484,7 @@ struct ContentView: View {
     @State private var mouseProgress: CGFloat = 0
     @State private var mouseDirection: Int = 0
     @State private var showingProgress = false
+    @State private var mouseTimer: Timer?
     
     private var visibleItems: [AppItem] {
         let sourceItems = getSourceItems()
@@ -550,6 +560,8 @@ struct ContentView: View {
     private let slideAnimation = Animation.timingCurve(0.1, 0.3, 0.3, 1, duration: 0.5)  // More gradual curve
     
     private func resetMouseState() {
+        mouseTimer?.invalidate()
+        mouseTimer = nil
         accumulatedMouseX = 0
         mouseProgress = 0
         mouseDirection = 0
@@ -827,11 +839,17 @@ struct ContentView: View {
         mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { event in
             let deltaX = event.deltaX
             
+            // Reset and restart inactivity timer
+            mouseTimer?.invalidate()
+            mouseTimer = Timer.scheduledTimer(withTimeInterval: AppConfig.MouseIndicator.inactivityTimeout, 
+                                           repeats: false) { _ in
+                self.resetMouseState()
+            }
+            
             // Check for direction change
             if deltaX != 0 {
                 let newDirection = deltaX < 0 ? -1 : 1
                 
-                // If direction changed, reset progress
                 if newDirection != mouseDirection {
                     accumulatedMouseX = 0
                     mouseProgress = 0
@@ -844,17 +862,14 @@ struct ContentView: View {
             accumulatedMouseX += deltaX
             accumulatedMouseY += event.deltaY
             
-            // Update progress
             mouseProgress = normalizedMouseProgress
             
-            // Check if accumulated movement exceeds threshold
             if abs(accumulatedMouseX) > AppConfig.mouseSensitivity {
                 if accumulatedMouseX < 0 {
                     moveLeft()
                 } else {
                     moveRight()
                 }
-                // Reset after movement
                 accumulatedMouseX = 0
                 mouseDirection = 0
                 mouseProgress = 0
@@ -1114,27 +1129,27 @@ struct MouseProgressView: View {
     let progress: CGFloat
     let direction: Int
     
-    private let indicatorSize: CGFloat = 64
-    private let strokeWidth: CGFloat = 3
-    
     var body: some View {
         ZStack {
             // Background circle
             Circle()
-                .stroke(Color.gray.opacity(0.2), lineWidth: strokeWidth)
-                .frame(width: indicatorSize, height: indicatorSize)
+                .stroke(AppConfig.MouseIndicator.backgroundColor, 
+                       lineWidth: AppConfig.MouseIndicator.strokeWidth)
+                .frame(width: AppConfig.MouseIndicator.size, 
+                       height: AppConfig.MouseIndicator.size)
             
             // Progress arc
             Circle()
                 .trim(from: 0, to: progress)
                 .stroke(
-                    Color.green.opacity(0.8),
+                    AppConfig.MouseIndicator.progressColor,
                     style: StrokeStyle(
-                        lineWidth: strokeWidth,
+                        lineWidth: AppConfig.MouseIndicator.strokeWidth,
                         lineCap: .round
                     )
                 )
-                .frame(width: indicatorSize, height: indicatorSize)
+                .frame(width: AppConfig.MouseIndicator.size, 
+                       height: AppConfig.MouseIndicator.size)
                 .rotationEffect(
                     direction == -1 ? 
                         .degrees(Double(-90) - (Double(progress) * 360)) : 
@@ -1145,7 +1160,7 @@ struct MouseProgressView: View {
             Image(systemName: direction == -1 ? "chevron.left" :
                             direction == 1 ? "chevron.right" : "")
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.green.opacity(0.8))
+                .foregroundColor(AppConfig.MouseIndicator.progressColor)
         }
         .padding(.bottom, 100)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)

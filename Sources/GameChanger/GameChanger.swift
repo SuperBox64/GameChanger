@@ -11,9 +11,35 @@ import Carbon.HIToolbox
 // Configuration settings
 private struct AppConfig {
     static let enableScreenshots = false  // Set to true to enable screenshots
-    static let fontName = "Avenir Next"
-    static let titleFontName = "Avenir Next Medium"  // or "Avenir Next Bold" for bolder text
     static let mouseSensitivity: CGFloat = 100.0  // Added mouse sensitivity setting
+    
+    // Title font sizes
+    struct TitleFont {
+        static let fontName = "Avenir Next Medium"
+        static let size720p: CGFloat = 18.0
+        static let size1080p: CGFloat = 42.0
+        static let size1440p: CGFloat = 56.0
+    }
+    
+    // Label font sizes (for icon labels)
+    struct LabelFont {
+        static let fontName = "Avenir Next"
+        static let size720p: CGFloat = 12.0
+        static let size1080p: CGFloat = 22.0
+        static let size1440p: CGFloat = 30.0
+    }
+    
+    // Clock font sizes
+    struct ClockFont {
+        static let fontName = "Avenir Next Medium"
+        static let time720p: CGFloat = 24.0
+        static let time1080p: CGFloat = 42.0
+        static let time1440p: CGFloat = 56.0
+        
+        static let date720p: CGFloat = 10.0
+        static let date1080p: CGFloat = 18.0
+        static let date1440p: CGFloat = 24.0
+    }
     
     // Mouse indicator settings
     struct MouseIndicator {
@@ -24,18 +50,31 @@ private struct AppConfig {
         static let progressColor = Color.green.opacity(0.8)
     }
     
+    // Navigation Dots settings
+    struct NavigationDots {
+        static let fontName = "Avenir Next"
+        static let size720p: CGFloat = 8.0
+        static let size1080p: CGFloat = 12.0
+        static let size1440p: CGFloat = 16.0
+        static let spacing720p: CGFloat = 16.0
+        static let spacing1080p: CGFloat = 24.0
+        static let spacing1440p: CGFloat = 32.0
+        static let opacity: CGFloat = 0.3
+        static let bottomPadding720p: CGFloat = 20.0
+        static let bottomPadding1080p: CGFloat = 40.0
+        static let bottomPadding1440p: CGFloat = 60.0
+    }
+    
     static func getFont(size: CGFloat) -> Font {
-        // First try to load custom font, fallback to system font if not available
-        if let _ = NSFont(name: fontName, size: size) {
-            return Font.custom(fontName, size: size)
+        if let _ = NSFont(name: LabelFont.fontName, size: size) {
+            return Font.custom(LabelFont.fontName, size: size)
         }
         return Font.system(size: size, design: .default)
     }
     
     static func getTitleFont(size: CGFloat) -> Font {
-        // First try to load custom title font, fallback to system font if not available
-        if let _ = NSFont(name: titleFontName, size: size) {
-            return Font.custom(titleFontName, size: size)
+        if let _ = NSFont(name: TitleFont.fontName, size: size) {
+            return Font.custom(TitleFont.fontName, size: size)
         }
         return Font.system(size: size, design: .default)
     }
@@ -191,6 +230,17 @@ struct GameChangerApp: App {
 struct BackgroundView: View {
     @State private var sizing: CarouselSizing = SizingGuide.getSizing(for: NSScreen.main!.frame.size)
     
+    private var logoSize: CGFloat {
+        let screenWidth = NSScreen.main?.frame.width ?? 1920
+        if screenWidth >= 2560 {
+            return AppConfig.TitleFont.size1440p * 6.8
+        } else if screenWidth >= 1920 {
+            return AppConfig.TitleFont.size1080p * 6.8
+        } else {
+            return AppConfig.TitleFont.size720p * 6.8
+        }
+    }
+    
     var body: some View {
         ZStack {
 
@@ -227,7 +277,7 @@ struct BackgroundView: View {
                 Image(nsImage: logoImage)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: sizing.titleSize * 6.8)
+                    .frame(width: logoSize)
                     .padding(.leading, 30)
                     .padding(.top, 30)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -605,19 +655,28 @@ struct ContentView: View {
             }
     }
     
+    private var titleFontSize: CGFloat {
+        let screenWidth = NSScreen.main?.frame.width ?? 1920
+        if screenWidth >= 2560 {
+            return AppConfig.TitleFont.size1440p
+        } else if screenWidth >= 1920 {
+            return AppConfig.TitleFont.size1080p
+        } else {
+            return AppConfig.TitleFont.size720p
+        }
+    }
+    
     var body: some View {
         Group {
             if appState.isLoaded {
                 ZStack {  // Main container
                     // Background and animated content
                     ZStack {
-
-                        // Animated content
                         VStack(spacing: 0) {
                             Text(currentSection)
-                                .font(AppConfig.getTitleFont(size: sizing.titleSize))
+                                .font(.custom(AppConfig.TitleFont.fontName, size: titleFontSize))
                                 .padding(.top)
-                                .padding(.bottom, sizing.titleSize * 1.5)
+                                .padding(.bottom, titleFontSize * 1.5)
                                 .foregroundColor(.white)
                                 .opacity(titleOpacity)
                                 .onReceive(NotificationCenter.default.publisher(for: .escKeyPressed)) { _ in
@@ -680,21 +739,15 @@ struct ContentView: View {
                             .padding(sizing.gridSpacing)
                             .padding(.bottom, sizing.gridSpacing * 4)
                             
-                            
-                            HStack(spacing: 20) {
-                                ForEach(0..<numberOfPages, id: \.self) { pageIndex in
-                                    Circle()
-                                        .fill(numberOfPages == 1 ? Color.clear : (currentPage == pageIndex ? Color.white : Color.white.opacity(0.3)))
-                                        .frame(width: 10, height: 10)
-                                }
-                            }
-                            .padding(.top, 20)
+                            // Add Navigation Dots here
+                            NavigationDotsView(currentPage: currentPage, totalPages: numberOfPages)
+                                .opacity(titleOpacity)  // Fade with title
                         }
                     }
                     
+                    // Mouse progress indicator
                     if showingProgress {
-                        MouseProgressView(progress: mouseProgress, direction: mouseDirection)
-                            .transition(.opacity)
+                        MouseProgressView(progress: normalizedMouseProgress, direction: mouseDirection)
                     }
                 }
                 
@@ -1064,6 +1117,17 @@ struct AppIconView: View {
             .frame(width: sizing.iconSize * 2, height: sizing.iconSize * 2))
     }
     
+    private var labelFontSize: CGFloat {
+        let screenWidth = NSScreen.main?.frame.width ?? 1920
+        if screenWidth >= 2560 {
+            return AppConfig.LabelFont.size1440p
+        } else if screenWidth >= 1920 {
+            return AppConfig.LabelFont.size1080p
+        } else {
+            return AppConfig.LabelFont.size720p
+        }
+    }
+    
     var body: some View {
         VStack(spacing: sizing.gridSpacing * 0.4) {
             ZStack {
@@ -1087,7 +1151,7 @@ struct AppIconView: View {
             }
             
             Text(item.name)
-                .font(AppConfig.getFont(size: sizing.labelSize))
+                .font(.custom(AppConfig.LabelFont.fontName, size: labelFontSize))
                 .foregroundColor(isSelected ? .white : .blue)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1110,14 +1174,36 @@ struct ClockView: View {
         return formatter
     }()
     
+    private var clockFontSize: CGFloat {
+        let screenWidth = NSScreen.main?.frame.width ?? 1920
+        if screenWidth >= 2560 {
+            return AppConfig.ClockFont.time1440p
+        } else if screenWidth >= 1920 {
+            return AppConfig.ClockFont.time1080p
+        } else {
+            return AppConfig.ClockFont.time720p
+        }
+    }
+    
+    private var dateFontSize: CGFloat {
+        let screenWidth = NSScreen.main?.frame.width ?? 1920
+        if screenWidth >= 2560 {
+            return AppConfig.ClockFont.date1440p
+        } else if screenWidth >= 1920 {
+            return AppConfig.ClockFont.date1080p
+        } else {
+            return AppConfig.ClockFont.date720p
+        }
+    }
+    
     var body: some View {
         VStack(alignment: .trailing, spacing: 4) {
             Text(timeFormatter.string(from: currentTime))
-                .font(AppConfig.getTitleFont(size: 42))
+                .font(.custom(AppConfig.ClockFont.fontName, size: clockFontSize))
                 .foregroundColor(.white)
             
             Text(dateFormatter.string(from: currentTime))
-                .font(AppConfig.getFont(size: 18))
+                .font(.custom(AppConfig.ClockFont.fontName, size: dateFontSize))
                 .foregroundColor(.white.opacity(0.7))
         }
         .padding(.top, 30)
@@ -1168,5 +1254,55 @@ struct MouseProgressView: View {
         }
         .padding(.bottom, 100)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+    }
+}
+
+struct NavigationDotsView: View {
+    let currentPage: Int
+    let totalPages: Int
+    
+    private var dotSize: CGFloat {
+        let screenWidth = NSScreen.main?.frame.width ?? 1920
+        if screenWidth >= 2560 {
+            return AppConfig.NavigationDots.size1440p
+        } else if screenWidth >= 1920 {
+            return AppConfig.NavigationDots.size1080p
+        } else {
+            return AppConfig.NavigationDots.size720p
+        }
+    }
+    
+    private var dotSpacing: CGFloat {
+        let screenWidth = NSScreen.main?.frame.width ?? 1920
+        if screenWidth >= 2560 {
+            return AppConfig.NavigationDots.spacing1440p
+        } else if screenWidth >= 1920 {
+            return AppConfig.NavigationDots.spacing1080p
+        } else {
+            return AppConfig.NavigationDots.spacing720p
+        }
+    }
+    
+    private var bottomPadding: CGFloat {
+        let screenWidth = NSScreen.main?.frame.width ?? 1920
+        if screenWidth >= 2560 {
+            return AppConfig.NavigationDots.bottomPadding1440p
+        } else if screenWidth >= 1920 {
+            return AppConfig.NavigationDots.bottomPadding1080p
+        } else {
+            return AppConfig.NavigationDots.bottomPadding720p
+        }
+    }
+    
+    var body: some View {
+        HStack(spacing: dotSpacing) {
+            ForEach(0..<totalPages, id: \.self) { index in
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: dotSize, height: dotSize)
+                    .opacity(index == currentPage ? 1 : AppConfig.NavigationDots.opacity)
+            }
+        }
+        .padding(.bottom, bottomPadding)
     }
 } 

@@ -2,13 +2,13 @@
     "GameChangerUI": {
         "1280x720": {
             "carousel": {
-                "iconSize": 96,
-                "iconPadding": 48,
-                "cornerRadius": 30,
-                "gridSpacing": 30,
-                "titleSize": 45,
-                "labelSize": 30,
-                "selectionPadding": 30
+                "iconSize": 86,
+                "iconPadding": 43,
+                "cornerRadius": 27,
+                "gridSpacing": 27,
+                "titleSize": 40,
+                "labelSize": 27,
+                "selectionPadding": 27
             }
         },
         "1920x1080": {

@@ -11,6 +11,24 @@ import Carbon.HIToolbox
 // Configuration settings
 private struct AppConfig {
     static let enableScreenshots = false  // Set to true to enable screenshots
+    static let fontName = "Avenir Next"
+    static let titleFontName = "Avenir Next Medium"  // or "Avenir Next Bold" for bolder text
+    
+    static func getFont(size: CGFloat) -> Font {
+        // First try to load custom font, fallback to system font if not available
+        if let _ = NSFont(name: fontName, size: size) {
+            return Font.custom(fontName, size: size)
+        }
+        return Font.system(size: size, design: .default)
+    }
+    
+    static func getTitleFont(size: CGFloat) -> Font {
+        // First try to load custom title font, fallback to system font if not available
+        if let _ = NSFont(name: titleFontName, size: size) {
+            return Font.custom(titleFontName, size: size)
+        }
+        return Font.system(size: size, design: .default)
+    }
 }
 
 // Types needed for items
@@ -565,7 +583,7 @@ struct ContentView: View {
                         // Animated content
                         VStack(spacing: 0) {
                             Text(currentSection)
-                                .font(.system(size: sizing.titleSize))
+                                .font(AppConfig.getTitleFont(size: sizing.titleSize))
                                 .padding(.top)
                                 .padding(.bottom, sizing.titleSize * 1.5)
                                 .foregroundColor(.white)
@@ -1009,7 +1027,7 @@ struct AppIconView: View {
             }
             
             Text(item.name)
-                .font(.system(size: sizing.labelSize))
+                .font(AppConfig.getFont(size: sizing.labelSize))
                 .foregroundColor(isSelected ? .white : .blue)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

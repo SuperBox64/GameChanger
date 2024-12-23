@@ -206,6 +206,29 @@ extension Notification.Name {
     static let escKeyPressed = Notification.Name("escKeyPressed")
 }
 
+class NavigationState: ObservableObject {
+    static let shared = NavigationState()
+    @Published var currentPage = 0
+    @Published var numberOfPages = 1
+    @Published var opacity: Double = 1.0
+}
+
+struct NavigationOverlayView: View {
+    @StateObject private var navigationState = NavigationState.shared
+    
+    var body: some View {
+        VStack {
+            Spacer()
+            NavigationDotsView(
+                currentPage: navigationState.currentPage,
+                totalPages: navigationState.numberOfPages
+            )
+        }
+        .opacity(navigationState.opacity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
 @main
 struct GameChangerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -213,17 +236,20 @@ struct GameChangerApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                BackgroundView()
+                BackgroundView()  // Background layer
                 
-                VStack {
+                VStack {  // Clock layer
                     ClockView()
                     Spacer()
                 }
                 
-                MainWindowView()
+                ContentView()     // Main content layer
+                MouseIndicatorView()  // Mouse indicator overlay
+                NavigationOverlayView()  // Navigation dots overlay
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
     }
 }
 
@@ -303,14 +329,67 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @StateObject private var appState = AppState.shared
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Preload images first
-        preloadAllImages()
+        // FIRST: Block until all images are loaded
+        print("=== Starting Image Loading ===")
         
-        // Mark as loaded after preloading
-        DispatchQueue.main.async {
-            AppState.shared.isLoaded = true
+        // Pre-initialize the cache
+        let allSections = ["Game Changer", "Arcade", "Console", "Computer", "Internet", "System"]
+        var loadedImages = 0
+        var totalImages = 0
+        
+        // First pass - count total images
+        for section in allSections {
+            let items = AppItemManager.shared.getItems(for: section)
+            totalImages += items.count
         }
         
+        print("Total images to load: \(totalImages)")
+        
+        // Second pass - load images synchronously
+        for section in allSections {
+            let items = AppItemManager.shared.getItems(for: section)
+            for item in items {
+                autoreleasepool {
+                    if let iconURL = Bundle.main.url(forResource: item.systemIcon, 
+                                                   withExtension: "svg", 
+                                                   subdirectory: "images/svg") {
+                        if let image = NSImage(contentsOf: iconURL) {
+                            ImageCache.shared.cache[item.systemIcon] = image
+                            loadedImages += 1
+                            print("[\(loadedImages)/\(totalImages)] Loaded: \(item.name)")
+                        } else {
+                            print("Failed to load image for: \(item.name)")
+                        }
+                    } else {
+                        print("Failed to find image URL for: \(item.name)")
+                    }
+                }
+            }
+        }
+        
+        print("=== Image Loading Complete: \(loadedImages)/\(totalImages) ===")
+        
+        // Verify cache
+        print("=== Verifying Cache ===")
+        for section in allSections {
+            let items = AppItemManager.shared.getItems(for: section)
+            for item in items {
+                if ImageCache.shared.cache[item.systemIcon] == nil {
+                    print("WARNING: Missing cache entry for \(item.name)")
+                }
+            }
+        }
+        print("=== Cache Verification Complete ===")
+        
+        // Only set isLoaded after ALL images are confirmed in cache
+        if loadedImages == totalImages {
+            AppState.shared.isLoaded = true
+            print("App state set to loaded")
+        } else {
+            print("ERROR: Not all images loaded!")
+        }
+        
+        // Rest of initialization
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         
@@ -491,29 +570,50 @@ struct SizingGuide {
 // Add this at the top level
 class ImageCache {
     static let shared = ImageCache()
-    private var cache: [String: NSImage] = [:]
+    var cache: [String: NSImage] = [:]
     
     func preloadImages(from items: [AppItem]) {
-        print("Preloading images for items:", items.map { $0.name })
         for item in items {
-            if let iconURL = Bundle.main.url(forResource: item.systemIcon, withExtension: "svg", subdirectory: "images/svg") {
-                print("Found icon URL for \(item.name): \(iconURL)")
-                if let image = NSImage(contentsOf: iconURL) {
-                    cache[item.systemIcon] = image
-                    print("Successfully cached image for \(item.name)")
-                } else {
-                    print("Failed to load image for \(item.name)")
-                }
-            } else {
-                print("Failed to find icon URL for \(item.name) with systemIcon: \(item.systemIcon)")
+            if let iconURL = Bundle.main.url(forResource: item.systemIcon, withExtension: "svg", subdirectory: "images/svg"),
+               let image = NSImage(contentsOf: iconURL) {
+                print("Caching image for: \(item.name)")
+                cache[item.systemIcon] = image
             }
         }
     }
     
     func getImage(named: String) -> NSImage? {
-        let image = cache[named]
-        print("Getting image for \(named): \(image != nil ? "found" : "not found")")
-        return image
+        return cache[named]
+    }
+}
+
+struct CarouselView: View {
+    let visibleItems: [AppItem]
+    let selectedIndex: Int
+    let currentSlideOffset: CGFloat
+    let opacity: Double
+    let sizing: CarouselSizing
+    
+    var body: some View {
+        ZStack {
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: sizing.gridSpacing),
+                GridItem(.flexible(), spacing: sizing.gridSpacing),
+                GridItem(.flexible(), spacing: sizing.gridSpacing),
+                GridItem(.flexible(), spacing: sizing.gridSpacing)
+            ], spacing: sizing.gridSpacing) {
+                ForEach(0..<visibleItems.count, id: \.self) { index in
+                    AppIconView(
+                        item: visibleItems[index],
+                        isSelected: index == selectedIndex,
+                        sizing: sizing
+                    )
+                }
+            }
+            .offset(x: currentSlideOffset)
+            .opacity(opacity)
+        }
+        .padding(sizing.gridSpacing)
     }
 }
 
@@ -541,6 +641,8 @@ struct ContentView: View {
     @State private var mouseDirection: Int = 0
     @State private var showingProgress = false
     @State private var mouseTimer: Timer?
+    @StateObject private var navigationState = NavigationState.shared
+    @StateObject private var mouseState = MouseIndicatorState.shared
     
     private var visibleItems: [AppItem] {
         let sourceItems = getSourceItems()
@@ -621,7 +723,9 @@ struct ContentView: View {
         accumulatedMouseX = 0
         mouseProgress = 0
         mouseDirection = 0
-        showingProgress = false
+        mouseState.showingProgress = false
+        mouseState.mouseProgress = 0
+        mouseState.mouseDirection = 0
     }
     
     // Update keyboard handling
@@ -668,113 +772,119 @@ struct ContentView: View {
         }
     }
     
-    var body: some View {
-        Group {
-            if appState.isLoaded {
-                ZStack {  // Main container
-                    // Background and animated content
-                    ZStack {
-                        VStack(spacing: 0) {
-                            Text(currentSection)
-                                .font(.custom(AppConfig.TitleFont.fontName, size: titleFontSize))
-                                .padding(.top)
-                                .padding(.bottom, titleFontSize * 1.5)
-                                .foregroundColor(.white)
-                                .opacity(titleOpacity)
-                                .onReceive(NotificationCenter.default.publisher(for: .escKeyPressed)) { _ in
-                                    back()
-                                }
-                            
-                            // Grid content
-                            ZStack {
-                                // Current set
-                                LazyVGrid(columns: [
-                                    GridItem(.flexible(), spacing: sizing.gridSpacing),
-                                    GridItem(.flexible(), spacing: sizing.gridSpacing),
-                                    GridItem(.flexible(), spacing: sizing.gridSpacing),
-                                    GridItem(.flexible(), spacing: sizing.gridSpacing)
-                                ], spacing: sizing.gridSpacing) {
-                                    ForEach(0..<visibleItems.count, id: \.self) { index in
-                                        AppIconView(
-                                            item: visibleItems[index],
-                                            isSelected: index == selectedIndex,
-                                            sizing: sizing
-                                        )
-                                        .onTapGesture {
-                                            selectedIndex = index
-                                            handleSelection()
-                                        }
-                                    }
-                                }
-                                .offset(x: currentSlideOffset)
-                                .opacity(opacity)
-                                
-                                // Next set
-                                if showingNextSet {
-                                    LazyVGrid(columns: [
-                                        GridItem(.flexible(), spacing: sizing.gridSpacing),
-                                        GridItem(.flexible(), spacing: sizing.gridSpacing),
-                                        GridItem(.flexible(), spacing: sizing.gridSpacing),
-                                        GridItem(.flexible(), spacing: sizing.gridSpacing)
-                                    ], spacing: sizing.gridSpacing) {
-                                        let nextPage = currentPage + animationDirection
-                                        let startIndex = nextPage * 4
-                                        let sourceItems = getSourceItems()
-                                        if nextPage >= 0 && startIndex < sourceItems.count {
-                                            let endIndex = min(startIndex + 4, sourceItems.count)
-                                            if startIndex < endIndex {
-                                                let nextItems = Array(sourceItems[startIndex..<endIndex])
-                                                ForEach(0..<nextItems.count, id: \.self) { index in
-                                                    AppIconView(
-                                                        item: nextItems[index],
-                                                        isSelected: false,
-                                                        sizing: sizing
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                    .offset(x: nextSlideOffset)
-                                    .opacity(opacity)
-                                }
-                            }
-                            .padding(sizing.gridSpacing)
-                            .padding(.bottom, sizing.gridSpacing * 4)
-                            
-                            // Add Navigation Dots here
-                            NavigationDotsView(currentPage: currentPage, totalPages: numberOfPages)
-                                .opacity(titleOpacity)  // Fade with title
-                        }
-                    }
-                    
-                    // Mouse progress indicator
-                    if showingProgress {
-                        MouseProgressView(progress: normalizedMouseProgress, direction: mouseDirection)
-                    }
-                }
-                
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .onAppear {
-                    setupKeyMonitor()
-                    setupGameController()
-                    setupMouseMonitor()
-                    setupMouseTrackingMonitor()
-                    if let screen = NSScreen.main {
-                        sizing = SizingGuide.getSizing(for: screen.frame.size)
-                        windowWidth = screen.frame.width
-                    }
-                }
-                .onDisappear {
-                    if let monitor = keyMonitor {
-                        NSEvent.removeMonitor(monitor)
-                    }
-                    if let monitor = mouseMonitor {
-                        NSEvent.removeMonitor(monitor)
-                    }
-                    NotificationCenter.default.removeObserver(self)
-                    NSCursor.unhide()  // Make sure cursor is visible when view disappears
-                }
+    private func updateNavigationState() {
+        let sourceItems = getSourceItems()
+        navigationState.numberOfPages = (sourceItems.count + 3) / 4  // Calculate total pages
+        navigationState.currentPage = currentPage
+        navigationState.opacity = titleOpacity
+    }
+    
+    private func updateMouseState() {
+        mouseState.showingProgress = showingProgress
+        mouseState.mouseProgress = mouseProgress
+        mouseState.mouseDirection = mouseDirection
+    }
+    
+    // Update where mouse state changes:
+    private func handleMouseMovement(_ event: NSEvent) {
+        let deltaX = event.deltaX
+        
+        // Reset and restart inactivity timer
+        mouseTimer?.invalidate()
+        mouseTimer = Timer.scheduledTimer(withTimeInterval: AppConfig.MouseIndicator.inactivityTimeout, 
+                                       repeats: false) { _ in
+            self.resetMouseState()
+        }
+        
+        // Check for direction change
+        if deltaX != 0 {
+            let newDirection = deltaX < 0 ? -1 : 1
+            
+            if newDirection != mouseDirection {
+                accumulatedMouseX = 0
+                mouseProgress = 0
+                showingProgress = true
             }
+            
+            mouseDirection = newDirection
+        }
+        
+        accumulatedMouseX += deltaX
+        mouseProgress = normalizedMouseProgress  // This is already normalized
+        
+        if abs(accumulatedMouseX) > AppConfig.mouseSensitivity {
+            if accumulatedMouseX < 0 {
+                moveLeft()
+            } else {
+                moveRight()
+            }
+            accumulatedMouseX = 0
+            mouseDirection = 0
+            mouseProgress = 0
+            showingProgress = false
+        }
+        
+        mouseState.showingProgress = showingProgress
+        mouseState.mouseProgress = mouseProgress  // Pass the normalized progress
+        mouseState.mouseDirection = mouseDirection
+    }
+    
+    private func preloadImages() {
+        let allSections = ["Game Changer", "Arcade", "Console", "Computer", "Internet", "System"]
+        for section in allSections {
+            let items = AppItemManager.shared.getItems(for: section)
+            ImageCache.shared.preloadImages(from: items)
+        }
+    }
+    
+    var body: some View {
+        ZStack {
+            // Title at the top
+            VStack {
+                Text(currentSection)
+                    .font(.custom(AppConfig.TitleFont.fontName, size: titleFontSize))
+                    .foregroundColor(.white)
+                    .opacity(titleOpacity)
+                    .padding(.top, 150)
+                Spacer()
+            }
+            
+            // Carousel in center
+            CarouselView(
+                visibleItems: visibleItems,
+                selectedIndex: selectedIndex,
+                currentSlideOffset: currentSlideOffset,
+                opacity: opacity,
+                sizing: sizing
+            )
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            setupKeyMonitor()
+            setupGameController()
+            setupMouseMonitor()
+            setupMouseTrackingMonitor()
+            if let screen = NSScreen.main {
+                sizing = SizingGuide.getSizing(for: screen.frame.size)
+                windowWidth = screen.frame.width
+            }
+            updateNavigationState()
+        }
+        .onDisappear {
+            if let monitor = keyMonitor {
+                NSEvent.removeMonitor(monitor)
+            }
+            if let monitor = mouseMonitor {
+                NSEvent.removeMonitor(monitor)
+            }
+            NotificationCenter.default.removeObserver(self)
+            NSCursor.unhide()  // Make sure cursor is visible when view disappears
+        }
+        .onChange(of: currentPage) { _ in
+            updateNavigationState()
+        }
+        .onChange(of: currentSection) { _ in
+            updateNavigationState()
         }
     }
     
@@ -855,7 +965,7 @@ struct ContentView: View {
                 }
             }
             
-            // Face buttons
+            // A and B buttons both select
             gamepad.buttonA.valueChangedHandler = { (_, _, pressed) in
                 if pressed {
                     DispatchQueue.main.async {
@@ -869,16 +979,17 @@ struct ContentView: View {
                 if pressed {
                     DispatchQueue.main.async {
                         resetMouseState()
-                        self.moveRight()
+                        self.handleSelection()
                     }
                 }
             }
             
+            // X and Y buttons go back
             gamepad.buttonX.valueChangedHandler = { (_, _, pressed) in
                 if pressed {
                     DispatchQueue.main.async {
                         resetMouseState()
-                        self.moveLeft()
+                        self.back()
                     }
                 }
             }
@@ -895,63 +1006,31 @@ struct ContentView: View {
     }
     
     private func setupMouseMonitor() {
+        // Mouse movement
         mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { event in
-            let deltaX = event.deltaX
-            
-            // Reset and restart inactivity timer
-            mouseTimer?.invalidate()
-            mouseTimer = Timer.scheduledTimer(withTimeInterval: AppConfig.MouseIndicator.inactivityTimeout, 
-                                           repeats: false) { _ in
-                self.resetMouseState()
-            }
-            
-            // Check for direction change
-            if deltaX != 0 {
-                let newDirection = deltaX < 0 ? -1 : 1
-                
-                if newDirection != mouseDirection {
-                    accumulatedMouseX = 0
-                    mouseProgress = 0
-                    showingProgress = true
-                }
-                
-                mouseDirection = newDirection
-            }
-            
-            accumulatedMouseX += deltaX
-            accumulatedMouseY += event.deltaY
-            
-            mouseProgress = normalizedMouseProgress
-            
-            if abs(accumulatedMouseX) > AppConfig.mouseSensitivity {
-                if accumulatedMouseX < 0 {
-                    moveLeft()
-                } else {
-                    moveRight()
-                }
-                accumulatedMouseX = 0
-                mouseDirection = 0
-                mouseProgress = 0
-                showingProgress = false
-            }
-            
+            handleMouseMovement(event)
             return event
         }
         
-        // Add mouse button monitoring
+        // Left click and A/B buttons - Select
         NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
-            if let window = NSApp.windows.first {
-                let location = event.locationInWindow
-                let windowHeight = window.frame.height
-                let isUpperHalf = location.y > windowHeight / 2
-                
-                if isUpperHalf {
-                    back()
-                } else {
-                    self.handleSelection()
-                }
+            resetMouseState()
+            handleSelection()
+            return event
+        }
+        
+        // Right click - Back
+        NSEvent.addLocalMonitorForEvents(matching: .rightMouseDown) { event in
+            resetMouseState()
+            back()
+            return event
+        }
+        
+        // Middle click - Quit
+        NSEvent.addLocalMonitorForEvents(matching: .otherMouseDown) { event in
+            if event.buttonNumber == 2 { // Middle click
+                NSApplication.shared.terminate(nil)
             }
-            
             return event
         }
     }
@@ -1107,7 +1186,11 @@ struct AppIconView: View {
     let sizing: CarouselSizing
     
     private func loadIcon() -> some View {
-        if let image = ImageCache.shared.getImage(named: item.systemIcon) {
+        // Force immediate loading from cache
+        let cachedImage = ImageCache.shared.getImage(named: item.systemIcon)
+        print("Loading icon for \(item.name): \(cachedImage != nil ? "Found in cache" : "Not found")")
+        
+        if let image = cachedImage {
             return AnyView(Image(nsImage: image)
                 .resizable()
                 .frame(width: sizing.iconSize * 2, height: sizing.iconSize * 2)
@@ -1115,6 +1198,23 @@ struct AppIconView: View {
                 .cornerRadius(sizing.cornerRadius))
         }
         
+        // Fallback - try to load directly if not in cache
+        if let iconURL = Bundle.main.url(forResource: item.systemIcon, 
+                                       withExtension: "svg", 
+                                       subdirectory: "images/svg"),
+           let image = NSImage(contentsOf: iconURL) {
+            // Add to cache if found
+            ImageCache.shared.cache[item.systemIcon] = image
+            print("Loaded and cached icon for \(item.name)")
+            
+            return AnyView(Image(nsImage: image)
+                .resizable()
+                .frame(width: sizing.iconSize * 2, height: sizing.iconSize * 2)
+                .padding(0)
+                .cornerRadius(sizing.cornerRadius))
+        }
+        
+        print("Failed to load icon for \(item.name)")
         return AnyView(Color.clear
             .frame(width: sizing.iconSize * 2, height: sizing.iconSize * 2))
     }
@@ -1347,5 +1447,28 @@ struct NavigationDotsView: View {
             }
         }
         .padding(.bottom, bottomPadding)
+    }
+}
+
+class MouseIndicatorState: ObservableObject {
+    static let shared = MouseIndicatorState()
+    @Published var showingProgress = false
+    @Published var mouseProgress: CGFloat = 0
+    @Published var mouseDirection: Int = 0
+}
+
+struct MouseIndicatorView: View {
+    @StateObject private var mouseState = MouseIndicatorState.shared
+    
+    var body: some View {
+        ZStack {
+            if mouseState.showingProgress {
+                MouseProgressView(
+                    progress: mouseState.mouseProgress,
+                    direction: mouseState.mouseDirection
+                )
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 } 

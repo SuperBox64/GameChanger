@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1024">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #000;
+        mix-blend-mode: multiply;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4 {
+        stroke-width: 0px;
+      }
+
+      .cls-2 {
+        fill: url(#linear-gradient);
+      }
+
+      .cls-2, .cls-3, .cls-4 {
+        fill-rule: evenodd;
+      }
+
+      .cls-3 {
+        fill: url(#linear-gradient-3);
+      }
+
+      .cls-4 {
+        fill: url(#linear-gradient-2);
+      }
+
+      .cls-5 {
+        isolation: isolate;
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="189.46" y1="595.9" x2="189.46" y2="428.1" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#09b2cf"/>
+      <stop offset=".2" stop-color="#178fbb"/>
+      <stop offset=".4" stop-color="#2273ab"/>
+      <stop offset=".6" stop-color="#2a5ea0"/>
+      <stop offset=".8" stop-color="#2e5299"/>
+      <stop offset="1" stop-color="#304e97"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="834.02" x2="834.02" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-3" x1="489.74" x2="489.74" xlink:href="#linear-gradient"/>
+  </defs>
+  <g class="cls-5">
+    <g id="Arcade">
+      <rect class="cls-1" y="0" width="1024" height="1024" rx="143.49" ry="143.49"/>
+      <g>
+        <polygon class="cls-2" points="338.08 428.1 40.84 428.1 40.84 445.77 321.44 445.77 321.44 502.65 40.84 502.65 40.84 595.9 58.5 595.9 58.5 520.32 338.08 520.32 338.08 428.1"/>
+        <polygon class="cls-4" points="983.16 520.32 983.16 428.1 684.88 428.1 684.88 445.77 965.5 445.77 965.5 502.65 684.88 502.65 684.88 595.9 983.16 595.9 983.16 578.24 703.6 578.24 703.6 520.32 983.16 520.32"/>
+        <polygon class="cls-3" points="480.91 578.24 331.8 578.24 331.8 595.9 499.61 595.9 499.61 445.77 647.67 445.77 647.67 428.1 480.91 428.1 480.91 578.24"/>
+      </g>
+    </g>
+  </g>
+</svg>

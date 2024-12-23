@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #101945;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4 {
+        stroke-width: 0px;
+      }
+
+      .cls-2 {
+        fill: #3b5bfc;
+      }
+
+      .cls-3 {
+        fill: #000;
+        mix-blend-mode: multiply;
+      }
+
+      .cls-4 {
+        fill: #2b42b7;
+      }
+
+      .cls-5 {
+        isolation: isolate;
+      }
+    </style>
+  </defs>
+  <g class="cls-5">
+    <g id="Arcade">
+      <rect class="cls-3" y="0" width="1024" height="1024" rx="143.49" ry="143.49"/>
+      <polygon class="cls-4" points="168.32 287.36 574.02 436.32 566.85 873.44 211.21 690.42 168.32 287.36"/>
+      <polygon class="cls-1" points="574.02 436.32 857.04 252.95 822.81 639.26 566.85 873.44 574.02 436.32"/>
+      <polygon class="cls-2" points="574.02 436.32 168.32 287.36 478.58 150.56 857.04 252.95 574.02 436.32"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #00aeef;
+      }
+
+      .cls-1, .cls-2 {
+        stroke-width: 0px;
+      }
+
+      .cls-2 {
+        fill: #000;
+        mix-blend-mode: multiply;
+      }
+
+      .cls-3 {
+        isolation: isolate;
+      }
+    </style>
+  </defs>
+  <g class="cls-3">
+    <g id="Arcade">
+      <rect class="cls-2" y="0" width="1024" height="1024" rx="143.49" ry="143.49"/>
+      <path class="cls-1" d="M367.88,369.64c0-54,13-105.25,37.25-149.75,5.5-9.5-2.5-18.75-14-12.5-101.75,54.75-172,162.75-172,285.75,0,178,147.5,325.5,325.5,325.5,104.75,0,198.75-51.5,257.5-129.75,5.5-6.5,2.75-15.25-8.5-12-31.25,11.75-65,18.25-100,18.25-178.25,0-325.75-147.5-325.75-325.5Z"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #ed1c24;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4 {
+        stroke-width: 0px;
+      }
+
+      .cls-1, .cls-4 {
+        fill-rule: evenodd;
+      }
+
+      .cls-2 {
+        fill: #000;
+        mix-blend-mode: multiply;
+      }
+
+      .cls-3, .cls-4 {
+        fill: #fc0;
+      }
+
+      .cls-5 {
+        isolation: isolate;
+      }
+    </style>
+  </defs>
+  <g class="cls-5">
+    <g id="Arcade">
+      <rect class="cls-2" x="0" y="0" width="1024" height="1024" rx="143.49" ry="143.49"/>
+      <g>
+        <rect class="cls-3" x="42.48" y="423.21" width="60" height="125.24"/>
+        <rect class="cls-3" x="42.21" y="562.77" width="151.86" height="38.03"/>
+        <path class="cls-4" d="M176.94,423.21h84.17l53.73,68.23-41.28,44.7-96.62-112.93Z"/>
+        <path class="cls-4" d="M470.93,423.21l164.01,177.58h33.93v-177.58h-30v123.89l-110.68-123.89h-57.26Z"/>
+        <path class="cls-4" d="M470.18,442.22l65.03,70.41v88.18h-65.31l.28-158.59Z"/>
+        <path class="cls-4" d="M396.21,423.21l-116.13,125.74v51.84h60.55v-56.38l103.84-121.21h-48.26Z"/>
+        <path class="cls-4" d="M472.95,425.41l65.03,70.41"/>
+        <path class="cls-4" d="M881.96,600.8l-126.75-93.33,28.22-17.41,46.69,34.36,21.74-13.41,121.94,89.79h-91.84Z"/>
+        <path class="cls-1" d="M826.17,574.36l-37.64-27.72-88.32,54.16h83.09l42.87-26.44Z"/>
+        <path class="cls-1" d="M800.04,423.2l126.75,93.33-28.22,17.41-46.69-34.36-21.74,13.41-121.95-89.8h91.84Z"/>
+        <path class="cls-4" d="M855.83,449.64l37.64,27.72,88.32-54.16h-83.09l-42.87,26.44Z"/>
+      </g>
+    </g>
+  </g>
+</svg>

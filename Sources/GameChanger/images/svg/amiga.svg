@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1024">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#New_Gradient_Swatch_8);
+      }
+
+      .cls-1, .cls-2, .cls-3 {
+        stroke-width: 0px;
+      }
+
+      .cls-2 {
+        fill: url(#linear-gradient);
+      }
+
+      .cls-3 {
+        fill: #000;
+        mix-blend-mode: multiply;
+      }
+
+      .cls-4 {
+        isolation: isolate;
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="369.43" y1="794.68" x2="179.4" y2="496.64" gradientUnits="userSpaceOnUse">
+      <stop offset=".06" stop-color="#53b848"/>
+      <stop offset=".82" stop-color="#4886c6"/>
+    </linearGradient>
+    <linearGradient id="New_Gradient_Swatch_8" data-name="New Gradient Swatch 8" x1="363.02" y1="911.66" x2="903.77" y2="107.06" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6ebe44"/>
+      <stop offset="0" stop-color="#6ebe44"/>
+      <stop offset=".25" stop-color="#bcda20"/>
+      <stop offset=".42" stop-color="#eceb09"/>
+      <stop offset=".51" stop-color="#fff200"/>
+      <stop offset=".58" stop-color="#fbca08"/>
+      <stop offset=".68" stop-color="#f79a11"/>
+      <stop offset=".78" stop-color="#f47419"/>
+      <stop offset=".86" stop-color="#f1581f"/>
+      <stop offset=".94" stop-color="#f04822"/>
+      <stop offset="1" stop-color="#ef4223"/>
+    </linearGradient>
+  </defs>
+  <g class="cls-4">
+    <g id="Arcade">
+      <rect class="cls-3" y="0" width="1024" height="1024" rx="143.49" ry="143.49"/>
+      <path class="cls-2" d="M182.72,491.78h125.9l236.8,353.47h-124.75l-237.95-353.47ZM270.51,845.25h124.75l-236.8-353.47H32.55l237.96,353.47Z"/>
+      <path class="cls-1" d="M866.69,178.75h124.75l-444.72,666.51h-118.97L866.69,178.75ZM277.58,845.25h118.98L841.28,178.74h-124.75l-438.94,666.51Z"/>
+    </g>
+  </g>
+</svg>

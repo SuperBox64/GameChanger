@@ -1,0 +1,208 @@
+{
+    "SuperBox64": [
+        {
+            "name": "Arcade",
+            "systemIcon": "arcade",
+            "parent": "",
+            "action": ""
+        },
+        {
+            "name": "Console",
+            "systemIcon": "console",
+            "parent": "",
+            "action": ""
+        },
+        {
+            "name": "Computer",
+            "systemIcon": "computer",
+            "parent": "",
+            "action": ""
+        },
+        {
+            "name": "Internet",
+            "systemIcon": "webkit",
+            "parent": "",
+            "action": ""
+        },
+        {
+            "name": "System",
+            "systemIcon": "hello",
+            "parent": "",
+            "action": ""
+        }
+    ],
+    "Arcade": [
+        {
+            "name": "Atari",
+            "systemIcon": "atari-arcade",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Capcom",
+            "systemIcon": "capcom",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Data East",
+            "systemIcon": "dataeast",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Namco Midway",
+            "systemIcon": "namco",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Nintendo",
+            "systemIcon": "nintendo",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Sega",
+            "systemIcon": "sega",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Taito",
+            "systemIcon": "taito",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Konami",
+            "systemIcon": "konami",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Arcade64",
+            "systemIcon": "mame",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Pac Man",
+            "systemIcon": "pacman",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Ghost Man",
+            "systemIcon": "ghostman",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Pinball",
+            "systemIcon": "pinball",
+            "parent": "SuperBox64",
+            "action": ""
+        }
+    ],
+    "Console": [
+        {
+            "name": "Nintendo 64",
+            "systemIcon": "nintendo64",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "PlayStation",
+            "systemIcon": "playstation",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "PlayStation 2",
+            "systemIcon": "ps2",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "GameCube",
+            "systemIcon": "gamecube",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Dreamcast",
+            "systemIcon": "dreamcast",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Sega Genesis",
+            "systemIcon": "segagenesis",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Sega CD",
+            "systemIcon": "segacd",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Sega Saturn",
+            "systemIcon": "segasaturn",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "NES",
+            "systemIcon": "nes",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "SNES",
+            "systemIcon": "snes",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Wii",
+            "systemIcon": "wii",
+            "parent": "SuperBox64",
+            "action": ""
+        },
+        {
+            "name": "Xbox",
+            "systemIcon": "xbox",
+            "parent": "SuperBox64",
+            "action": ""
+        }
+    ],
+    "System": [
+        {
+            "name": "Quit",
+            "systemIcon": "quit",
+            "parent": "SuperBox64",
+            "action": "quit"
+        },
+        {
+            "name": "Sleep",
+            "systemIcon": "sleep",
+            "parent": "SuperBox64",
+            "action": "sleep"
+        },
+        {
+            "name": "Restart",
+            "systemIcon": "restart",
+            "parent": "SuperBox64",
+            "action": "restart"
+        },
+        {
+            "name": "Power",
+            "systemIcon": "power",
+            "parent": "SuperBox64",
+            "action": "logout"
+        }
+    ]
+} 

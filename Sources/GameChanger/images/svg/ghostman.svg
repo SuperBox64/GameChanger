@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #00aeef;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4 {
+        stroke-width: 0px;
+      }
+
+      .cls-2 {
+        mix-blend-mode: multiply;
+      }
+
+      .cls-2, .cls-3 {
+        fill: #000;
+      }
+
+      .cls-5 {
+        isolation: isolate;
+      }
+
+      .cls-4 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <g class="cls-5">
+    <g id="Arcade">
+      <rect class="cls-2" y="0" width="1024" height="1024" rx="143.49" ry="143.49"/>
+      <path class="cls-1" d="M880.22,441.3c0-180.2-164.2-326.29-366.76-326.29S146.71,261.09,146.71,441.3h-1.95l-2.55,467.7,127.51-144.13,119.86,144.13,113.1-141.55c3.58.09,7.17.14,10.78.14,1.25,0,2.49,0,3.73-.02l122.31,135.55,114.76-138.25,127.51,144.13v-467.7h-1.57Z"/>
+      <g>
+        <circle class="cls-4" cx="378.88" cy="359.73" r="113.06"/>
+        <circle class="cls-3" cx="418.09" cy="329.65" r="57.2"/>
+      </g>
+      <g>
+        <circle class="cls-4" cx="645.12" cy="359.73" r="113.06"/>
+        <circle class="cls-3" cx="684.32" cy="329.65" r="57.2"/>
+      </g>
+    </g>
+  </g>
+</svg>

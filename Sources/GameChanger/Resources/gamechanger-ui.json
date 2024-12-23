@@ -9,6 +9,32 @@
                 "titleSize": 40,
                 "labelSize": 27,
                 "selectionPadding": 27
+            },
+            "title": {
+                "size": 18.0,
+                "fontName": "Avenir Next Medium"
+            },
+            "label": {
+                "size": 12.0,
+                "fontName": "Avenir Next"
+            },
+            "clock": {
+                "timeSize": 24.0,
+                "dateSize": 10.0,
+                "fontName": "Avenir Next Medium"
+            },
+            "navigationDots": {
+                "size": 8.0,
+                "spacing": 16.0,
+                "opacity": 0.3,
+                "bottomPadding": 20.0
+            },
+            "mouseIndicator": {
+                "size": 64.0,
+                "strokeWidth": 3.0,
+                "inactivityTimeout": 5.0,
+                "backgroundColor": [0.5, 0.5, 0.5, 0.2],
+                "progressColor": [0.0, 1.0, 0.0, 0.8]
             }
         },
         "1920x1080": {
@@ -20,6 +46,32 @@
                 "titleSize": 60,
                 "labelSize": 40,
                 "selectionPadding": 40
+            },
+            "title": {
+                "size": 42.0,
+                "fontName": "Avenir Next Medium"
+            },
+            "label": {
+                "size": 22.0,
+                "fontName": "Avenir Next"
+            },
+            "clock": {
+                "timeSize": 42.0,
+                "dateSize": 18.0,
+                "fontName": "Avenir Next Medium"
+            },
+            "navigationDots": {
+                "size": 12.0,
+                "spacing": 24.0,
+                "opacity": 0.3,
+                "bottomPadding": 40.0
+            },
+            "mouseIndicator": {
+                "size": 64.0,
+                "strokeWidth": 3.0,
+                "inactivityTimeout": 5.0,
+                "backgroundColor": [0.5, 0.5, 0.5, 0.2],
+                "progressColor": [0.0, 1.0, 0.0, 0.8]
             }
         },
         "2560x1440": {
@@ -31,6 +83,32 @@
                 "titleSize": 75,
                 "labelSize": 50,
                 "selectionPadding": 50
+            },
+            "title": {
+                "size": 56.0,
+                "fontName": "Avenir Next Medium"
+            },
+            "label": {
+                "size": 30.0,
+                "fontName": "Avenir Next"
+            },
+            "clock": {
+                "timeSize": 56.0,
+                "dateSize": 24.0,
+                "fontName": "Avenir Next Medium"
+            },
+            "navigationDots": {
+                "size": 16.0,
+                "spacing": 32.0,
+                "opacity": 0.3,
+                "bottomPadding": 60.0
+            },
+            "mouseIndicator": {
+                "size": 64.0,
+                "strokeWidth": 3.0,
+                "inactivityTimeout": 5.0,
+                "backgroundColor": [0.5, 0.5, 0.5, 0.2],
+                "progressColor": [0.0, 1.0, 0.0, 0.8]
             }
         }
     }

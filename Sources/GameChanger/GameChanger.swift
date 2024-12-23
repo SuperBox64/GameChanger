@@ -430,6 +430,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 struct InterfaceSizing: Codable {
     let carousel: CarouselSizing
+    let mouseIndicator: MouseIndicatorSettings
 }
 
 struct CarouselSizing: Codable {
@@ -457,13 +458,25 @@ struct SizingGuide {
     }
     
     static func getSizing(for screenSize: CGSize) -> CarouselSizing {
-        // Load settings if not loaded
-        if settings == nil {
-            loadSettings()
+        let resolution = getResolutionKey(for: screenSize)
+        return settings?.GameChangerUI[resolution]?.carousel ?? getDefaultCarouselSizing()
+    }
+    
+    static func getSettings(for resolution: String) -> InterfaceSizing? {
+        return settings?.GameChangerUI[resolution]
+    }
+    
+    private static func getResolutionKey(for screenSize: CGSize) -> String {
+        if screenSize.width >= 2560 {
+            return "2560x1440"
+        } else if screenSize.width >= 1920 {
+            return "1920x1080"
         }
-        
-        // Default sizing in case something goes wrong
-        let defaultSizing = CarouselSizing(
+        return "1280x720"
+    }
+    
+    private static func getDefaultCarouselSizing() -> CarouselSizing {
+        return CarouselSizing(
             iconSize: 96,
             iconPadding: 48,
             cornerRadius: 30,
@@ -472,17 +485,6 @@ struct SizingGuide {
             labelSize: 30,
             selectionPadding: 30
         )
-        
-        guard let settings = settings else { return defaultSizing }
-        
-        // Choose appropriate sizing based on screen width
-        if screenSize.width >= 2560 {
-            return settings.GameChangerUI["2560x1440"]?.carousel ?? defaultSizing
-        } else if screenSize.width >= 1920 {
-            return settings.GameChangerUI["1920x1080"]?.carousel ?? defaultSizing
-        } else {
-            return settings.GameChangerUI["1280x720"]?.carousel ?? defaultSizing
-        }
     }
 }
 
@@ -1215,42 +1217,83 @@ struct ClockView: View {
     }
 }
 
+// Add these structs for decoding
+struct MouseIndicatorSettings: Codable {
+    let size: CGFloat
+    let strokeWidth: CGFloat
+    let inactivityTimeout: TimeInterval
+    let backgroundColor: [CGFloat]  // [r,g,b,a]
+    let progressColor: [CGFloat]    // [r,g,b,a]
+    
+    var backgroundColorUI: Color {
+        Color(.sRGB, 
+              red: Double(backgroundColor[0]),
+              green: Double(backgroundColor[1]), 
+              blue: Double(backgroundColor[2]), 
+              opacity: Double(backgroundColor[3]))
+    }
+    
+    var progressColorUI: Color {
+        Color(.sRGB, 
+              red: Double(progressColor[0]), 
+              green: Double(progressColor[1]), 
+              blue: Double(progressColor[2]), 
+              opacity: Double(progressColor[3]))
+    }
+}
+
+// Update MouseProgressView to use settings
 struct MouseProgressView: View {
     let progress: CGFloat
     let direction: Int
+    
+    private var settings: MouseIndicatorSettings {
+        let screenWidth = NSScreen.main?.frame.width ?? 1920
+        let resolution = screenWidth >= 2560 ? "2560x1440" :
+                        screenWidth >= 1920 ? "1920x1080" : "1280x720"
+        
+        return SizingGuide.getSettings(for: resolution)?.mouseIndicator ?? 
+               MouseIndicatorSettings(
+                   size: 64.0,
+                   strokeWidth: 3.0,
+                   inactivityTimeout: 5.0,
+                   backgroundColor: [0.5, 0.5, 0.5, 0.2],
+                   progressColor: [0.0, 1.0, 0.0, 0.8]
+               )
+    }
     
     var body: some View {
         ZStack {
             // Background circle
             Circle()
-                .stroke(AppConfig.MouseIndicator.backgroundColor, 
-                       lineWidth: AppConfig.MouseIndicator.strokeWidth)
-                .frame(width: AppConfig.MouseIndicator.size, 
-                       height: AppConfig.MouseIndicator.size)
+                .stroke(settings.backgroundColorUI,
+                       lineWidth: settings.strokeWidth)
+                .frame(width: settings.size,
+                       height: settings.size)
             
             // Progress arc
             Circle()
                 .trim(from: 0, to: progress)
                 .stroke(
-                    AppConfig.MouseIndicator.progressColor,
+                    settings.progressColorUI,
                     style: StrokeStyle(
-                        lineWidth: AppConfig.MouseIndicator.strokeWidth,
+                        lineWidth: settings.strokeWidth,
                         lineCap: .round
                     )
                 )
-                .frame(width: AppConfig.MouseIndicator.size, 
-                       height: AppConfig.MouseIndicator.size)
+                .frame(width: settings.size,
+                       height: settings.size)
                 .rotationEffect(
-                    direction == -1 ? 
-                        .degrees(Double(-90) - (Double(progress) * 360)) : 
+                    direction == -1 ?
+                        .degrees(Double(-90) - (Double(progress) * 360)) :
                         .degrees(-90)
                 )
             
             // Direction indicator
             Image(systemName: direction == -1 ? "chevron.left" :
                             direction == 1 ? "chevron.right" : "")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(AppConfig.MouseIndicator.progressColor)
+                .font(.system(size: settings.size * 0.28, weight: .semibold))
+                .foregroundColor(settings.progressColorUI)
         }
         .padding(.bottom, 100)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)

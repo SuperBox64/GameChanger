@@ -189,7 +189,7 @@ struct GameChangerApp: App {
 }
 
 struct BackgroundView: View {
-    @State private var sizing: InterfaceSizing = SizingGuide.getSizing(for: NSScreen.main!.frame.size)
+    @State private var sizing: CarouselSizing = SizingGuide.getSizing(for: NSScreen.main!.frame.size)
     
     var body: some View {
         ZStack {
@@ -379,6 +379,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 struct InterfaceSizing: Codable {
+    let carousel: CarouselSizing
+}
+
+struct CarouselSizing: Codable {
     let iconSize: CGFloat
     let iconPadding: CGFloat
     let cornerRadius: CGFloat
@@ -389,27 +393,27 @@ struct InterfaceSizing: Codable {
 }
 
 struct GUISettings: Codable {
-    let CarouselUI: [String: InterfaceSizing]
+    let GameChangerUI: [String: InterfaceSizing]
 }
 
 struct SizingGuide {
     static private var settings: GUISettings?
     
     static func loadSettings() {
-        if let url = Bundle.main.url(forResource: "carousel-ui", withExtension: "json"),
+        if let url = Bundle.main.url(forResource: "gamechanger-ui", withExtension: "json"),
            let data = try? Data(contentsOf: url) {
             settings = try? JSONDecoder().decode(GUISettings.self, from: data)
         }
     }
     
-    static func getSizing(for screenSize: CGSize) -> InterfaceSizing {
+    static func getSizing(for screenSize: CGSize) -> CarouselSizing {
         // Load settings if not loaded
         if settings == nil {
             loadSettings()
         }
         
         // Default sizing in case something goes wrong
-        let defaultSizing = InterfaceSizing(
+        let defaultSizing = CarouselSizing(
             iconSize: 96,
             iconPadding: 48,
             cornerRadius: 30,
@@ -423,11 +427,11 @@ struct SizingGuide {
         
         // Choose appropriate sizing based on screen width
         if screenSize.width >= 2560 {
-            return settings.CarouselUI["2560x1440"] ?? defaultSizing
+            return settings.GameChangerUI["2560x1440"]?.carousel ?? defaultSizing
         } else if screenSize.width >= 1920 {
-            return settings.CarouselUI["1920x1080"] ?? defaultSizing
+            return settings.GameChangerUI["1920x1080"]?.carousel ?? defaultSizing
         } else {
-            return settings.CarouselUI["1280x720"] ?? defaultSizing
+            return settings.GameChangerUI["1280x720"]?.carousel ?? defaultSizing
         }
     }
 }
@@ -470,7 +474,7 @@ struct ContentView: View {
     @State private var accumulatedMouseX: CGFloat = 0
     @State private var accumulatedMouseY: CGFloat = 0
     @State private var isMouseInWindow = false
-    @State private var sizing: InterfaceSizing = SizingGuide.getSizing(for: NSScreen.main!.frame.size)
+    @State private var sizing: CarouselSizing = SizingGuide.getSizing(for: NSScreen.main!.frame.size)
     @State private var currentPage = 0
     @State private var currentSlideOffset: CGFloat = 0
     @State private var nextSlideOffset: CGFloat = 0
@@ -1045,7 +1049,7 @@ extension NSPoint {
 struct AppIconView: View {
     let item: AppItem
     let isSelected: Bool
-    let sizing: InterfaceSizing
+    let sizing: CarouselSizing
     
     private func loadIcon() -> some View {
         if let image = ImageCache.shared.getImage(named: item.systemIcon) {

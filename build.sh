@@ -68,9 +68,10 @@ lipo -create \
 # Create Resources directory structure
 mkdir -p GameChanger.app/Contents/Resources/images/{svg,jpg,png,logo}
 mkdir -p Sources/GameChanger/Resources
-# Copy JSON if it doesn't exist in source
-[ ! -f Sources/GameChanger/Resources/app_items.json ] && cp Resources/app_items.json Sources/GameChanger/Resources/
-[ ! -f Sources/GameChanger/Resources/carousel-ui.json ] && cp Resources/carousel-ui.json Sources/GameChanger/Resources/
+
+# Copy JSON files if they don't exist in source
+[ ! -f Sources/GameChanger/Resources/app_items.json ] && cp Resources/app_items.json Sources/GameChanger/Resources/ || true
+[ ! -f Sources/GameChanger/Resources/gamechanger-ui.json ] && cp Resources/gamechanger-ui.json Sources/GameChanger/Resources/ || true
 
 # Copy resources
 cp -r Sources/GameChanger/images/svg/* GameChanger.app/Contents/Resources/images/svg/
@@ -78,7 +79,7 @@ cp -r Sources/GameChanger/images/jpg/* GameChanger.app/Contents/Resources/images
 cp -r Sources/GameChanger/images/png/* GameChanger.app/Contents/Resources/images/png/
 cp -r Sources/GameChanger/images/logo/* GameChanger.app/Contents/Resources/images/logo/
 cp Sources/GameChanger/Resources/app_items.json GameChanger.app/Contents/Resources/
-cp Sources/GameChanger/Resources/carousel-ui.json GameChanger.app/Contents/Resources/
+cp Sources/GameChanger/Resources/gamechanger-ui.json GameChanger.app/Contents/Resources/
 
 # Set permissions
 chmod +x GameChanger.app/Contents/MacOS/GameChanger

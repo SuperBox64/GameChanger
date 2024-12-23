@@ -1,0 +1,37 @@
+{
+    "GameChangerUI": {
+        "1280x720": {
+            "carousel": {
+                "iconSize": 96,
+                "iconPadding": 48,
+                "cornerRadius": 30,
+                "gridSpacing": 30,
+                "titleSize": 45,
+                "labelSize": 30,
+                "selectionPadding": 30
+            }
+        },
+        "1920x1080": {
+            "carousel": {
+                "iconSize": 125,
+                "iconPadding": 63,
+                "cornerRadius": 38,
+                "gridSpacing": 40,
+                "titleSize": 60,
+                "labelSize": 40,
+                "selectionPadding": 40
+            }
+        },
+        "2560x1440": {
+            "carousel": {
+                "iconSize": 163,
+                "iconPadding": 81,
+                "cornerRadius": 45,
+                "gridSpacing": 50,
+                "titleSize": 75,
+                "labelSize": 50,
+                "selectionPadding": 50
+            }
+        }
+    }
+} 

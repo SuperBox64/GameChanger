@@ -14,7 +14,7 @@ let package = Package(
         .executableTarget(
             name: "GameChanger",
             resources: [
-                .process("Resources/carousel-ui.json"),
+                .process("Resources/gamechanger-ui.json"),
                 .process("Resources/app_items.json"),
                 .process("images/logo"),
                 .process("images/svg"),

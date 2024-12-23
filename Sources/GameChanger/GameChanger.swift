@@ -8,6 +8,11 @@ import AppKit
 import GameController
 import Carbon.HIToolbox
 
+// Configuration settings
+private struct AppConfig {
+    static let enableScreenshots = false  // Set to true to enable screenshots
+}
+
 // Types needed for items
 enum Section: String {
     case box = "SuperBox64"
@@ -256,6 +261,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func takeScreenshot() {
+        guard AppConfig.enableScreenshots else { return }
+        
         if let window = NSApp.windows.first,
            let cgImage = CGWindowListCreateImage(
             .null,
@@ -420,6 +427,7 @@ struct ContentView: View {
         if let parentSection = selectedItem.parent, 
            !AppItemManager.shared.getItems(for: selectedItem.name).isEmpty {
             // Fade out
+            print("parentSection: \(parentSection)")
             withAnimation(slideAnimation) {
                 opacity = 0
                 titleOpacity = 0
@@ -481,6 +489,23 @@ struct ContentView: View {
                         }
                         .edgesIgnoringSafeArea(.all)
                         
+                        VStack {
+                            HStack {
+                                if let logoURL = Bundle.main.url(forResource: "superbox64headerlogo", withExtension: "svg", subdirectory: "images/logo"),
+                                let logoImage = NSImage(contentsOf: logoURL) {
+                                    Image(nsImage: logoImage)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: sizing.titleSize * 6.8)
+                                        .padding(.leading, 30)
+                                        .padding(.top, 30)
+                                }
+                                Spacer()
+                            }
+                            Spacer()
+                        }
+                        .animation(nil)
+
                         // Animated content
                         VStack(spacing: 0) {
                             Text(currentSection)
@@ -549,6 +574,7 @@ struct ContentView: View {
                             .padding(sizing.gridSpacing)
                             .padding(.bottom, sizing.gridSpacing * 4)
                             
+                            
                             HStack(spacing: 20) {
                                 ForEach(0..<numberOfPages, id: \.self) { pageIndex in
                                     Circle()
@@ -559,26 +585,8 @@ struct ContentView: View {
                             .padding(.top, 20)
                         }
                     }
-                    
-                    // Logo layer - always on top, never animated
-                    VStack {
-                        HStack {
-                            if let logoURL = Bundle.main.url(forResource: "superbox64headerlogo", withExtension: "svg", subdirectory: "images/logo"),
-                               let logoImage = NSImage(contentsOf: logoURL) {
-                                Image(nsImage: logoImage)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: sizing.titleSize * 6.8)
-                                    .padding(.leading, 30)
-                                    .padding(.top, 30)
-                            }
-                            Spacer()
-                        }
-                        Spacer()
-                    }
-                    .allowsHitTesting(false)
-                    .animation(nil)
                 }
+                
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .onAppear {
                     setupKeyMonitor()
@@ -600,9 +608,6 @@ struct ContentView: View {
                     NotificationCenter.default.removeObserver(self)
                     NSCursor.unhide()  // Make sure cursor is visible when view disappears
                 }
-            } else {
-                // Optional loading view
-                Color.black
             }
         }
     }

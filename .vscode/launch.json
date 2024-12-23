@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:GameChanger}",
+            "name": "Debug GameChanger",
+            "program": "${workspaceFolder:GameChanger}/.build/debug/GameChanger",
+            "preLaunchTask": "swift: Build Debug GameChanger"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:GameChanger}",
+            "name": "Release GameChanger",
+            "program": "${workspaceFolder:GameChanger}/.build/release/GameChanger",
+            "preLaunchTask": "swift: Build Release GameChanger"
+        }
+    ]
+}

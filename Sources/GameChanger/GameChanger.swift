@@ -1558,6 +1558,7 @@ struct NavigationDotsView: View {
                     .fill(Color.white)
                     .frame(width: settings.size, height: settings.size)
                     .opacity(totalPages == 1 ? 0 : (index == currentPage ? 1 : SizingGuide.getCommonSettings().navigation.opacity))
+                    .animation(.easeInOut(duration: 0.3), value: totalPages)
             }
         }
         .padding(.bottom, settings.bottomPadding)

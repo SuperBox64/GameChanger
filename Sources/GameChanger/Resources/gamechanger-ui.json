@@ -1,7 +1,7 @@
 {
     "GameChangerUI": {
         "common": {
-            "mouseSensitivity": 100.0,
+            "mouseSensitivity": 1.0,
             "enableScreenshots": true,
             "opacities": {
                 "selectionHighlight": 0.2,
@@ -17,205 +17,207 @@
                 "mouseIndicatorIconSize": 0.28
             }
         },
-        "1280x720": {
-            "carousel": {
-                "iconSize": 86,
-                "iconPadding": 43,
-                "cornerRadius": 27,
-                "gridSpacing": 27,
-                "titleSize": 40,
-                "labelSize": 27,
-                "selectionPadding": 27
-            },
-            "title": {
-                "fontName": "Avenir Next Medium",
-                "size": 36
-            },
-            "label": {
-                "fontName": "Avenir Next",
-                "size": 12.0
-            },
-            "clock": {
-                "fontName": "Avenir Next Medium",
-                "timeSize": 24.0,
-                "dateSize": 10.0,
-                "spacing": 1.0
-            },
-            "mouseIndicator": {
-                "inactivityTimeout": 5.0,
-                "size": 96.0,
-                "strokeWidth": 4.5,
-                "backgroundColor": [0.5, 0.5, 0.5, 0.2],
-                "progressColor": [0.0, 1.0, 0.0, 0.8]
-            },
-            "navigationDots": {
-                "size": 8.0,
-                "spacing": 16.0,
-                "opacity": 0.3,
-                "bottomPadding": 20.0
-            },
-            "animations": {
-                "slideEnabled": true,
-                "fadeEnabled": true,
-                "slide": {
-                    "duration": 0.6,
-                    "curve": {
-                        "x1": 0.33,
-                        "y1": 0.0,
-                        "x2": 0.1,
-                        "y2": 1.0
-                    }
+        "resolutions": {
+            "2560x1440": {
+                "carousel": {
+                    "iconSize": 163,
+                    "iconPadding": 81,
+                    "cornerRadius": 45,
+                    "gridSpacing": 50,
+                    "titleSize": 75,
+                    "labelSize": 50,
+                    "selectionPadding": 50
                 },
-                "fade": {
-                    "duration": 0.3
-                }
-            },
-            "layout": {
                 "title": {
-                    "topPadding": 150
+                    "fontName": "Avenir Next",
+                    "size": 72
+                },
+                "label": {
+                    "fontName": "Avenir Next",
+                    "size": 30.0
                 },
                 "clock": {
-                    "topPadding": 20,
-                    "trailingPadding": 30
-                },
-                "logo": {
-                    "topPadding": 30,
-                    "leadingPadding": 30
+                    "fontName": "Avenir Next Medium",
+                    "timeSize": 56.0,
+                    "dateSize": 24.0,
+                    "spacing": 1.0
                 },
                 "mouseIndicator": {
-                    "bottomPadding": 130
-                }
-            }
-        },
-        "1920x1080": {
-            "carousel": {
-                "iconSize": 125,
-                "iconPadding": 63,
-                "cornerRadius": 38,
-                "gridSpacing": 40,
-                "titleSize": 60,
-                "labelSize": 40,
-                "selectionPadding": 40
-            },
-            "title": {
-                "fontName": "Avenir Next Medium",
-                "size": 54
-            },
-            "label": {
-                "fontName": "Avenir Next",
-                "size": 22.0
-            },
-            "clock": {
-                "fontName": "Avenir Next Medium",
-                "timeSize": 42.0,
-                "dateSize": 18.0,
-                "spacing": 1.0
-            },
-            "mouseIndicator": {
-                "inactivityTimeout": 5.0,
-                "size": 96.0,
-                "strokeWidth": 4.5,
-                "backgroundColor": [0.5, 0.5, 0.5, 0.2],
-                "progressColor": [0.0, 1.0, 0.0, 0.8]
-            },
-            "navigationDots": {
-                "size": 12.0,
-                "spacing": 24.0,
-                "opacity": 0.3,
-                "bottomPadding": 40.0
-            },
-            "animations": {
-                "slideEnabled": true,
-                "fadeEnabled": true,
-                "slide": {
-                    "duration": 0.6,
-                    "curve": {
-                        "x1": 0.33,
-                        "y1": 0.0,
-                        "x2": 0.1,
-                        "y2": 1.0
+                    "inactivityTimeout": 5.0,
+                    "size": 96.0,
+                    "strokeWidth": 4.5,
+                    "backgroundColor": [0.5, 0.5, 0.5, 0.2],
+                    "progressColor": [0.0, 1.0, 0.0, 0.8]
+                },
+                "navigationDots": {
+                    "size": 16.0,
+                    "spacing": 32.0,
+                    "opacity": 0.3,
+                    "bottomPadding": 60.0
+                },
+                "animations": {
+                    "slideEnabled": true,
+                    "fadeEnabled": true,
+                    "slide": {
+                        "duration": 0.6,
+                        "curve": {
+                            "x1": 0.33,
+                            "y1": 0.0,
+                            "x2": 0.1,
+                            "y2": 1.0
+                        }
+                    },
+                    "fade": {
+                        "duration": 0.3
                     }
                 },
-                "fade": {
-                    "duration": 0.3
+                "layout": {
+                    "title": {
+                        "topPadding": 250
+                    },
+                    "clock": {
+                        "topPadding": 20,
+                        "trailingPadding": 30
+                    },
+                    "mouseIndicator": {
+                        "bottomPadding": 210
+                    }
                 }
             },
-            "layout": {
+            "1920x1080": {
+                "carousel": {
+                    "iconSize": 125,
+                    "iconPadding": 63,
+                    "cornerRadius": 38,
+                    "gridSpacing": 40,
+                    "titleSize": 60,
+                    "labelSize": 40,
+                    "selectionPadding": 40
+                },
                 "title": {
-                    "topPadding": 200
+                    "fontName": "Avenir Next",
+                    "size": 54
+                },
+                "label": {
+                    "fontName": "Avenir Next",
+                    "size": 22.0
                 },
                 "clock": {
-                    "topPadding": 20,
-                    "trailingPadding": 30
+                    "fontName": "Avenir Next Medium",
+                    "timeSize": 42.0,
+                    "dateSize": 18.0,
+                    "spacing": 1.0
                 },
                 "mouseIndicator": {
-                    "bottomPadding": 170
-                }
-            }
-        },
-        "2560x1440": {
-            "carousel": {
-                "iconSize": 163,
-                "iconPadding": 81,
-                "cornerRadius": 45,
-                "gridSpacing": 50,
-                "titleSize": 75,
-                "labelSize": 50,
-                "selectionPadding": 50
-            },
-            "title": {
-                "fontName": "Avenir Next Medium",
-                "size": 72
-            },
-            "label": {
-                "fontName": "Avenir Next",
-                "size": 30.0
-            },
-            "clock": {
-                "fontName": "Avenir Next Medium",
-                "timeSize": 56.0,
-                "dateSize": 24.0,
-                "spacing": 1.0
-            },
-            "mouseIndicator": {
-                "inactivityTimeout": 5.0,
-                "size": 96.0,
-                "strokeWidth": 4.5,
-                "backgroundColor": [0.5, 0.5, 0.5, 0.2],
-                "progressColor": [0.0, 1.0, 0.0, 0.8]
-            },
-            "navigationDots": {
-                "size": 16.0,
-                "spacing": 32.0,
-                "opacity": 0.3,
-                "bottomPadding": 60.0
-            },
-            "animations": {
-                "slideEnabled": true,
-                "fadeEnabled": true,
-                "slide": {
-                    "duration": 0.6,
-                    "curve": {
-                        "x1": 0.33,
-                        "y1": 0.0,
-                        "x2": 0.1,
-                        "y2": 1.0
+                    "inactivityTimeout": 5.0,
+                    "size": 96.0,
+                    "strokeWidth": 4.5,
+                    "backgroundColor": [0.5, 0.5, 0.5, 0.2],
+                    "progressColor": [0.0, 1.0, 0.0, 0.8]
+                },
+                "navigationDots": {
+                    "size": 12.0,
+                    "spacing": 24.0,
+                    "opacity": 0.3,
+                    "bottomPadding": 40.0
+                },
+                "animations": {
+                    "slideEnabled": true,
+                    "fadeEnabled": true,
+                    "slide": {
+                        "duration": 0.6,
+                        "curve": {
+                            "x1": 0.33,
+                            "y1": 0.0,
+                            "x2": 0.1,
+                            "y2": 1.0
+                        }
+                    },
+                    "fade": {
+                        "duration": 0.3
                     }
                 },
-                "fade": {
-                    "duration": 0.3
+                "layout": {
+                    "title": {
+                        "topPadding": 200
+                    },
+                    "clock": {
+                        "topPadding": 20,
+                        "trailingPadding": 30
+                    },
+                    "mouseIndicator": {
+                        "bottomPadding": 170
+                    }
                 }
             },
-            "layout": {
+            "1280x720": {
+                "carousel": {
+                    "iconSize": 86,
+                    "iconPadding": 43,
+                    "cornerRadius": 27,
+                    "gridSpacing": 27,
+                    "titleSize": 40,
+                    "labelSize": 27,
+                    "selectionPadding": 27
+                },
                 "title": {
-                    "topPadding": 250
+                    "fontName": "Avenir Next",
+                    "size": 36
+                },
+                "label": {
+                    "fontName": "Avenir Next",
+                    "size": 12.0
                 },
                 "clock": {
-                    "topPadding": 20,
-                    "trailingPadding": 30
+                    "fontName": "Avenir Next Medium",
+                    "timeSize": 24.0,
+                    "dateSize": 10.0,
+                    "spacing": 1.0
                 },
                 "mouseIndicator": {
-                    "bottomPadding": 210
+                    "inactivityTimeout": 5.0,
+                    "size": 96.0,
+                    "strokeWidth": 4.5,
+                    "backgroundColor": [0.5, 0.5, 0.5, 0.2],
+                    "progressColor": [0.0, 1.0, 0.0, 0.8]
+                },
+                "navigationDots": {
+                    "size": 8.0,
+                    "spacing": 16.0,
+                    "opacity": 0.3,
+                    "bottomPadding": 20.0
+                },
+                "animations": {
+                    "slideEnabled": true,
+                    "fadeEnabled": true,
+                    "slide": {
+                        "duration": 0.6,
+                        "curve": {
+                            "x1": 0.33,
+                            "y1": 0.0,
+                            "x2": 0.1,
+                            "y2": 1.0
+                        }
+                    },
+                    "fade": {
+                        "duration": 0.3
+                    }
+                },
+                "layout": {
+                    "title": {
+                        "topPadding": 150
+                    },
+                    "clock": {
+                        "topPadding": 20,
+                        "trailingPadding": 30
+                    },
+                    "logo": {
+                        "topPadding": 30,
+                        "leadingPadding": 30
+                    },
+                    "mouseIndicator": {
+                        "bottomPadding": 130
+                    }
                 }
             }
         }

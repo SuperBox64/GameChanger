@@ -182,10 +182,8 @@ struct BackgroundView: View {
     @State private var sizing: CarouselSizing = SizingGuide.getSizing(for: NSScreen.main!.frame.size)
     
     private var logoSize: CGFloat {
-        if let settings = SizingGuide.getCurrentSettings() {
-            return settings.title.size * 6.8
-        }
-        return 54.0 * 6.8  // Default size
+        let settings = SizingGuide.getCurrentSettings()
+        return settings.title.size * 6.8
     }
     
     var body: some View {
@@ -225,8 +223,8 @@ struct BackgroundView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: logoSize)
-                    .padding(.leading, SizingGuide.getCurrentSettings()?.layout.logo.leadingPadding ?? 30)
-                    .padding(.top, SizingGuide.getCurrentSettings()?.layout.logo.topPadding ?? 30)
+                    .padding(.leading, SizingGuide.getCurrentSettings().layout.logo?.leadingPadding ?? 30)
+                    .padding(.top, SizingGuide.getCurrentSettings().layout.logo?.topPadding ?? 30)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
         }
@@ -402,7 +400,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func takeScreenshot() {
-        guard SizingGuide.getSettings(for: "common")?.enableScreenshots ?? true else { return }
+        guard SizingGuide.getCommonSettings().enableScreenshots else { return }
         
         if let window = NSApp.windows.first,
            let cgImage = CGWindowListCreateImage(
@@ -428,6 +426,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+struct GUISettings: Codable {
+    let GameChangerUI: GameChangerUISettings
+}
+
+struct GameChangerUISettings: Codable {
+    let common: CommonSettings
+    private let resolutions: [String: InterfaceSizing]
+    
+    private enum CodingKeys: String, CodingKey {
+        case common
+        case resolutions
+    }
+    
+    func getResolution(_ key: String) -> InterfaceSizing {
+        guard let settings = resolutions[key] else {
+            fatalError("Missing settings for resolution: \(key)")
+        }
+        return settings
+    }
+}
+
+struct CommonSettings: Codable {
+    let multipliers: MultiplierSettings
+    let opacities: OpacitySettings
+    let fontWeights: FontWeightSettings
+    let enableScreenshots: Bool
+    let mouseSensitivity: Double
+}
+
 struct InterfaceSizing: Codable {
     let carousel: CarouselSizing
     let mouseIndicator: MouseIndicatorSettings
@@ -437,117 +464,40 @@ struct InterfaceSizing: Codable {
     let clock: ClockSettings
     let navigationDots: NavigationSettings
     let layout: LayoutSettings
-    // Add common settings
-    let enableScreenshots: Bool?
-    let multipliers: MultiplierSettings?
-    let opacities: OpacitySettings?
-    let fontWeights: FontWeightSettings?
-}
-
-struct TitleSettings: Codable {
-    let fontName: String
-    let size: CGFloat
-}
-
-struct LabelSettings: Codable {
-    let fontName: String
-    let size: CGFloat
-}
-
-struct ClockSettings: Codable {
-    let fontName: String
-    let timeSize: CGFloat
-    let dateSize: CGFloat
-    let spacing: CGFloat
-}
-
-struct MouseIndicatorSettings: Codable {
-    let size: CGFloat
-    let strokeWidth: CGFloat
-    let inactivityTimeout: TimeInterval
-    let backgroundColor: [Double]  // [r, g, b, a]
-    let progressColor: [Double]    // [r, g, b, a]
-    
-    var backgroundColorUI: Color {
-        Color(.sRGB, 
-              red: backgroundColor[0],
-              green: backgroundColor[1], 
-              blue: backgroundColor[2], 
-              opacity: backgroundColor[3])
-    }
-    
-    var progressColorUI: Color {
-        Color(.sRGB, 
-              red: progressColor[0], 
-              green: progressColor[1], 
-              blue: progressColor[2], 
-              opacity: progressColor[3])
-    }
-}
-
-struct NavigationSettings: Codable {
-    let size: CGFloat
-    let spacing: CGFloat
-    let opacity: CGFloat
-    let bottomPadding: CGFloat
-}
-
-struct CarouselSizing: Codable {
-    let iconSize: CGFloat
-    let iconPadding: CGFloat
-    let cornerRadius: CGFloat
-    let gridSpacing: CGFloat
-    let titleSize: CGFloat
-    let labelSize: CGFloat
-    let selectionPadding: CGFloat
-}
-
-struct GUISettings: Codable {
-    let GameChangerUI: [String: InterfaceSizing]
 }
 
 struct SizingGuide {
-    static private var settings: GUISettings?
-    
-    static func loadSettings() {
-        guard settings == nil else { return }
+    static private var settings: GUISettings = {
+        guard let url = Bundle.main.url(forResource: "gamechanger-ui", withExtension: "json") else {
+            fatalError("gamechanger-ui.json not found in bundle")
+        }
         
-        print("DEBUG: Loading UI settings from JSON")
-        if let url = Bundle.main.url(forResource: "gamechanger-ui", withExtension: "json") {
-            print("DEBUG: Found JSON file at \(url)")
-            do {
-                let data = try Data(contentsOf: url)
-                settings = try JSONDecoder().decode(GUISettings.self, from: data)
-                print("DEBUG: Successfully loaded UI settings")
-                print("DEBUG: Available resolutions: \(settings?.GameChangerUI.keys.map { $0 } ?? [])")
-            } catch {
-                print("ERROR: Failed to load UI settings - \(error)")
-            }
-        } else {
-            print("ERROR: Could not find gamechanger-ui.json")
+        do {
+            let data = try Data(contentsOf: url)
+            let decoder = JSONDecoder()
+            return try decoder.decode(GUISettings.self, from: data)
+        } catch {
+            fatalError("Failed to decode gamechanger-ui.json: \(error)")
         }
+    }()
+    
+    static func getSettings(for resolution: String) -> InterfaceSizing {
+        return settings.GameChangerUI.getResolution(resolution)
     }
     
-    static func getCurrentSettings() -> InterfaceSizing? {
-        loadSettings()
-        if let screen = NSScreen.main {
-            let resolution = getResolutionKey(for: screen.frame.size)
-            return settings?.GameChangerUI[resolution]
-        }
-        return nil
+    static func getCommonSettings() -> CommonSettings {
+        return settings.GameChangerUI.common
     }
     
-    static func getSettings(for resolution: String) -> InterfaceSizing? {
-        loadSettings()
-        return settings?.GameChangerUI[resolution]
+    static func getCurrentSettings() -> InterfaceSizing {
+        let screen = NSScreen.main ?? NSScreen.screens[0]
+        let resolution = getResolutionKey(for: screen.frame.size)
+        return getSettings(for: resolution)
     }
     
     static func getSizing(for screenSize: CGSize) -> CarouselSizing {
-        // Load settings if needed
-        loadSettings()
-        
         let resolution = getResolutionKey(for: screenSize)
-        return settings?.GameChangerUI[resolution]?.carousel ?? getDefaultCarouselSizing()
+        return getSettings(for: resolution).carousel
     }
     
     static func getResolutionKey(for screenSize: CGSize) -> String {
@@ -557,18 +507,6 @@ struct SizingGuide {
             return "1920x1080"
         }
         return "1280x720"
-    }
-    
-    private static func getDefaultCarouselSizing() -> CarouselSizing {
-        return CarouselSizing(
-            iconSize: 96,
-            iconPadding: 48,
-            cornerRadius: 30,
-            gridSpacing: 30,
-            titleSize: 45,
-            labelSize: 30,
-            selectionPadding: 30
-        )
     }
 }
 
@@ -748,7 +686,7 @@ struct ContentView: View {
     }
     
     private var titleFontSize: CGFloat {
-        SizingGuide.getCurrentSettings()?.title.size ?? 54.0
+        SizingGuide.getCurrentSettings().title.size
     }
     
     private func updateNavigationState() {
@@ -771,7 +709,7 @@ struct ContentView: View {
         // Reset and restart inactivity timer
         mouseTimer?.invalidate()
         mouseTimer = Timer.scheduledTimer(
-            withTimeInterval: SizingGuide.getCurrentSettings()?.mouseIndicator.inactivityTimeout ?? 5.0,
+            withTimeInterval: SizingGuide.getCurrentSettings().mouseIndicator.inactivityTimeout,
             repeats: false
         ) { _ in
             self.resetMouseState()
@@ -820,28 +758,10 @@ struct ContentView: View {
     
     // Add this property to get animation settings
     private var animationSettings: AnimationSettings {
-        if let screen = NSScreen.main {
-            let resolution = SizingGuide.getResolutionKey(for: screen.frame.size)
-            return SizingGuide.getSettings(for: resolution)?.animations ?? 
-                   AnimationSettings(
-                       slideEnabled: true,
-                       fadeEnabled: true,
-                       slide: SlideAnimation(
-                           duration: 0.6,
-                           curve: CubicCurve(x1: 0.33, y1: 0.0, x2: 0.1, y2: 1.0)
-                       ),
-                       fade: FadeAnimation(duration: 0.3)
-                   )
-        }
-        return AnimationSettings(
-            slideEnabled: true,
-            fadeEnabled: true,
-            slide: SlideAnimation(
-                duration: 0.6,
-                curve: CubicCurve(x1: 0.33, y1: 0.0, x2: 0.1, y2: 1.0)
-            ),
-            fade: FadeAnimation(duration: 0.3)
-        )
+        let screen = NSScreen.main ?? NSScreen.screens[0]
+        let resolution = SizingGuide.getResolutionKey(for: screen.frame.size)
+        let settings = SizingGuide.getSettings(for: resolution)
+        return settings.animations
     }
     
     var body: some View {
@@ -850,12 +770,12 @@ struct ContentView: View {
             VStack {
                 Text(currentSection)
                     .font(.custom(
-                        SizingGuide.getCurrentSettings()?.title.fontName ?? "Futura-Medium",
-                        size: SizingGuide.getCurrentSettings()?.title.size ?? 54.0
+                        SizingGuide.getCurrentSettings().title.fontName,
+                        size: SizingGuide.getCurrentSettings().title.size
                     ))
                     .foregroundColor(.white)
                     .opacity(titleOpacity)
-                    .padding(.top, SizingGuide.getCurrentSettings()?.layout.title.topPadding ?? 200)
+                    .padding(.top, SizingGuide.getCurrentSettings().layout.title.topPadding)
                 Spacer()
             }
             
@@ -1084,7 +1004,7 @@ struct ContentView: View {
             
             if selectedIndex == 0 {
                 if currentPage > 0 {
-                    guard SizingGuide.getCurrentSettings()?.animations.slideEnabled ?? true else { return }
+                    guard SizingGuide.getCurrentSettings().animations.slideEnabled else { return }
                     isAnimating = true
                     showingNextItems = true
                     nextOffset = -windowWidth
@@ -1103,7 +1023,7 @@ struct ContentView: View {
                         isAnimating = false
                     }
                 } else {
-                    guard SizingGuide.getCurrentSettings()?.animations.slideEnabled ?? true else { return }
+                    guard SizingGuide.getCurrentSettings().animations.slideEnabled else { return }
                     isAnimating = true
                     showingNextItems = true
                     nextOffset = -windowWidth
@@ -1140,7 +1060,7 @@ struct ContentView: View {
             
             if selectedIndex == min(4, sourceItems.count - (currentPage * 4)) - 1 {
                 if currentPage < lastPage {
-                    guard SizingGuide.getCurrentSettings()?.animations.slideEnabled ?? true else { return }
+                    guard SizingGuide.getCurrentSettings().animations.slideEnabled else { return }
                     isAnimating = true
                     showingNextItems = true
                     nextOffset = windowWidth
@@ -1159,7 +1079,7 @@ struct ContentView: View {
                         isAnimating = false
                     }
                 } else if currentPage == lastPage && selectedIndex == itemsOnLastPage - 1 {
-                    guard SizingGuide.getCurrentSettings()?.animations.slideEnabled ?? true else { return }
+                    guard SizingGuide.getCurrentSettings().animations.slideEnabled else { return }
                     isAnimating = true
                     showingNextItems = true
                     nextOffset = windowWidth
@@ -1284,26 +1204,26 @@ struct AppIconView: View {
     }
     
     private var labelFontSize: CGFloat {
-        SizingGuide.getCurrentSettings()?.label.size ?? 22.0
+        SizingGuide.getCurrentSettings().label.size
     }
     
     var body: some View {
-        let multipliers = SizingGuide.getSettings(for: "common")?.multipliers
-        VStack(spacing: sizing.gridSpacing * (multipliers?.gridSpacing ?? 0.4)) {
+        let multipliers = SizingGuide.getCommonSettings().multipliers
+        VStack(spacing: sizing.gridSpacing * multipliers.gridSpacing) {
             ZStack {
-                RoundedRectangle(cornerRadius: sizing.cornerRadius * (multipliers?.cornerRadius ?? 1.334))
+                RoundedRectangle(cornerRadius: sizing.cornerRadius * multipliers.cornerRadius)
                     .fill(Color.clear)
                     .frame(
-                        width: sizing.iconSize * (multipliers?.iconSize ?? 2.0) + sizing.selectionPadding,
-                        height: sizing.iconSize * (multipliers?.iconSize ?? 2.0) + sizing.selectionPadding
+                        width: sizing.iconSize * multipliers.iconSize + sizing.selectionPadding,
+                        height: sizing.iconSize * multipliers.iconSize + sizing.selectionPadding
                     )
                 
                 if isSelected {
-                    RoundedRectangle(cornerRadius: sizing.cornerRadius * (multipliers?.cornerRadius ?? 1.334))
-                        .fill(Color.white.opacity(SizingGuide.getSettings(for: "common")?.opacities?.selectionHighlight ?? 0.2))
+                    RoundedRectangle(cornerRadius: sizing.cornerRadius * multipliers.cornerRadius)
+                        .fill(Color.white.opacity(SizingGuide.getCommonSettings().opacities.selectionHighlight))
                         .frame(
-                            width: sizing.iconSize * (multipliers?.iconSize ?? 2.0) + sizing.selectionPadding,
-                            height: sizing.iconSize * (multipliers?.iconSize ?? 2.0) + sizing.selectionPadding
+                            width: sizing.iconSize * multipliers.iconSize + sizing.selectionPadding,
+                            height: sizing.iconSize * multipliers.iconSize + sizing.selectionPadding
                         )
                 }
                 
@@ -1312,7 +1232,7 @@ struct AppIconView: View {
             
             Text(item.name)
                 .font(.custom(
-                    SizingGuide.getCurrentSettings()?.label.fontName ?? "Avenir Next",
+                    SizingGuide.getCurrentSettings().label.fontName,
                     size: labelFontSize
                 ))
                 .foregroundColor(isSelected ? .white : .blue)
@@ -1338,38 +1258,36 @@ struct ClockView: View {
     }()
     
     private var clockFontSize: CGFloat {
-        SizingGuide.getCurrentSettings()?.clock.timeSize ?? 42.0
+        SizingGuide.getCurrentSettings().clock.timeSize
     }
     
     private var dateFontSize: CGFloat {
-        SizingGuide.getCurrentSettings()?.clock.dateSize ?? 18.0
+        SizingGuide.getCurrentSettings().clock.dateSize
     }
     
-    private var clockSettings: ClockSettings? {
-        let settings = SizingGuide.getCurrentSettings()?.clock
-        print("DEBUG: Clock settings loaded - spacing: \(settings?.spacing ?? -1)")  // Debug print moved here
-        return settings
+    private var clockSettings: ClockSettings {
+        SizingGuide.getCurrentSettings().clock
     }
     
     var body: some View {
-        VStack(alignment: .trailing, spacing: clockSettings?.spacing ?? 1.0) {
+        VStack(alignment: .trailing, spacing: clockSettings.spacing) {
             Text(timeFormatter.string(from: currentTime))
                 .font(.custom(
-                    clockSettings?.fontName ?? "Avenir Next Medium",
+                    clockSettings.fontName,
                     size: clockFontSize
                 ))
                 .foregroundColor(.white)
             
             Text(dateFormatter.string(from: currentTime))
                 .font(.custom(
-                    clockSettings?.fontName ?? "Avenir Next Medium",
+                    clockSettings.fontName,
                     size: dateFontSize
                 ))
-                .foregroundColor(.white.opacity(SizingGuide.getSettings(for: "common")?.opacities?.clockDateText ?? 0.7))
+                .foregroundColor(.white.opacity(SizingGuide.getCommonSettings().opacities.clockDateText))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-        .padding(.trailing, SizingGuide.getCurrentSettings()?.layout.clock.trailingPadding ?? 30)
-        .padding(.top, SizingGuide.getCurrentSettings()?.layout.clock.topPadding ?? 20)
+        .padding(.trailing, SizingGuide.getCurrentSettings().layout.clock.trailingPadding)
+        .padding(.top, SizingGuide.getCurrentSettings().layout.clock.topPadding)
         .onReceive(timer) { input in
             currentTime = input
         }
@@ -1386,14 +1304,7 @@ struct MouseProgressView: View {
         let resolution = screenWidth >= 2560 ? "2560x1440" :
                         screenWidth >= 1920 ? "1920x1080" : "1280x720"
         
-        return SizingGuide.getSettings(for: resolution)?.mouseIndicator ?? 
-               MouseIndicatorSettings(
-                   size: 96.0,
-                   strokeWidth: 4.5,
-                   inactivityTimeout: 5.0,
-                   backgroundColor: [0.5, 0.5, 0.5, 0.2],
-                   progressColor: [0.0, 1.0, 0.0, 0.8]
-               )
+        return SizingGuide.getSettings(for: resolution).mouseIndicator
     }
     
     var body: some View {
@@ -1424,12 +1335,12 @@ struct MouseProgressView: View {
             Image(systemName: direction == -1 ? "chevron.left" :
                             direction == 1 ? "chevron.right" : "")
                 .font(.system(
-                    size: settings.size * (SizingGuide.getSettings(for: "common")?.multipliers?.mouseIndicatorIconSize ?? 0.28),
+                    size: settings.size * SizingGuide.getCommonSettings().multipliers.mouseIndicatorIconSize,
                     weight: .semibold
                 ))
                 .foregroundColor(settings.progressColorUI)
         }
-        .padding(.bottom, SizingGuide.getCurrentSettings()?.layout.mouseIndicator.bottomPadding ?? 170)
+        .padding(.bottom, SizingGuide.getCurrentSettings().layout.mouseIndicator.bottomPadding)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
     }
 }
@@ -1439,19 +1350,19 @@ struct NavigationDotsView: View {
     let totalPages: Int
     
     private var dotSize: CGFloat {
-        SizingGuide.getCurrentSettings()?.navigationDots.size ?? 12.0
+        SizingGuide.getCurrentSettings().navigationDots.size
     }
     
     private var dotSpacing: CGFloat {
-        SizingGuide.getCurrentSettings()?.navigationDots.spacing ?? 24.0
+        SizingGuide.getCurrentSettings().navigationDots.spacing
     }
     
     private var dotOpacity: CGFloat {
-        SizingGuide.getCurrentSettings()?.navigationDots.opacity ?? 0.3
+        SizingGuide.getCurrentSettings().navigationDots.opacity
     }
     
     private var bottomPadding: CGFloat {
-        SizingGuide.getCurrentSettings()?.navigationDots.bottomPadding ?? 40.0
+        SizingGuide.getCurrentSettings().navigationDots.bottomPadding
     }
     
     var body: some View {
@@ -1460,8 +1371,7 @@ struct NavigationDotsView: View {
                 Circle()
                     .fill(Color.white)
                     .frame(width: dotSize, height: dotSize)
-                    .opacity(index == currentPage ? 1 : 
-                        SizingGuide.getCurrentSettings()?.navigationDots.opacity ?? 0.3)
+                    .opacity(index == currentPage ? 1 : SizingGuide.getCurrentSettings().navigationDots.opacity)
             }
         }
         .padding(.bottom, bottomPadding)
@@ -1543,8 +1453,8 @@ private let enableScreenshots = true
 struct LayoutSettings: Codable {
     let title: TitleLayout
     let clock: ClockLayout
+    let logo: LogoLayout?
     let mouseIndicator: MouseIndicatorLayout
-    let logo: LogoLayout
 }
 
 struct TitleLayout: Codable {
@@ -1556,22 +1466,20 @@ struct ClockLayout: Codable {
     let trailingPadding: CGFloat
 }
 
-struct MouseIndicatorLayout: Codable {
-    let bottomPadding: CGFloat
-}
-
 struct LogoLayout: Codable {
     let topPadding: CGFloat
     let leadingPadding: CGFloat
 }
 
-// Add CommonSettings struct
-struct CommonSettings: Codable {
-    let mouseSensitivity: CGFloat
-    let enableScreenshots: Bool
-    let opacities: OpacitySettings
-    let fontWeights: FontWeightSettings
-    let multipliers: MultiplierSettings
+struct MouseIndicatorLayout: Codable {
+    let bottomPadding: CGFloat
+}
+
+struct MultiplierSettings: Codable {
+    let iconSize: Double
+    let cornerRadius: Double
+    let gridSpacing: Double
+    let mouseIndicatorIconSize: Double
 }
 
 struct OpacitySettings: Codable {
@@ -1583,9 +1491,60 @@ struct FontWeightSettings: Codable {
     let mouseIndicatorIcon: String
 }
 
-struct MultiplierSettings: Codable {
-    let iconSize: Double
-    let cornerRadius: Double
-    let gridSpacing: Double
-    let mouseIndicatorIconSize: Double
+struct CarouselSizing: Codable {
+    let iconSize: CGFloat
+    let iconPadding: CGFloat
+    let cornerRadius: CGFloat
+    let gridSpacing: CGFloat
+    let titleSize: CGFloat
+    let labelSize: CGFloat
+    let selectionPadding: CGFloat
+}
+
+struct TitleSettings: Codable {
+    let fontName: String
+    let size: CGFloat
+}
+
+struct LabelSettings: Codable {
+    let fontName: String
+    let size: CGFloat
+}
+
+struct ClockSettings: Codable {
+    let fontName: String
+    let timeSize: CGFloat
+    let dateSize: CGFloat
+    let spacing: CGFloat
+}
+
+struct MouseIndicatorSettings: Codable {
+    let inactivityTimeout: Double
+    let size: CGFloat
+    let strokeWidth: CGFloat
+    let backgroundColor: [Double]  // [R, G, B, A]
+    let progressColor: [Double]    // [R, G, B, A]
+    
+    var backgroundColorUI: Color {
+        Color(.sRGB, 
+              red: backgroundColor[0],
+              green: backgroundColor[1], 
+              blue: backgroundColor[2], 
+              opacity: backgroundColor[3])
+    }
+    
+    var progressColorUI: Color {
+        Color(.sRGB, 
+              red: progressColor[0], 
+              green: progressColor[1], 
+              blue: progressColor[2], 
+              opacity: progressColor[3])
+    }
+}
+
+struct NavigationSettings: Codable {
+    let size: CGFloat
+    let spacing: CGFloat
+    let opacity: Double
+    let bottomPadding: CGFloat
 } 

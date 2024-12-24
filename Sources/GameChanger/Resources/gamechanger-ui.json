@@ -53,44 +53,44 @@
         "resolutions": {
             "2560x1440": {
                 "carousel": {
-                    "iconSize": 163,
-                    "iconPadding": 81,
-                    "cornerRadius": 45,
-                    "gridSpacing": 50,
-                    "titleSize": 75,
-                    "labelSize": 50,
-                    "selectionPadding": 50
+                    "iconSize": 166,
+                    "iconPadding": 84,
+                    "cornerRadius": 51,
+                    "gridSpacing": 53,
+                    "titleSize": 80,
+                    "labelSize": 53,
+                    "selectionPadding": 53
                 },
                 "title": {
                     "size": 72
                 },
                 "label": {
-                    "size": 30.0
+                    "size": 48.0
                 },
                 "clock": {
                     "timeSize": 56.0,
                     "dateSize": 24.0,
-                    "spacing": -5
+                    "spacing": -7
                 },
                 "mouseIndicator": {
-                    "size": 96.0,
-                    "strokeWidth": 4.5
+                    "size": 128.0,
+                    "strokeWidth": 6.0
                 },
                 "navigationDots": {
                     "size": 16.0,
                     "spacing": 32.0,
-                    "bottomPadding": 60.0
+                    "bottomPadding": 53.0
                 },
                 "layout": {
                     "title": {
-                        "topPadding": 250
+                        "topPadding": 266
                     },
                     "clock": {
-                        "topPadding": 20,
-                        "trailingPadding": 30
+                        "topPadding": 27,
+                        "trailingPadding": 40
                     },
                     "mouseIndicator": {
-                        "bottomPadding": 210
+                        "bottomPadding": 226
                     }
                 }
             },
@@ -139,9 +139,9 @@
             },
             "1280x720": {
                 "carousel": {
-                    "iconSize": 86,
-                    "iconPadding": 43,
-                    "cornerRadius": 27,
+                    "iconSize": 84,
+                    "iconPadding": 42,
+                    "cornerRadius": 25,
                     "gridSpacing": 27,
                     "titleSize": 40,
                     "labelSize": 27,
@@ -151,32 +151,32 @@
                     "size": 36
                 },
                 "label": {
-                    "size": 12.0
+                    "size": 24.0
                 },
                 "clock": {
-                    "timeSize": 24.0,
-                    "dateSize": 10.0,
-                    "spacing": -5
+                    "timeSize": 28.0,
+                    "dateSize": 12.0,
+                    "spacing": -3
                 },
                 "mouseIndicator": {
-                    "size": 96.0,
-                    "strokeWidth": 4.5
+                    "size": 64.0,
+                    "strokeWidth": 3.0
                 },
                 "navigationDots": {
                     "size": 8.0,
                     "spacing": 16.0,
-                    "bottomPadding": 20.0
+                    "bottomPadding": 27.0
                 },
                 "layout": {
                     "title": {
-                        "topPadding": 150
+                        "topPadding": 134
                     },
                     "clock": {
-                        "topPadding": 20,
-                        "trailingPadding": 30
+                        "topPadding": 13,
+                        "trailingPadding": 20
                     },
                     "mouseIndicator": {
-                        "bottomPadding": 130
+                        "bottomPadding": 114
                     }
                 }
             }

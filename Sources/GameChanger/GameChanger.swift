@@ -25,13 +25,8 @@ struct Section: RawRepresentable, Codable {
         return json.keys.map { Section(rawValue: $0) }
     }()
     
-    // Convenience accessors that use the JSON keys
-    static var box: Section { Section(rawValue: "Game Changer") }
-    static var arcade: Section { Section(rawValue: "Arcade") }
-    static var console: Section { Section(rawValue: "Console") }
-    static var system: Section { Section(rawValue: "System") }
-    static var computer: Section { Section(rawValue: "Computer") }
-    static var internet: Section { Section(rawValue: "Internet") }
+    // Add default section
+    static var `default`: Section { Section(rawValue: "Game Changer") }
 }
 
 enum Action: String, Codable {
@@ -151,7 +146,7 @@ struct AppItem: Codable {
     let path: String?
     
     var sectionEnum: Section {
-        return Section(rawValue: name) ?? .box
+        return Section(rawValue: name) ?? .default
     }
     
     var parentEnum: Section? {

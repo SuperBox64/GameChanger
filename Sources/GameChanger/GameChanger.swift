@@ -4,7 +4,7 @@
 //
 
 import SwiftUI
-import AppKit
+import Cocoa
 import GameController
 import Carbon.HIToolbox
 
@@ -26,7 +26,7 @@ enum Action: String, Codable {
     case quit = "quit"
     case path = "path"
     
-    func execute(with path: String? = "/System/Applications/Calculator.app") {
+    func execute(with path: String? = nil, appName: String? = nil) {
         print("Executing action: \(self)")
         switch self {
         case .none:
@@ -40,10 +40,13 @@ enum Action: String, Codable {
         case .quit:
             NSApplication.shared.terminate(nil)
         case .path:
-            print("path: \(path)")
             if let pathToOpen = path {
-                let fileURL: URL = URL(fileURLWithPath: pathToOpen)
+                let fileURL = URL(fileURLWithPath: pathToOpen)
                 NSWorkspace.shared.open(fileURL)
+                
+                if let appName = appName {
+                    toggleFullScreen(for: appName)
+                }
             } else {
                 print("Invalid path")
             }
@@ -51,7 +54,37 @@ enum Action: String, Codable {
     }
 }
 
-private struct SystemActions {
+// New function to handle osascript execution
+func toggleFullScreen(for appName: String) {
+    sleep(1)
+    let script = """
+    tell application "System Events" to tell process "\(appName)"
+        set value of attribute "AXFullScreen" of window 1 to true
+    end tell
+    """
+
+    let process = Process()
+    process.launchPath = "/usr/bin/osascript"
+    process.arguments = ["-e", script]
+
+    let pipe = Pipe()
+    process.standardOutput = pipe
+    process.standardError = pipe
+
+    do {
+        try process.run()
+        process.waitUntilExit()
+
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        if let output = String(data: data, encoding: .utf8) {
+            print("Output: \(output)")
+        }
+    } catch {
+        print("Failed to run osascript: \(error)")
+    }
+}
+
+private struct SystemActions  {
     static func sendAppleEvent(_ eventID: UInt32) {
         var psn = ProcessSerialNumber(highLongOfPSN: 0, lowLongOfPSN: UInt32(kSystemProcess))
         let target = NSAppleEventDescriptor(
@@ -97,9 +130,9 @@ struct AppItem: Codable {
         let actionEnum = Action(rawValue: action)
         print("Converted to enum: \(String(describing: actionEnum))")
         
-        // Execute with path if it's a path action
+        // Execute with path and name if it's a path action
         if actionEnum == .path {
-            actionEnum?.execute(with: path)
+            actionEnum?.execute(with: path, appName: name)
         }
         
         return actionEnum ?? .none
@@ -187,10 +220,12 @@ struct GameChangerApp: App {
                 MouseIndicatorView()
                 NavigationOverlayView()
             }
+            .frame(width: .infinity, height: .infinity)
             .environmentObject(windowSizeMonitor)
         }
         .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentSize)
+        .windowResizability(.automatic)
+
     }
 }
 
@@ -340,11 +375,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return event
     }
 
-        // Hide cursor and start timer to keep it hidden
+        //Hide cursor and start timer to keep it hidden
         NSCursor.hide()
-        cursorHideTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-            NSCursor.hide()
-        }
+        // cursorHideTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+        //     NSCursor.hide()
+        // }
         
         // Set up menu bar
         let mainMenu = NSMenu()
@@ -364,24 +399,45 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
         appMenu.addItem(quitMenuItem)
         
-    let presOptions: NSApplication.PresentationOptions = [.hideDock]
-    NSApp.presentationOptions = presOptions
+        let presOptions: NSApplication.PresentationOptions = [.hideDock, .hideMenuBar]
+        NSApp.presentationOptions = presOptions
 
-        // Make window full screen
-        DispatchQueue.main.async {
+        // Make window borderless and full screen
+        //DispatchQueue.main.async {
             if let window = NSApp.windows.first {
+                window.styleMask = [.borderless, .fullSizeContentView]  // Make window borderless
                 window.makeKeyAndOrderFront(nil)
-                window.titlebarAppearsTransparent = true
-                window.titleVisibility = .hidden
-                window.title = ""
-                window.toggleFullScreen(nil)
-                
+                //window.titlebarAppearsTransparent = true
+                //window.titleVisibility = .hidden
+                //window.title = ""
+                window.level = .init(rawValue: -10000)
+                window.setFrame(NSScreen.main?.frame ?? .zero, display: true)
                 // Take screenshot after a short delay to ensure UI is fully loaded
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    self.takeScreenshot()
+
+                if SizingGuide.getCommonSettings().enableScreenshots {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        self.takeScreenshot()
+                    }
                 }
+              
             }
-        }
+        //}
+
+    //     //DispatchQueue.main.async {
+    //         if let window = NSApp.windows.first {
+    //             let frame = NSScreen.main!.frame
+    //             window.setFrame(frame, display: true)
+    //             //window.styleMask = [.borderless]
+    //             window.level = NSWindow.Level(rawValue: -1000)  // Desktop window level
+    //             //window.toggleFullScreen(nil)  // Add this line to make it full screen
+    //             window.hasShadow = true
+    //             //window.isOpaque = false
+    //             //window.backgroundColor = .clear
+    //         }
+
+    //         let presOptions: NSApplication.PresentationOptions = [.hideDock, .hideMenuBar]
+    // NSApp.presentationOptions = presOptions
+    //    // }
         
         // Set up screenshot timer
         if SizingGuide.getCommonSettings().enableScreenshots {
@@ -415,7 +471,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationWillTerminate(_ notification: Notification) {
-        cursorHideTimer?.invalidate()
+        //cursorHideTimer?.invalidate()
         screenshotTimer?.invalidate()
         NSCursor.unhide()
     }
@@ -424,9 +480,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
     
-    private func takeScreenshot() {
-        guard SizingGuide.getCommonSettings().enableScreenshots else { return }
-        
+    private func takeScreenshot() {        
         if let window = NSApp.windows.first,
            let cgImage = CGWindowListCreateImage(
             .null,

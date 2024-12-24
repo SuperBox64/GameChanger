@@ -9,13 +9,29 @@ import GameController
 import Carbon.HIToolbox
 
 // Types needed for items
-enum Section: String {
-    case box = "Game Changer"
-    case arcade = "Arcade"
-    case console = "Console"
-    case system = "System"
-    case computer = "Computer"
-    case internet = "Internet"
+struct Section: RawRepresentable, Codable {
+    let rawValue: String
+    
+    init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+    
+    static var allCases: [Section] = {
+        guard let url = Bundle.main.url(forResource: "app_items", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return []
+        }
+        return json.keys.map { Section(rawValue: $0) }
+    }()
+    
+    // Convenience accessors that use the JSON keys
+    static var box: Section { Section(rawValue: "Game Changer") }
+    static var arcade: Section { Section(rawValue: "Arcade") }
+    static var console: Section { Section(rawValue: "Console") }
+    static var system: Section { Section(rawValue: "System") }
+    static var computer: Section { Section(rawValue: "Computer") }
+    static var internet: Section { Section(rawValue: "Internet") }
 }
 
 enum Action: String, Codable {
@@ -323,61 +339,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("=== Starting Image Loading ===")
         
         // Pre-initialize the cache
-        let allSections = ["Game Changer", "Arcade", "Console", "Computer", "Internet", "System"]
-        var loadedImages = 0
-        var totalImages = 0
-        
-        // First pass - count total images
-        for section in allSections {
-            let items = AppItemManager.shared.getItems(for: section)
-            totalImages += items.count
-        }
-        
-        print("Total images to load: \(totalImages)")
-        
-        // Second pass - load images synchronously
-        for section in allSections {
-            let items = AppItemManager.shared.getItems(for: section)
-            for item in items {
-                autoreleasepool {
-                    if let iconURL = Bundle.main.url(forResource: item.systemIcon, 
-                                                   withExtension: "svg", 
-                                                   subdirectory: "images/svg") {
-                        if let image = NSImage(contentsOf: iconURL) {
-                            ImageCache.shared.cache[item.systemIcon] = image
-                            loadedImages += 1
-                            print("[\(loadedImages)/\(totalImages)] Loaded: \(item.name)")
-                        } else {
-                            print("Failed to load image for: \(item.name)")
-                        }
-                    } else {
-                        print("Failed to find image URL for: \(item.name)")
-                    }
-                }
-            }
-        }
-        
-        print("=== Image Loading Complete: \(loadedImages)/\(totalImages) ===")
-        
-        // Verify cache
-        print("=== Verifying Cache ===")
-        for section in allSections {
-            let items = AppItemManager.shared.getItems(for: section)
-            for item in items {
-                if ImageCache.shared.cache[item.systemIcon] == nil {
-                    print("WARNING: Missing cache entry for \(item.name)")
-                }
-            }
-        }
-        print("=== Cache Verification Complete ===")
-        
-        // Only set isLoaded after ALL images are confirmed in cache
-        if loadedImages == totalImages {
-            AppState.shared.isLoaded = true
-            print("App state set to loaded")
-        } else {
-            print("ERROR: Not all images loaded!")
-        }
+        initializeCache()
         
         // Rest of initialization
         NSApp.setActivationPolicy(.regular)
@@ -468,6 +430,58 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             screenshotTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
                 self?.takeScreenshot()
             }
+        }
+    }
+    
+    private func initializeCache() {
+        var loadedImages = 0
+        var totalImages = 0
+        
+        // First pass - count total images
+        for section in Section.allCases {
+            let items = AppItemManager.shared.getItems(for: section.rawValue)
+            totalImages += items.count
+        }
+        
+        // Second pass - load images synchronously
+        for section in Section.allCases {
+            let items = AppItemManager.shared.getItems(for: section.rawValue)
+            for item in items {
+                autoreleasepool {
+                    if let iconURL = Bundle.main.url(forResource: item.systemIcon, 
+                                                   withExtension: "svg", 
+                                                   subdirectory: "images/svg") {
+                        if let image = NSImage(contentsOf: iconURL) {
+                            ImageCache.shared.cache[item.systemIcon] = image
+                            loadedImages += 1
+                            print("[\(loadedImages)/\(totalImages)] Loaded: \(item.name)")
+                        } else {
+                            print("Failed to load image for: \(item.name)")
+                        }
+                    } else {
+                        print("Failed to find image URL for: \(item.name)")
+                    }
+                }
+            }
+        }
+        
+        // Verify cache
+        print("=== Verifying Cache ===")
+        for section in Section.allCases {
+            let items = AppItemManager.shared.getItems(for: section.rawValue)
+            for item in items {
+                if ImageCache.shared.cache[item.systemIcon] == nil {
+                    print("WARNING: Missing cache entry for \(item.name)")
+                }
+            }
+        }
+        
+        // Only set isLoaded after ALL images are confirmed in cache
+        if loadedImages == totalImages {
+            AppState.shared.isLoaded = true
+            print("App state set to loaded")
+        } else {
+            print("ERROR: Not all images loaded!")
         }
     }
     
@@ -976,9 +990,8 @@ struct ContentView: View {
     }
     
     private func preloadImages() {
-        let allSections = ["Game Changer", "Arcade", "Console", "Computer", "Internet", "System"]
-        for section in allSections {
-            let items = AppItemManager.shared.getItems(for: section)
+        for section in Section.allCases {
+            let items = AppItemManager.shared.getItems(for: section.rawValue)
             ImageCache.shared.preloadImages(from: items)
         }
     }

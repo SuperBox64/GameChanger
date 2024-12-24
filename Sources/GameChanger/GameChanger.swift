@@ -670,7 +670,7 @@ struct ContentView: View {
     @State private var windowWidth: CGFloat = 0
     @State private var animationDirection: Int = 0
     @State private var isTransitioning = false
-    @State private var opacity: Double = 1
+    @State private var opacity: Double = 1.0
     @State private var titleOpacity: Double = 1
     @State private var currentSection: String = "Game Changer"
     @State private var mouseProgress: CGFloat = 0
@@ -717,11 +717,33 @@ struct ContentView: View {
             return
         }
         
-        if let _ = selectedItem.parent, 
+        if let _ = selectedItem.parent,
            !AppItemManager.shared.getItems(for: selectedItem.name).isEmpty {
-            selectedIndex = 0
-            currentPage = 0
-            currentSection = selectedItem.sectionEnum.rawValue
+            let fadeEnabled = SizingGuide.getCommonSettings().animations.fadeEnabled
+            
+            if fadeEnabled {
+                let fadeDuration = SizingGuide.getCommonSettings().animations.fade.duration
+                
+                withAnimation(.linear(duration: fadeDuration / 2)) {  // Half duration for each phase
+                    opacity = 0.0
+                    titleOpacity = 0.0
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + (fadeDuration / 2)) {
+                    selectedIndex = 0
+                    currentPage = 0
+                    currentSection = selectedItem.sectionEnum.rawValue
+                    
+                    withAnimation(.linear(duration: fadeDuration / 2)) {
+                        opacity = 1.0
+                        titleOpacity = 1.0
+                    }
+                }
+            } else {
+                selectedIndex = 0
+                currentPage = 0
+                currentSection = selectedItem.sectionEnum.rawValue
+            }
         }
     }
     
@@ -858,6 +880,7 @@ struct ContentView: View {
                 nextOffset: nextOffset,
                 nextItems: nextItems
             )
+            .opacity(opacity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
@@ -1195,9 +1218,31 @@ struct ContentView: View {
     public func back() {
         let sourceItems = getSourceItems()
         if !sourceItems.isEmpty, let parentSection = sourceItems[0].parentEnum {
-            currentSection = parentSection.rawValue
-            selectedIndex = 0
-            currentPage = 0
+            let fadeEnabled = SizingGuide.getCommonSettings().animations.fadeEnabled
+            
+            if fadeEnabled {
+                let fadeDuration = SizingGuide.getCommonSettings().animations.fade.duration
+                
+                withAnimation(.linear(duration: fadeDuration / 2)) {  // Half duration for each phase
+                    opacity = 0.0
+                    titleOpacity = 0.0
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + (fadeDuration / 2)) {
+                    currentSection = parentSection.rawValue
+                    selectedIndex = 0
+                    currentPage = 0
+                    
+                    withAnimation(.linear(duration: fadeDuration / 2)) {
+                        opacity = 1.0
+                        titleOpacity = 1.0
+                    }
+                }
+            } else {
+                currentSection = parentSection.rawValue
+                selectedIndex = 0
+                currentPage = 0
+            }
         }
     }
     

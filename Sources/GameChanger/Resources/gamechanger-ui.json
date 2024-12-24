@@ -8,6 +8,22 @@
                 "label": "Avenir Next",
                 "clock": "Avenir Next Medium"
             },
+            "colors": {
+                "mouseIndicator": {
+                    "background": [0.5, 0.5, 0.5, 0.2],
+                    "progress": [0.0, 1.0, 0.0, 0.8]
+                }
+            },
+            "mouseIndicator": {
+                "inactivityTimeout": 5.0,
+                "strokeWidth": 4.5
+            },
+            "navigation": {
+                "opacity": 0.3
+            },
+            "clock": {
+                "spacing": 1.0
+            },
             "animations": {
                 "slideEnabled": true,
                 "fadeEnabled": true,
@@ -61,16 +77,11 @@
                     "spacing": 1.0
                 },
                 "mouseIndicator": {
-                    "inactivityTimeout": 5.0,
-                    "size": 96.0,
-                    "strokeWidth": 4.5,
-                    "backgroundColor": [0.5, 0.5, 0.5, 0.2],
-                    "progressColor": [0.0, 1.0, 0.0, 0.8]
+                    "size": 96.0
                 },
                 "navigationDots": {
                     "size": 16.0,
                     "spacing": 32.0,
-                    "opacity": 0.3,
                     "bottomPadding": 60.0
                 },
                 "layout": {
@@ -104,16 +115,11 @@
                     "spacing": 1.0
                 },
                 "mouseIndicator": {
-                    "inactivityTimeout": 5.0,
-                    "size": 96.0,
-                    "strokeWidth": 4.5,
-                    "backgroundColor": [0.5, 0.5, 0.5, 0.2],
-                    "progressColor": [0.0, 1.0, 0.0, 0.8]
+                    "size": 96.0
                 },
                 "navigationDots": {
                     "size": 12.0,
                     "spacing": 24.0,
-                    "opacity": 0.3,
                     "bottomPadding": 40.0
                 },
                 "layout": {
@@ -143,16 +149,11 @@
                     "spacing": 1.0
                 },
                 "mouseIndicator": {
-                    "inactivityTimeout": 5.0,
-                    "size": 96.0,
-                    "strokeWidth": 4.5,
-                    "backgroundColor": [0.5, 0.5, 0.5, 0.2],
-                    "progressColor": [0.0, 1.0, 0.0, 0.8]
+                    "size": 96.0
                 },
                 "navigationDots": {
                     "size": 8.0,
                     "spacing": 16.0,
-                    "opacity": 0.3,
                     "bottomPadding": 20.0
                 },
                 "layout": {

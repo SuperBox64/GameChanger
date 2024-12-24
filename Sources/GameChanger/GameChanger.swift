@@ -453,8 +453,50 @@ struct CommonSettings: Codable {
     let fontWeights: FontWeightSettings
     let fonts: FontSettings
     let animations: AnimationSettings
+    let colors: ColorSettings
+    let mouseIndicator: MouseIndicatorCommonSettings
+    let navigation: NavigationCommonSettings
+    let clock: ClockCommonSettings
     let enableScreenshots: Bool
     let mouseSensitivity: Double
+}
+
+struct MouseIndicatorCommonSettings: Codable {
+    let inactivityTimeout: Double
+    let strokeWidth: CGFloat
+}
+
+struct NavigationCommonSettings: Codable {
+    let opacity: Double
+}
+
+struct ClockCommonSettings: Codable {
+    let spacing: CGFloat
+}
+
+struct ColorSettings: Codable {
+    let mouseIndicator: MouseIndicatorColors
+}
+
+struct MouseIndicatorColors: Codable {
+    let background: [Double]  // [R, G, B, A]
+    let progress: [Double]    // [R, G, B, A]
+    
+    var backgroundUI: Color {
+        Color(.sRGB, 
+              red: background[0],
+              green: background[1], 
+              blue: background[2], 
+              opacity: background[3])
+    }
+    
+    var progressUI: Color {
+        Color(.sRGB, 
+              red: progress[0], 
+              green: progress[1], 
+              blue: progress[2], 
+              opacity: progress[3])
+    }
 }
 
 struct FontSettings: Codable {
@@ -716,7 +758,7 @@ struct ContentView: View {
         // Reset and restart inactivity timer
         mouseTimer?.invalidate()
         mouseTimer = Timer.scheduledTimer(
-            withTimeInterval: SizingGuide.getCurrentSettings().mouseIndicator.inactivityTimeout,
+            withTimeInterval: SizingGuide.getCommonSettings().mouseIndicator.inactivityTimeout,
             repeats: false
         ) { _ in
             self.resetMouseState()
@@ -1274,7 +1316,7 @@ struct ClockView: View {
     }
     
     var body: some View {
-        VStack(alignment: .trailing, spacing: clockSettings.spacing) {
+        VStack(alignment: .trailing, spacing: SizingGuide.getCommonSettings().clock.spacing) {
             Text(timeFormatter.string(from: currentTime))
                 .font(.custom(
                     SizingGuide.getCommonSettings().fonts.clock,
@@ -1312,24 +1354,29 @@ struct MouseProgressView: View {
     }
     
     var body: some View {
+        let commonSettings = SizingGuide.getCommonSettings()
+        
         ZStack {
             Circle()
-                .stroke(settings.backgroundColorUI,
-                       lineWidth: settings.strokeWidth)
-                .frame(width: settings.size,
-                       height: settings.size)
+                .stroke(
+                    commonSettings.colors.mouseIndicator.backgroundUI,
+                    style: StrokeStyle(
+                        lineWidth: commonSettings.mouseIndicator.strokeWidth,
+                        lineCap: .round
+                    )
+                )
+                .frame(width: settings.size, height: settings.size)
             
             Circle()
                 .trim(from: 0, to: progress)
                 .stroke(
-                    settings.progressColorUI,
+                    commonSettings.colors.mouseIndicator.progressUI,
                     style: StrokeStyle(
-                        lineWidth: settings.strokeWidth,
+                        lineWidth: commonSettings.mouseIndicator.strokeWidth,
                         lineCap: .round
                     )
                 )
-                .frame(width: settings.size,
-                       height: settings.size)
+                .frame(width: settings.size, height: settings.size)
                 .rotationEffect(
                     direction == -1 ?
                         .degrees(Double(-90) - (Double(progress) * 360)) :
@@ -1342,7 +1389,7 @@ struct MouseProgressView: View {
                     size: settings.size * SizingGuide.getCommonSettings().multipliers.mouseIndicatorIconSize,
                     weight: .semibold
                 ))
-                .foregroundColor(settings.progressColorUI)
+                .foregroundColor(SizingGuide.getCommonSettings().colors.mouseIndicator.progressUI)
         }
         .padding(.bottom, SizingGuide.getCurrentSettings().layout.mouseIndicator.bottomPadding)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
@@ -1362,7 +1409,7 @@ struct NavigationDotsView: View {
     }
     
     private var dotOpacity: CGFloat {
-        SizingGuide.getCurrentSettings().navigationDots.opacity
+        SizingGuide.getCommonSettings().navigation.opacity
     }
     
     private var bottomPadding: CGFloat {
@@ -1375,7 +1422,7 @@ struct NavigationDotsView: View {
                 Circle()
                     .fill(Color.white)
                     .frame(width: dotSize, height: dotSize)
-                    .opacity(index == currentPage ? 1 : SizingGuide.getCurrentSettings().navigationDots.opacity)
+                    .opacity(index == currentPage ? 1 : dotOpacity)
             }
         }
         .padding(.bottom, bottomPadding)
@@ -1445,7 +1492,6 @@ struct FadeAnimation: Codable {
 private let defaultNavigationSettings = NavigationSettings(
     size: 12.0,
     spacing: 24.0,
-    opacity: 0.3,
     bottomPadding: 40.0
 ) 
 
@@ -1516,36 +1562,14 @@ struct LabelSettings: Codable {
 struct ClockSettings: Codable {
     let timeSize: CGFloat
     let dateSize: CGFloat
-    let spacing: CGFloat
 }
 
 struct MouseIndicatorSettings: Codable {
-    let inactivityTimeout: Double
     let size: CGFloat
-    let strokeWidth: CGFloat
-    let backgroundColor: [Double]  // [R, G, B, A]
-    let progressColor: [Double]    // [R, G, B, A]
-    
-    var backgroundColorUI: Color {
-        Color(.sRGB, 
-              red: backgroundColor[0],
-              green: backgroundColor[1], 
-              blue: backgroundColor[2], 
-              opacity: backgroundColor[3])
-    }
-    
-    var progressColorUI: Color {
-        Color(.sRGB, 
-              red: progressColor[0], 
-              green: progressColor[1], 
-              blue: progressColor[2], 
-              opacity: progressColor[3])
-    }
 }
 
 struct NavigationSettings: Codable {
     let size: CGFloat
     let spacing: CGFloat
-    let opacity: Double
     let bottomPadding: CGFloat
 } 

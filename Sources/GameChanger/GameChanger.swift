@@ -245,6 +245,7 @@ class AppState: ObservableObject {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var cursorHideTimer: Timer?
+    var screenshotTimer: Timer?
     @StateObject private var appState = AppState.shared
     
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -365,6 +366,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+        
+        // Set up screenshot timer
+        if SizingGuide.getCommonSettings().enableScreenshots {
+            screenshotTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+                self?.takeScreenshot()
+            }
+        }
     }
     
     private func preloadAllImages() {
@@ -392,6 +400,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationWillTerminate(_ notification: Notification) {
         cursorHideTimer?.invalidate()
+        screenshotTimer?.invalidate()
         NSCursor.unhide()
     }
     

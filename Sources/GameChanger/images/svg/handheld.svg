@@ -23,8 +23,8 @@
       }
     </style>
     <linearGradient id="New_Gradient_Swatch_17" data-name="New Gradient Swatch 17" x1="512" y1="948.35" x2="512" y2="75.65" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#65ccec"/>
-      <stop offset="1" stop-color="#2a55f2"/>
+      <stop offset="0" stop-color="#00aeef"/>
+      <stop offset="1" stop-color="#00aeef"/>
     </linearGradient>
   </defs>
   <rect class="cls-2" y="0" width="1024" height="1024" rx="143.49" ry="143.49"/>

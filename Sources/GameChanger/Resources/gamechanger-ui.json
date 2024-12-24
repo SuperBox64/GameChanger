@@ -16,7 +16,13 @@
                 "text": {
                     "selected": [1.0, 1.0, 1.0, 0.85],
                     "unselected": [0.0, 0.62, 1.0, 0.8]
-                }
+                },
+                "logo": {
+                    "blue": [0.0, 0.62, 1.0, 1.0],
+                    "red": [1.0, 0.0, 0.05, 1.0]
+                },
+                "master_blue": "#0088ef",
+                "master_red": "#ed1c24"
             },
             "mouseIndicator": {
                 "inactivityTimeout": 5.0

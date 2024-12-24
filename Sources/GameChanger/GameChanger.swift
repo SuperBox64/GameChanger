@@ -160,18 +160,18 @@ struct NavigationOverlayView: View {
 @main
 struct GameChangerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @StateObject private var windowSizeMonitor = WindowSizeMonitor.shared
     
     var body: some Scene {
         WindowGroup {
             ZStack {
-                BackgroundView()  // Background layer
-                
-                ClockView()  // Remove the VStack wrapper
-                
-                ContentView()     // Main content layer
-                MouseIndicatorView()  // Mouse indicator overlay
-                NavigationOverlayView()  // Navigation dots overlay
+                BackgroundView()
+                ClockView()
+                ContentView()
+                MouseIndicatorView()
+                NavigationOverlayView()
             }
+            .environmentObject(windowSizeMonitor)
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
@@ -594,8 +594,7 @@ struct CarouselView: View {
                 ForEach(0..<visibleItems.count, id: \.self) { index in
                     AppIconView(
                         item: visibleItems[index],
-                        isSelected: index == selectedIndex,
-                        sizing: sizing
+                        isSelected: index == selectedIndex
                     )
                 }
             }
@@ -612,8 +611,7 @@ struct CarouselView: View {
                     ForEach(0..<nextItems.count, id: \.self) { index in
                         AppIconView(
                             item: nextItems[index],
-                            isSelected: false,
-                            sizing: sizing
+                            isSelected: false
                         )
                     }
                 }
@@ -1205,9 +1203,24 @@ extension NSPoint {
 }
 
 struct AppIconView: View {
+    @EnvironmentObject private var windowSizeMonitor: WindowSizeMonitor
     let item: AppItem
     let isSelected: Bool
-    let sizing: CarouselSizing
+    
+    private var sizing: CarouselSizing {
+        // Convert resolution string to screen size first
+        let resolution = windowSizeMonitor.currentResolution
+        let size: CGSize
+        switch resolution {
+            case "2560x1440":
+                size = CGSize(width: 2560, height: 1440)
+            case "1920x1080":
+                size = CGSize(width: 1920, height: 1080)
+            default: // "1280x720"
+                size = CGSize(width: 1280, height: 720)
+        }
+        return SizingGuide.getSizing(for: size)
+    }
     
     private func loadIcon() -> some View {
         // Force immediate loading from cache
@@ -1273,7 +1286,7 @@ struct AppIconView: View {
             Text(item.name)
                 .font(.custom(
                     SizingGuide.getCommonSettings().fonts.label,
-                    size: labelFontSize
+                    size: sizing.labelSize
                 ))
                 .foregroundColor(isSelected ? .white : .blue)
         }
@@ -1392,35 +1405,24 @@ struct MouseProgressView: View {
 }
 
 struct NavigationDotsView: View {
+    @EnvironmentObject private var windowSizeMonitor: WindowSizeMonitor
     let currentPage: Int
     let totalPages: Int
     
-    private var dotSize: CGFloat {
-        SizingGuide.getCurrentSettings().navigationDots.size
-    }
-    
-    private var dotSpacing: CGFloat {
-        SizingGuide.getCurrentSettings().navigationDots.spacing
-    }
-    
-    private var dotOpacity: CGFloat {
-        SizingGuide.getCommonSettings().navigation.opacity
-    }
-    
-    private var bottomPadding: CGFloat {
-        SizingGuide.getCurrentSettings().navigationDots.bottomPadding
+    private var settings: NavigationSettings {
+        return SizingGuide.getSettings(for: windowSizeMonitor.currentResolution).navigationDots
     }
     
     var body: some View {
-        HStack(spacing: dotSpacing) {
+        HStack(spacing: settings.spacing) {
             ForEach(0..<totalPages, id: \.self) { index in
                 Circle()
                     .fill(Color.white)
-                    .frame(width: dotSize, height: dotSize)
-                    .opacity(index == currentPage ? 1 : dotOpacity)
+                    .frame(width: settings.size, height: settings.size)
+                    .opacity(index == currentPage ? 1 : SizingGuide.getCommonSettings().navigation.opacity)
             }
         }
-        .padding(.bottom, bottomPadding)
+        .padding(.bottom, settings.bottomPadding)
     }
 }
 
@@ -1569,4 +1571,41 @@ struct NavigationSettings: Codable {
     let size: CGFloat
     let spacing: CGFloat
     let bottomPadding: CGFloat
+}
+
+class WindowSizeMonitor: ObservableObject {
+    static let shared = WindowSizeMonitor()
+    @Published var currentResolution: String
+    private var observers: [NSObjectProtocol] = []
+    
+    init() {
+        // Set default resolution based on main screen
+        if let screen = NSScreen.main {
+            self.currentResolution = SizingGuide.getResolutionKey(for: screen.frame.size)
+        } else {
+            self.currentResolution = "1920x1080"  // Safe default
+        }
+        
+        // Observe window resize notifications
+        observers.append(NotificationCenter.default.addObserver(
+            forName: NSWindow.didResizeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let window = notification.object as? NSWindow else { return }
+            self?.updateResolution(for: window.frame.size)
+        })
+    }
+    
+    private func updateResolution(for size: CGSize) {
+        let newResolution = SizingGuide.getResolutionKey(for: size)
+        if newResolution != currentResolution {
+            currentResolution = newResolution
+            objectWillChange.send()
+        }
+    }
+    
+    deinit {
+        observers.forEach { NotificationCenter.default.removeObserver($0) }
+    }
 } 

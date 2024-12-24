@@ -21,10 +21,10 @@
                     "blue": [0.0, 0.62, 1.0, 1.0],
                     "red": [1.0, 0.0, 0.05, 1.0]
                 },
-                "master_blue": "#0088ef",
-                "master_red": "#ed1c24",
-                "master_black": "#000000",
-                "master_white": "#ffffff"
+                "svg_blue": "#0088ef",
+                "svg_red": "#ed1c24",
+                "svg_black": "#000000",
+                "svg_white": "#ffffff"
             },
             "mouseIndicator": {
                 "inactivityTimeout": 5.0

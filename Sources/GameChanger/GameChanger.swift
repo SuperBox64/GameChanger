@@ -1090,7 +1090,6 @@ struct ContentView: View {
     
     private func moveLeft() {
         let sourceItems = getSourceItems()
-        let itemsOnCurrentPage = min(4, sourceItems.count - (currentPage * 4))
         
         // If we can move left within current page
         if selectedIndex > 0 {
@@ -1098,7 +1097,38 @@ struct ContentView: View {
             return
         }
         
-        // If we can't move left on current page, try moving to previous page
+        // If on first page and first item, loop to last page
+        if currentPage == 0 && selectedIndex == 0 {
+            let lastPage = (sourceItems.count - 1) / 4
+            let itemsOnLastPage = min(4, sourceItems.count - (lastPage * 4))
+            
+            guard SizingGuide.getCommonSettings().animations.slideEnabled else {
+                currentPage = lastPage
+                selectedIndex = itemsOnLastPage - 1
+                return
+            }
+            
+            isAnimating = true
+            showingNextItems = true
+            nextOffset = -windowWidth
+            
+            withAnimation(.carouselSlide(settings: animationSettings)) {
+                currentOffset = windowWidth
+                nextOffset = 0
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
+                currentPage = lastPage
+                selectedIndex = itemsOnLastPage - 1
+                currentOffset = 0
+                nextOffset = 0
+                showingNextItems = false
+                isAnimating = false
+            }
+            return
+        }
+        
+        // Normal previous page behavior
         if currentPage > 0 {
             let nextPage = currentPage - 1
             let itemsOnNextPage = min(4, sourceItems.count - (nextPage * 4))
@@ -1133,13 +1163,37 @@ struct ContentView: View {
         if !isAnimating {
             let sourceItems = getSourceItems()
             let itemsOnCurrentPage = min(4, sourceItems.count - (currentPage * 4))
-            let totalItems = sourceItems.count
+            let lastPage = (sourceItems.count - 1) / 4
             
             if selectedIndex < itemsOnCurrentPage - 1 {
-                // If not at last item on page, just move selection
                 selectedIndex += 1
-            } else if (currentPage * 4 + selectedIndex + 1) < totalItems {
-                // If there are more items, move to next page
+            } else if currentPage == lastPage {
+                // Loop to first page
+                guard SizingGuide.getCommonSettings().animations.slideEnabled else {
+                    currentPage = 0
+                    selectedIndex = 0
+                    return
+                }
+                
+                isAnimating = true
+                showingNextItems = true
+                nextOffset = windowWidth
+                
+                withAnimation(.carouselSlide(settings: animationSettings)) {
+                    currentOffset = -windowWidth
+                    nextOffset = 0
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
+                    currentPage = 0
+                    selectedIndex = 0
+                    currentOffset = 0
+                    nextOffset = 0
+                    showingNextItems = false
+                    isAnimating = false
+                }
+            } else {
+                // Normal next page behavior
                 guard SizingGuide.getCommonSettings().animations.slideEnabled else {
                     currentPage += 1
                     selectedIndex = 0

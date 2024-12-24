@@ -1557,7 +1557,7 @@ struct NavigationDotsView: View {
                 Circle()
                     .fill(Color.white)
                     .frame(width: settings.size, height: settings.size)
-                    .opacity(index == currentPage ? 1 : SizingGuide.getCommonSettings().navigation.opacity)
+                    .opacity(totalPages == 1 ? 0 : (index == currentPage ? 1 : SizingGuide.getCommonSettings().navigation.opacity))
             }
         }
         .padding(.bottom, settings.bottomPadding)

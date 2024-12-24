@@ -41,14 +41,33 @@ enum Action: String, Codable {
             NSApplication.shared.terminate(nil)
         case .path:
             if let pathToOpen = path {
-                let fileURL = URL(fileURLWithPath: pathToOpen)
-                NSWorkspace.shared.open(fileURL)
+                launchApplication(at: pathToOpen)
                 
                 if let appName = appName {
                     toggleFullScreen(for: appName)
                 }
             } else {
                 print("Invalid path")
+            }
+        }
+    }
+}
+
+func launchApplication(at path: String, completion: ((Bool) -> Void)? = nil) {
+    DispatchQueue.global(qos: .userInitiated).async {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = [path]
+        
+        do {
+            try process.run()
+            DispatchQueue.main.async {
+                completion?(true)
+            }
+        } catch {
+            print("Failed to launch application: \(error)")
+            DispatchQueue.main.async {
+                completion?(false)
             }
         }
     }
@@ -376,9 +395,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
         //Hide cursor and start timer to keep it hidden
-        NSCursor.hide()
+                       NSCursor.hide()
+        NSApp.hideOtherApplications(nil)
+
         // cursorHideTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-        //     NSCursor.hide()
+        //         NSCursor.hide()
+           
         // }
         
         // Set up menu bar
@@ -403,7 +425,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.presentationOptions = presOptions
 
         // Make window borderless and full screen
-        //DispatchQueue.main.async {
+        DispatchQueue.main.async {
             if let window = NSApp.windows.first {
                 window.styleMask = [.borderless, .fullSizeContentView]  // Make window borderless
                 window.makeKeyAndOrderFront(nil)
@@ -420,8 +442,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                 }
               
+                //NSApp.activate(ignoringOtherApps: true)
+                //NSApp.hideOtherApplications(nil) // Changed from (self) to (nil)
             }
-        //}
+        }
 
     //     //DispatchQueue.main.async {
     //         if let window = NSApp.windows.first {
@@ -476,6 +500,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSCursor.unhide()
     }
     
+    func applicationDidBecomeActive(_ notification: Notification) {
+        // Add a small delay to ensure window is active
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            NSCursor.hide()
+            NSApp.hideOtherApplications(nil)
+        }
+    }
+
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return true
     }
@@ -1819,3 +1851,4 @@ class WindowSizeMonitor: ObservableObject {
         observers.forEach { NotificationCenter.default.removeObserver($0) }
     }
 } 
+

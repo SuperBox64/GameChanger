@@ -11,12 +11,12 @@
       }
 
       .cls-2 {
-        fill: #000;
+        fill: #000000;
         mix-blend-mode: multiply;
       }
 
       .cls-3 {
-        fill: #0060a8;
+        fill: #0088ef;
       }
 
       .cls-5 {

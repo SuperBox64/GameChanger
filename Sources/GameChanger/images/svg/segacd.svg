@@ -21,6 +21,10 @@
       .cls-4 {
         isolation: isolate;
       }
+
+      .cls-3 {
+        fill: #000000;
+      }
     </style>
   </defs>
   <g class="cls-4">

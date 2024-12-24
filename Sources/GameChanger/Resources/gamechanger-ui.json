@@ -3,6 +3,11 @@
         "common": {
             "mouseSensitivity": 1.0,
             "enableScreenshots": true,
+            "fonts": {
+                "title": "Avenir Next",
+                "label": "Avenir Next",
+                "clock": "Avenir Next Medium"
+            },
             "opacities": {
                 "selectionHighlight": 0.2,
                 "clockDateText": 0.7
@@ -29,15 +34,12 @@
                     "selectionPadding": 50
                 },
                 "title": {
-                    "fontName": "Avenir Next",
                     "size": 72
                 },
                 "label": {
-                    "fontName": "Avenir Next",
                     "size": 30.0
                 },
                 "clock": {
-                    "fontName": "Avenir Next Medium",
                     "timeSize": 56.0,
                     "dateSize": 24.0,
                     "spacing": 1.0
@@ -95,15 +97,12 @@
                     "selectionPadding": 40
                 },
                 "title": {
-                    "fontName": "Avenir Next",
                     "size": 54
                 },
                 "label": {
-                    "fontName": "Avenir Next",
                     "size": 22.0
                 },
                 "clock": {
-                    "fontName": "Avenir Next Medium",
                     "timeSize": 42.0,
                     "dateSize": 18.0,
                     "spacing": 1.0
@@ -161,15 +160,12 @@
                     "selectionPadding": 27
                 },
                 "title": {
-                    "fontName": "Avenir Next",
                     "size": 36
                 },
                 "label": {
-                    "fontName": "Avenir Next",
                     "size": 12.0
                 },
                 "clock": {
-                    "fontName": "Avenir Next Medium",
                     "timeSize": 24.0,
                     "dateSize": 10.0,
                     "spacing": 1.0

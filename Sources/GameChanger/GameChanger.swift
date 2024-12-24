@@ -451,8 +451,15 @@ struct CommonSettings: Codable {
     let multipliers: MultiplierSettings
     let opacities: OpacitySettings
     let fontWeights: FontWeightSettings
+    let fonts: FontSettings
     let enableScreenshots: Bool
     let mouseSensitivity: Double
+}
+
+struct FontSettings: Codable {
+    let title: String
+    let label: String
+    let clock: String
 }
 
 struct InterfaceSizing: Codable {
@@ -770,7 +777,7 @@ struct ContentView: View {
             VStack {
                 Text(currentSection)
                     .font(.custom(
-                        SizingGuide.getCurrentSettings().title.fontName,
+                        SizingGuide.getCommonSettings().fonts.title,
                         size: SizingGuide.getCurrentSettings().title.size
                     ))
                     .foregroundColor(.white)
@@ -1232,7 +1239,7 @@ struct AppIconView: View {
             
             Text(item.name)
                 .font(.custom(
-                    SizingGuide.getCurrentSettings().label.fontName,
+                    SizingGuide.getCommonSettings().fonts.label,
                     size: labelFontSize
                 ))
                 .foregroundColor(isSelected ? .white : .blue)
@@ -1273,15 +1280,15 @@ struct ClockView: View {
         VStack(alignment: .trailing, spacing: clockSettings.spacing) {
             Text(timeFormatter.string(from: currentTime))
                 .font(.custom(
-                    clockSettings.fontName,
-                    size: clockFontSize
+                    SizingGuide.getCommonSettings().fonts.clock,
+                    size: clockSettings.timeSize
                 ))
                 .foregroundColor(.white)
             
             Text(dateFormatter.string(from: currentTime))
                 .font(.custom(
-                    clockSettings.fontName,
-                    size: dateFontSize
+                    SizingGuide.getCommonSettings().fonts.clock,
+                    size: clockSettings.dateSize
                 ))
                 .foregroundColor(.white.opacity(SizingGuide.getCommonSettings().opacities.clockDateText))
         }
@@ -1502,17 +1509,14 @@ struct CarouselSizing: Codable {
 }
 
 struct TitleSettings: Codable {
-    let fontName: String
     let size: CGFloat
 }
 
 struct LabelSettings: Codable {
-    let fontName: String
     let size: CGFloat
 }
 
 struct ClockSettings: Codable {
-    let fontName: String
     let timeSize: CGFloat
     let dateSize: CGFloat
     let spacing: CGFloat

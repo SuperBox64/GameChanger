@@ -544,12 +544,43 @@ struct SizingGuide {
     }
     
     static func getResolutionKey(for screenSize: CGSize) -> String {
-        if screenSize.width >= 2560 {
+        if screenSize.width >= 5120 {
+            return "5120x2880"
+        } else if screenSize.width >= 2880 {
+            return "2880x1620"
+        } else if screenSize.width >= 2560 {
             return "2560x1440"
+        } else if screenSize.width >= 2048 {
+            return "2048x1152"
         } else if screenSize.width >= 1920 {
             return "1920x1080"
+        } else if screenSize.width >= 1600 {
+            return "1600x900"
+        } else if screenSize.width >= 1440 {
+            return "1440x810"
         }
         return "1280x720"
+    }
+    
+    static func getScreenSize(for resolution: String) -> CGSize {
+        switch resolution {
+            case "5120x2880":
+                return CGSize(width: 5120, height: 2880)
+            case "2880x1620":
+                return CGSize(width: 2880, height: 1620)
+            case "2560x1440":
+                return CGSize(width: 2560, height: 1440)
+            case "2048x1152":
+                return CGSize(width: 2048, height: 1152)
+            case "1920x1080":
+                return CGSize(width: 1920, height: 1080)
+            case "1600x900":
+                return CGSize(width: 1600, height: 900)
+            case "1440x810":
+                return CGSize(width: 1440, height: 810)
+            default: // "1280x720"
+                return CGSize(width: 1280, height: 720)
+        }
     }
 }
 
@@ -1208,17 +1239,7 @@ struct AppIconView: View {
     let isSelected: Bool
     
     private var sizing: CarouselSizing {
-        // Convert resolution string to screen size first
-        let resolution = windowSizeMonitor.currentResolution
-        let size: CGSize
-        switch resolution {
-            case "2560x1440":
-                size = CGSize(width: 2560, height: 1440)
-            case "1920x1080":
-                size = CGSize(width: 1920, height: 1080)
-            default: // "1280x720"
-                size = CGSize(width: 1280, height: 720)
-        }
+        let size = SizingGuide.getScreenSize(for: windowSizeMonitor.currentResolution)
         return SizingGuide.getSizing(for: size)
     }
     
@@ -1350,14 +1371,12 @@ struct ClockView: View {
 
 // Update MouseProgressView to use settings
 struct MouseProgressView: View {
+    @EnvironmentObject private var windowSizeMonitor: WindowSizeMonitor
     let progress: CGFloat
     let direction: Int
     
     private var settings: MouseIndicatorSettings {
-        let screenWidth = NSScreen.main?.frame.width ?? 1920
-        let resolution = screenWidth >= 2560 ? "2560x1440" :
-                        screenWidth >= 1920 ? "1920x1080" : "1280x720"
-        
+        let resolution = windowSizeMonitor.currentResolution
         return SizingGuide.getSettings(for: resolution).mouseIndicator
     }
     

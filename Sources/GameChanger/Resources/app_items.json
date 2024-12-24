@@ -1,6 +1,13 @@
 {
     "Game Changer": [
         {
+            "name": "TextEdit",
+            "systemIcon": "textedit",
+            "parent": "",
+            "action": "path",
+            "path": "/System/Applications/TextEdit.app"
+        },
+        {
             "name": "Arcade",
             "systemIcon": "arcade",
             "parent": "",

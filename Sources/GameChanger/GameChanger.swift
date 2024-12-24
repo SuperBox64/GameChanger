@@ -24,9 +24,10 @@ enum Action: String, Codable {
     case sleep = "sleep"
     case logout = "logout"
     case quit = "quit"
+    case path = "path"
     
-    func execute() {
-        print("Executing action: \(self)")  // Debug print
+    func execute(with path: String? = "/System/Applications/Calculator.app") {
+        print("Executing action: \(self)")
         switch self {
         case .none:
             return
@@ -38,6 +39,14 @@ enum Action: String, Codable {
             SystemActions.sendAppleEvent(kAELogOut)
         case .quit:
             NSApplication.shared.terminate(nil)
+        case .path:
+            print("path: \(path)")
+            if let pathToOpen = path {
+                let fileURL: URL = URL(fileURLWithPath: pathToOpen)
+                NSWorkspace.shared.open(fileURL)
+            } else {
+                print("Invalid path")
+            }
         }
     }
 }
@@ -71,6 +80,7 @@ struct AppItem: Codable {
     let systemIcon: String
     let parent: String?
     let action: String?
+    let path: String?
     
     var sectionEnum: Section {
         return Section(rawValue: name) ?? .box
@@ -86,6 +96,12 @@ struct AppItem: Codable {
         print("Converting action string: \(action)")
         let actionEnum = Action(rawValue: action)
         print("Converted to enum: \(String(describing: actionEnum))")
+        
+        // Execute with path if it's a path action
+        if actionEnum == .path {
+            actionEnum?.execute(with: path)
+        }
+        
         return actionEnum ?? .none
     }
 }

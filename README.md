@@ -4,7 +4,9 @@ Written entirely by Cursor AI (Claude-3.5-Sonnet)
 
 on macOS 13 or later:
 `cd /path/to/this/app`
+
 `chmod +x ./build.sh`
+
 `./build.sh`
 
 that's and it will run the app for you. Work in progress, not 100% complete, but getting there FAST!

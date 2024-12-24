@@ -519,7 +519,7 @@ struct SizingGuide {
                 let data = try Data(contentsOf: url)
                 settings = try JSONDecoder().decode(GUISettings.self, from: data)
                 print("DEBUG: Successfully loaded UI settings")
-                print("DEBUG: Available resolutions: \(settings?.GameChangerUI.keys ?? [])")
+                print("DEBUG: Available resolutions: \(settings?.GameChangerUI.keys.map { $0 } ?? [])")
             } catch {
                 print("ERROR: Failed to load UI settings - \(error)")
             }
@@ -1345,21 +1345,24 @@ struct ClockView: View {
         SizingGuide.getCurrentSettings()?.clock.dateSize ?? 18.0
     }
     
+    private var clockSettings: ClockSettings? {
+        let settings = SizingGuide.getCurrentSettings()?.clock
+        print("DEBUG: Clock settings loaded - spacing: \(settings?.spacing ?? -1)")  // Debug print moved here
+        return settings
+    }
+    
     var body: some View {
-        let clockSettings = SizingGuide.getCurrentSettings()?.clock
-        print("DEBUG: Clock settings loaded - spacing: \(clockSettings?.spacing ?? -1)")  // Should never see -1
-        
         VStack(alignment: .trailing, spacing: clockSettings?.spacing ?? 1.0) {
             Text(timeFormatter.string(from: currentTime))
                 .font(.custom(
-                    SizingGuide.getCurrentSettings()?.clock.fontName ?? "Avenir Next Medium",
+                    clockSettings?.fontName ?? "Avenir Next Medium",
                     size: clockFontSize
                 ))
                 .foregroundColor(.white)
             
             Text(dateFormatter.string(from: currentTime))
                 .font(.custom(
-                    SizingGuide.getCurrentSettings()?.clock.fontName ?? "Avenir Next Medium",
+                    clockSettings?.fontName ?? "Avenir Next Medium",
                     size: dateFontSize
                 ))
                 .foregroundColor(.white.opacity(SizingGuide.getSettings(for: "common")?.opacities?.clockDateText ?? 0.7))

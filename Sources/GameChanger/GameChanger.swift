@@ -1082,62 +1082,49 @@ struct ContentView: View {
     
     private func enforceSelectionRules() {
         let sourceItems = getSourceItems()
-        let currentVisibleCount = min(4, sourceItems.count - (currentPage * 4))
-        if selectedIndex >= currentVisibleCount {
-            selectedIndex = currentVisibleCount - 1
+        let itemsOnCurrentPage = min(4, sourceItems.count - (currentPage * 4))
+        if selectedIndex >= itemsOnCurrentPage {
+            selectedIndex = itemsOnCurrentPage - 1
         }
     }
     
     private func moveLeft() {
-        if !isAnimating {
-            let sourceItems = getSourceItems()
-            let totalItems = sourceItems.count
-            let itemsPerPage = 4
+        let sourceItems = getSourceItems()
+        let itemsOnCurrentPage = min(4, sourceItems.count - (currentPage * 4))
+        
+        // If we can move left within current page
+        if selectedIndex > 0 {
+            selectedIndex -= 1
+            return
+        }
+        
+        // If we can't move left on current page, try moving to previous page
+        if currentPage > 0 {
+            let nextPage = currentPage - 1
+            let itemsOnNextPage = min(4, sourceItems.count - (nextPage * 4))
             
-            if selectedIndex == 0 {
-                if currentPage > 0 {
-                    guard SizingGuide.getCommonSettings().animations.slideEnabled else { return }
-                    isAnimating = true
-                    showingNextItems = true
-                    nextOffset = -windowWidth
-                    
-                    withAnimation(.carouselSlide(settings: animationSettings)) {
-                        currentOffset = windowWidth
-                        nextOffset = 0
-                    }
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
-                        currentPage -= 1
-                        selectedIndex = 3
-                        currentOffset = 0
-                        nextOffset = 0
-                        showingNextItems = false
-                        isAnimating = false
-                    }
-                } else {
-                    guard SizingGuide.getCommonSettings().animations.slideEnabled else { return }
-                    isAnimating = true
-                    showingNextItems = true
-                    nextOffset = -windowWidth
-                    
-                    withAnimation(.carouselSlide(settings: animationSettings)) {
-                        currentOffset = windowWidth
-                        nextOffset = 0
-                    }
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
-                        let lastPage = (totalItems - 1) / itemsPerPage
-                        let itemsOnLastPage = totalItems % itemsPerPage == 0 ? itemsPerPage : totalItems % itemsPerPage
-                        currentPage = lastPage
-                        selectedIndex = itemsOnLastPage - 1
-                        currentOffset = 0
-                        nextOffset = 0
-                        showingNextItems = false
-                        isAnimating = false
-                    }
-                }
-            } else {
-                selectedIndex -= 1
+            guard SizingGuide.getCommonSettings().animations.slideEnabled else {
+                currentPage = nextPage
+                selectedIndex = itemsOnNextPage - 1  // Start at last item
+                return
+            }
+            
+            isAnimating = true
+            showingNextItems = true
+            nextOffset = -windowWidth
+            
+            withAnimation(.carouselSlide(settings: animationSettings)) {
+                currentOffset = windowWidth
+                nextOffset = 0
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
+                currentPage = nextPage
+                selectedIndex = itemsOnNextPage - 1  // Start at last item
+                currentOffset = 0
+                nextOffset = 0
+                showingNextItems = false
+                isAnimating = false
             }
         }
     }
@@ -1145,53 +1132,37 @@ struct ContentView: View {
     private func moveRight() {
         if !isAnimating {
             let sourceItems = getSourceItems()
+            let itemsOnCurrentPage = min(4, sourceItems.count - (currentPage * 4))
             let totalItems = sourceItems.count
-            let itemsPerPage = 4
-            let lastPage = (totalItems - 1) / itemsPerPage
-            let itemsOnLastPage = totalItems % itemsPerPage == 0 ? itemsPerPage : totalItems % itemsPerPage
             
-            if selectedIndex == min(4, sourceItems.count - (currentPage * 4)) - 1 {
-                if currentPage < lastPage {
-                    guard SizingGuide.getCommonSettings().animations.slideEnabled else { return }
-                    isAnimating = true
-                    showingNextItems = true
-                    nextOffset = windowWidth
-                    
-                    withAnimation(.carouselSlide(settings: animationSettings)) {
-                        currentOffset = -windowWidth
-                        nextOffset = 0
-                    }
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
-                        currentPage += 1
-                        selectedIndex = 0
-                        currentOffset = 0
-                        nextOffset = 0
-                        showingNextItems = false
-                        isAnimating = false
-                    }
-                } else if currentPage == lastPage && selectedIndex == itemsOnLastPage - 1 {
-                    guard SizingGuide.getCommonSettings().animations.slideEnabled else { return }
-                    isAnimating = true
-                    showingNextItems = true
-                    nextOffset = windowWidth
-                    
-                    withAnimation(.carouselSlide(settings: animationSettings)) {
-                        currentOffset = -windowWidth
-                        nextOffset = 0
-                    }
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
-                        currentPage = 0
-                        selectedIndex = 0
-                        currentOffset = 0
-                        nextOffset = 0
-                        showingNextItems = false
-                        isAnimating = false
-                    }
-                }
-            } else {
+            if selectedIndex < itemsOnCurrentPage - 1 {
+                // If not at last item on page, just move selection
                 selectedIndex += 1
+            } else if (currentPage * 4 + selectedIndex + 1) < totalItems {
+                // If there are more items, move to next page
+                guard SizingGuide.getCommonSettings().animations.slideEnabled else {
+                    currentPage += 1
+                    selectedIndex = 0
+                    return
+                }
+                
+                isAnimating = true
+                showingNextItems = true
+                nextOffset = windowWidth
+                
+                withAnimation(.carouselSlide(settings: animationSettings)) {
+                    currentOffset = -windowWidth
+                    nextOffset = 0
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
+                    currentPage += 1
+                    selectedIndex = 0
+                    currentOffset = 0
+                    nextOffset = 0
+                    showingNextItems = false
+                    isAnimating = false
+                }
             }
         }
     }
@@ -1266,6 +1237,22 @@ struct ContentView: View {
             let startIndex = (currentPage + 1) * 4
             let endIndex = min(startIndex + 4, sourceItems.count)
             return Array(sourceItems[startIndex..<endIndex])
+        }
+    }
+    
+    // Add this function to handle left selection
+    private func moveSelection(left: Bool) {
+        let sourceItems = getSourceItems()
+        let itemsOnCurrentPage = min(4, sourceItems.count - (currentPage * 4))
+        
+        if left {
+            if selectedIndex > 0 {
+                selectedIndex -= 1
+            }
+        } else {
+            if selectedIndex < itemsOnCurrentPage - 1 {
+                selectedIndex += 1
+            }
         }
     }
 }

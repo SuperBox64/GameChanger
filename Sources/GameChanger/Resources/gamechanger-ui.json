@@ -8,6 +8,22 @@
                 "label": "Avenir Next",
                 "clock": "Avenir Next Medium"
             },
+            "animations": {
+                "slideEnabled": true,
+                "fadeEnabled": true,
+                "slide": {
+                    "duration": 0.6,
+                    "curve": {
+                        "x1": 0.33,
+                        "y1": 0.0,
+                        "x2": 0.1,
+                        "y2": 1.0
+                    }
+                },
+                "fade": {
+                    "duration": 0.3
+                }
+            },
             "opacities": {
                 "selectionHighlight": 0.2,
                 "clockDateText": 0.7
@@ -57,22 +73,6 @@
                     "opacity": 0.3,
                     "bottomPadding": 60.0
                 },
-                "animations": {
-                    "slideEnabled": true,
-                    "fadeEnabled": true,
-                    "slide": {
-                        "duration": 0.6,
-                        "curve": {
-                            "x1": 0.33,
-                            "y1": 0.0,
-                            "x2": 0.1,
-                            "y2": 1.0
-                        }
-                    },
-                    "fade": {
-                        "duration": 0.3
-                    }
-                },
                 "layout": {
                     "title": {
                         "topPadding": 250
@@ -96,12 +96,8 @@
                     "labelSize": 40,
                     "selectionPadding": 40
                 },
-                "title": {
-                    "size": 54
-                },
-                "label": {
-                    "size": 22.0
-                },
+                "title": { "size": 54 },
+                "label": { "size": 22.0 },
                 "clock": {
                     "timeSize": 42.0,
                     "dateSize": 18.0,
@@ -120,33 +116,13 @@
                     "opacity": 0.3,
                     "bottomPadding": 40.0
                 },
-                "animations": {
-                    "slideEnabled": true,
-                    "fadeEnabled": true,
-                    "slide": {
-                        "duration": 0.6,
-                        "curve": {
-                            "x1": 0.33,
-                            "y1": 0.0,
-                            "x2": 0.1,
-                            "y2": 1.0
-                        }
-                    },
-                    "fade": {
-                        "duration": 0.3
-                    }
-                },
                 "layout": {
-                    "title": {
-                        "topPadding": 200
-                    },
+                    "title": { "topPadding": 200 },
                     "clock": {
                         "topPadding": 20,
                         "trailingPadding": 30
                     },
-                    "mouseIndicator": {
-                        "bottomPadding": 170
-                    }
+                    "mouseIndicator": { "bottomPadding": 170 }
                 }
             },
             "1280x720": {
@@ -159,12 +135,8 @@
                     "labelSize": 27,
                     "selectionPadding": 27
                 },
-                "title": {
-                    "size": 36
-                },
-                "label": {
-                    "size": 12.0
-                },
+                "title": { "size": 36 },
+                "label": { "size": 12.0 },
                 "clock": {
                     "timeSize": 24.0,
                     "dateSize": 10.0,
@@ -183,37 +155,13 @@
                     "opacity": 0.3,
                     "bottomPadding": 20.0
                 },
-                "animations": {
-                    "slideEnabled": true,
-                    "fadeEnabled": true,
-                    "slide": {
-                        "duration": 0.6,
-                        "curve": {
-                            "x1": 0.33,
-                            "y1": 0.0,
-                            "x2": 0.1,
-                            "y2": 1.0
-                        }
-                    },
-                    "fade": {
-                        "duration": 0.3
-                    }
-                },
                 "layout": {
-                    "title": {
-                        "topPadding": 150
-                    },
+                    "title": { "topPadding": 150 },
                     "clock": {
                         "topPadding": 20,
                         "trailingPadding": 30
                     },
-                    "logo": {
-                        "topPadding": 30,
-                        "leadingPadding": 30
-                    },
-                    "mouseIndicator": {
-                        "bottomPadding": 130
-                    }
+                    "mouseIndicator": { "bottomPadding": 130 }
                 }
             }
         }

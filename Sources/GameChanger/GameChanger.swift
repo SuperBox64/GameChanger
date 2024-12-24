@@ -452,6 +452,7 @@ struct CommonSettings: Codable {
     let opacities: OpacitySettings
     let fontWeights: FontWeightSettings
     let fonts: FontSettings
+    let animations: AnimationSettings
     let enableScreenshots: Bool
     let mouseSensitivity: Double
 }
@@ -465,7 +466,6 @@ struct FontSettings: Codable {
 struct InterfaceSizing: Codable {
     let carousel: CarouselSizing
     let mouseIndicator: MouseIndicatorSettings
-    let animations: AnimationSettings
     let title: TitleSettings
     let label: LabelSettings
     let clock: ClockSettings
@@ -763,12 +763,9 @@ struct ContentView: View {
         }
     }
     
-    // Add this property to get animation settings
+    // Update animation access in views
     private var animationSettings: AnimationSettings {
-        let screen = NSScreen.main ?? NSScreen.screens[0]
-        let resolution = SizingGuide.getResolutionKey(for: screen.frame.size)
-        let settings = SizingGuide.getSettings(for: resolution)
-        return settings.animations
+        return SizingGuide.getCommonSettings().animations
     }
     
     var body: some View {
@@ -1011,7 +1008,7 @@ struct ContentView: View {
             
             if selectedIndex == 0 {
                 if currentPage > 0 {
-                    guard SizingGuide.getCurrentSettings().animations.slideEnabled else { return }
+                    guard SizingGuide.getCommonSettings().animations.slideEnabled else { return }
                     isAnimating = true
                     showingNextItems = true
                     nextOffset = -windowWidth
@@ -1030,7 +1027,7 @@ struct ContentView: View {
                         isAnimating = false
                     }
                 } else {
-                    guard SizingGuide.getCurrentSettings().animations.slideEnabled else { return }
+                    guard SizingGuide.getCommonSettings().animations.slideEnabled else { return }
                     isAnimating = true
                     showingNextItems = true
                     nextOffset = -windowWidth
@@ -1067,7 +1064,7 @@ struct ContentView: View {
             
             if selectedIndex == min(4, sourceItems.count - (currentPage * 4)) - 1 {
                 if currentPage < lastPage {
-                    guard SizingGuide.getCurrentSettings().animations.slideEnabled else { return }
+                    guard SizingGuide.getCommonSettings().animations.slideEnabled else { return }
                     isAnimating = true
                     showingNextItems = true
                     nextOffset = windowWidth
@@ -1086,7 +1083,7 @@ struct ContentView: View {
                         isAnimating = false
                     }
                 } else if currentPage == lastPage && selectedIndex == itemsOnLastPage - 1 {
-                    guard SizingGuide.getCurrentSettings().animations.slideEnabled else { return }
+                    guard SizingGuide.getCommonSettings().animations.slideEnabled else { return }
                     isAnimating = true
                     showingNextItems = true
                     nextOffset = windowWidth

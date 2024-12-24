@@ -1,6 +1,6 @@
 Written entirely by Cursor AI (Claude-3.5-Sonnet)
 2,000 lines of code.
-2 days work including prompting by human, testing by human, building by AI, debugging by AI, crash reports read in by AI, errors and warnings fix by AI, bug fixes by AI. 100% AI code. 100% Human Imagination and Prompting.
+2 days work including prompting by human, testing by human, building by AI, debugging by AI, crash reports read in by AI, errors and warnings fix by AI, bug fixes by AI. 100% AI code. 100% Human Imagination and Prompting. 100% Swift/SwiftUI.
 
 on macOS 13 or later:
 

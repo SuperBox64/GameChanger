@@ -470,6 +470,28 @@ struct NavigationCommonSettings: Codable {
 
 struct ColorSettings: Codable {
     let mouseIndicator: MouseIndicatorColors
+    let text: TextColors
+}
+
+struct TextColors: Codable {
+    let selected: [Double]
+    let unselected: [Double]
+    
+    var selectedUI: Color {
+        Color(.sRGB, 
+              red: selected[0],
+              green: selected[1], 
+              blue: selected[2], 
+              opacity: selected[3])
+    }
+    
+    var unselectedUI: Color {
+        Color(.sRGB, 
+              red: unselected[0],
+              green: unselected[1], 
+              blue: unselected[2], 
+              opacity: unselected[3])
+    }
 }
 
 struct MouseIndicatorColors: Codable {
@@ -1395,7 +1417,9 @@ struct AppIconView: View {
                     SizingGuide.getCommonSettings().fonts.label,
                     size: sizing.labelSize
                 ))
-                .foregroundColor(isSelected ? .white : .blue)
+                .foregroundColor(isSelected ? 
+                    SizingGuide.getCommonSettings().colors.text.selectedUI : 
+                    SizingGuide.getCommonSettings().colors.text.unselectedUI)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

@@ -12,6 +12,10 @@
                 "mouseIndicator": {
                     "background": [0.5, 0.5, 0.5, 0.2],
                     "progress": [0.0, 1.0, 0.0, 0.8]
+                },
+                "text": {
+                    "selected": [1.0, 1.0, 1.0, 0.85],
+                    "unselected": [0.0, 0.62, 1.0, 0.8]
                 }
             },
             "mouseIndicator": {

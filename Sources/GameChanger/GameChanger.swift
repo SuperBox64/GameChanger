@@ -24,9 +24,7 @@ struct Section: RawRepresentable, Codable {
         }
         return json.keys.map { Section(rawValue: $0) }
     }()
-    
-    // Add default section
-    static var `default`: Section { Section(rawValue: "Game Changer") }
+
 }
 
 enum Action: String, Codable {
@@ -146,7 +144,7 @@ struct AppItem: Codable {
     let path: String?
     
     var sectionEnum: Section {
-        return Section(rawValue: name) ?? .default
+        return Section(rawValue: name)
     }
     
     var parentEnum: Section? {
@@ -190,7 +188,6 @@ struct AppItemManager {
                 print("JSON Content:", String(data: data, encoding: .utf8) ?? "Could not read JSON content")
                 self.items = try JSONDecoder().decode([String: [AppItem]].self, from: data)
                 print("Successfully loaded sections:", self.items.keys)
-                print("Items in Game Changer section:", self.items["Game Changer"]?.count ?? 0)
             } catch {
                 print("Error loading/decoding JSON:", error)
                 print("Error description:", error.localizedDescription)
@@ -806,7 +803,7 @@ struct ContentView: View {
     @State private var isTransitioning = false
     @State private var opacity: Double = 1.0
     @State private var titleOpacity: Double = 1
-    @State private var currentSection: String = "Game Changer"
+    @State private var currentSection: String = Section.allCases.first?.rawValue ?? "GC"
     @State private var mouseProgress: CGFloat = 0
     @State private var mouseDirection: Int = 0
     @State private var showingProgress = false

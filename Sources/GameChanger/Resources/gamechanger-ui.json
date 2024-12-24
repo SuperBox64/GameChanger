@@ -4,7 +4,7 @@
             "mouseSensitivity": 1.0,
             "enableScreenshots": true,
             "fonts": {
-                "title": "Avenir Next",
+                "title": "Avenir Next Medium",
                 "label": "Avenir Next",
                 "clock": "Avenir Next Medium"
             },
@@ -15,14 +15,10 @@
                 }
             },
             "mouseIndicator": {
-                "inactivityTimeout": 5.0,
-                "strokeWidth": 4.5
+                "inactivityTimeout": 5.0
             },
             "navigation": {
                 "opacity": 0.3
-            },
-            "clock": {
-                "spacing": 1.0
             },
             "animations": {
                 "slideEnabled": true,
@@ -77,7 +73,8 @@
                     "spacing": 1.0
                 },
                 "mouseIndicator": {
-                    "size": 96.0
+                    "size": 96.0,
+                    "strokeWidth": 4.5
                 },
                 "navigationDots": {
                     "size": 16.0,
@@ -107,15 +104,20 @@
                     "labelSize": 40,
                     "selectionPadding": 40
                 },
-                "title": { "size": 54 },
-                "label": { "size": 22.0 },
+                "title": {
+                    "size": 54
+                },
+                "label": {
+                    "size": 36.0
+                },
                 "clock": {
                     "timeSize": 42.0,
                     "dateSize": 18.0,
                     "spacing": 1.0
                 },
                 "mouseIndicator": {
-                    "size": 96.0
+                    "size": 96.0,
+                    "strokeWidth": 4.5
                 },
                 "navigationDots": {
                     "size": 12.0,
@@ -123,12 +125,16 @@
                     "bottomPadding": 40.0
                 },
                 "layout": {
-                    "title": { "topPadding": 200 },
+                    "title": {
+                        "topPadding": 200
+                    },
                     "clock": {
                         "topPadding": 20,
                         "trailingPadding": 30
                     },
-                    "mouseIndicator": { "bottomPadding": 170 }
+                    "mouseIndicator": {
+                        "bottomPadding": 170
+                    }
                 }
             },
             "1280x720": {
@@ -141,15 +147,20 @@
                     "labelSize": 27,
                     "selectionPadding": 27
                 },
-                "title": { "size": 36 },
-                "label": { "size": 12.0 },
+                "title": {
+                    "size": 36
+                },
+                "label": {
+                    "size": 12.0
+                },
                 "clock": {
                     "timeSize": 24.0,
                     "dateSize": 10.0,
                     "spacing": 1.0
                 },
                 "mouseIndicator": {
-                    "size": 96.0
+                    "size": 96.0,
+                    "strokeWidth": 4.5
                 },
                 "navigationDots": {
                     "size": 8.0,
@@ -157,12 +168,16 @@
                     "bottomPadding": 20.0
                 },
                 "layout": {
-                    "title": { "topPadding": 150 },
+                    "title": {
+                        "topPadding": 150
+                    },
                     "clock": {
                         "topPadding": 20,
                         "trailingPadding": 30
                     },
-                    "mouseIndicator": { "bottomPadding": 130 }
+                    "mouseIndicator": {
+                        "bottomPadding": 130
+                    }
                 }
             }
         }

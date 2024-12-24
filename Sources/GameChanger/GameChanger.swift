@@ -456,22 +456,16 @@ struct CommonSettings: Codable {
     let colors: ColorSettings
     let mouseIndicator: MouseIndicatorCommonSettings
     let navigation: NavigationCommonSettings
-    let clock: ClockCommonSettings
     let enableScreenshots: Bool
     let mouseSensitivity: Double
 }
 
 struct MouseIndicatorCommonSettings: Codable {
     let inactivityTimeout: Double
-    let strokeWidth: CGFloat
 }
 
 struct NavigationCommonSettings: Codable {
     let opacity: Double
-}
-
-struct ClockCommonSettings: Codable {
-    let spacing: CGFloat
 }
 
 struct ColorSettings: Codable {
@@ -1316,7 +1310,7 @@ struct ClockView: View {
     }
     
     var body: some View {
-        VStack(alignment: .trailing, spacing: SizingGuide.getCommonSettings().clock.spacing) {
+        VStack(alignment: .trailing, spacing: SizingGuide.getCurrentSettings().clock.spacing) {
             Text(timeFormatter.string(from: currentTime))
                 .font(.custom(
                     SizingGuide.getCommonSettings().fonts.clock,
@@ -1361,7 +1355,7 @@ struct MouseProgressView: View {
                 .stroke(
                     commonSettings.colors.mouseIndicator.backgroundUI,
                     style: StrokeStyle(
-                        lineWidth: commonSettings.mouseIndicator.strokeWidth,
+                        lineWidth: settings.strokeWidth,
                         lineCap: .round
                     )
                 )
@@ -1372,7 +1366,7 @@ struct MouseProgressView: View {
                 .stroke(
                     commonSettings.colors.mouseIndicator.progressUI,
                     style: StrokeStyle(
-                        lineWidth: commonSettings.mouseIndicator.strokeWidth,
+                        lineWidth: settings.strokeWidth,
                         lineCap: .round
                     )
                 )
@@ -1562,10 +1556,12 @@ struct LabelSettings: Codable {
 struct ClockSettings: Codable {
     let timeSize: CGFloat
     let dateSize: CGFloat
+    let spacing: CGFloat
 }
 
 struct MouseIndicatorSettings: Codable {
     let size: CGFloat
+    let strokeWidth: CGFloat
 }
 
 struct NavigationSettings: Codable {

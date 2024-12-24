@@ -485,20 +485,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("Bundle URL:", Bundle.main.bundleURL)
         print("SVG Directory exists:", Bundle.main.url(forResource: nil, withExtension: nil, subdirectory: "images/svg") != nil)
         
-        // Preload all sections
-        let superboxItems = AppItemManager.shared.getItems(for: "Game Changer")
-        print("Game Changer items:", superboxItems.map { $0.name })
-        ImageCache.shared.preloadImages(from: superboxItems)
-        
-        let arcadeItems = AppItemManager.shared.getItems(for: "Arcade")
-        print("Arcade items:", arcadeItems.map { $0.name })
-        ImageCache.shared.preloadImages(from: arcadeItems)
-        
-        let consoleItems = AppItemManager.shared.getItems(for: "Console")
-        ImageCache.shared.preloadImages(from: consoleItems)
-        
-        let systemItems = AppItemManager.shared.getItems(for: "System")
-        ImageCache.shared.preloadImages(from: systemItems)
+        // Preload all sections using Section.allCases
+        for section in Section.allCases {
+            let items = AppItemManager.shared.getItems(for: section.rawValue)
+            print("\(section.rawValue) items:", items.map { $0.name })
+            ImageCache.shared.preloadImages(from: items)
+        }
         
         print("=== END IMAGE LOADING ===")
     }

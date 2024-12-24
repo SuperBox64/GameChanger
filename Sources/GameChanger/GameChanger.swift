@@ -1310,19 +1310,20 @@ struct ClockView: View {
     }
     
     var body: some View {
-        VStack(alignment: .trailing, spacing: SizingGuide.getCurrentSettings().clock.spacing) {
+        VStack(alignment: .trailing, spacing: 0) { 
             Text(timeFormatter.string(from: currentTime))
                 .font(.custom(
                     SizingGuide.getCommonSettings().fonts.clock,
                     size: clockSettings.timeSize
                 ))
                 .foregroundColor(.white)
-            
+                .padding(0)
             Text(dateFormatter.string(from: currentTime))
                 .font(.custom(
                     SizingGuide.getCommonSettings().fonts.clock,
                     size: clockSettings.dateSize
                 ))
+                .padding(.top, SizingGuide.getCurrentSettings().clock.spacing)
                 .foregroundColor(.white.opacity(SizingGuide.getCommonSettings().opacities.clockDateText))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)

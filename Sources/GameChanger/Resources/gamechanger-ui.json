@@ -70,7 +70,7 @@
                 "clock": {
                     "timeSize": 56.0,
                     "dateSize": 24.0,
-                    "spacing": 1.0
+                    "spacing": -5
                 },
                 "mouseIndicator": {
                     "size": 96.0,
@@ -113,7 +113,7 @@
                 "clock": {
                     "timeSize": 42.0,
                     "dateSize": 18.0,
-                    "spacing": 1.0
+                    "spacing": -5
                 },
                 "mouseIndicator": {
                     "size": 96.0,
@@ -156,7 +156,7 @@
                 "clock": {
                     "timeSize": 24.0,
                     "dateSize": 10.0,
-                    "spacing": 1.0
+                    "spacing": -5
                 },
                 "mouseIndicator": {
                     "size": 96.0,

@@ -2,7 +2,7 @@
     "GameChangerUI": {
         "common": {
             "mouseSensitivity": 1.0,
-            "enableScreenshots": true,
+            "enableScreenshots": false,
             "fonts": {
                 "title": "Avenir Next Medium",
                 "label": "Avenir Next",

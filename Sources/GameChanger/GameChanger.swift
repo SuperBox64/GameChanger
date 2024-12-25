@@ -201,13 +201,13 @@ struct GameChangerApp: App {
                 ContentView()
                 MouseIndicatorView()
                 NavigationOverlayView()
+                ShortcutHintView()
             }
             .frame(width: .infinity, height: .infinity)
             .environmentObject(windowSizeMonitor)
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.automatic)
-
     }
 }
 
@@ -1473,16 +1473,16 @@ struct AppIconView: View {
                 RoundedRectangle(cornerRadius: sizingManager.sizing.cornerRadius * 1.334)
                     .fill(Color.clear)
                     .frame(
-                        width: sizingManager.sizing.iconSize * 2 + sizingManager.sizing.selectionPadding,
-                        height: sizingManager.sizing.iconSize * 2 + sizingManager.sizing.selectionPadding
+                        width: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding,
+                        height: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding
                     )
                 
                 if isSelected {
-                    RoundedRectangle(cornerRadius: sizingManager.sizing.cornerRadius * 1.334)
+                    RoundedRectangle(cornerRadius: sizingManager.sizing.cornerRadius * multipliers.cornerRadius)
                         .fill(Color.white.opacity(SizingGuide.getCommonSettings().opacities.selectionHighlight))
                         .frame(
-                            width: sizingManager.sizing.iconSize * 2 + sizingManager.sizing.selectionPadding,
-                            height: sizingManager.sizing.iconSize * 2 + sizingManager.sizing.selectionPadding
+                            width: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding,
+                            height: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding
                         )
                 }
                 
@@ -1710,6 +1710,7 @@ struct LayoutSettings: Codable {
     let clock: ClockLayout
     let logo: LogoLayout?
     let mouseIndicator: MouseIndicatorLayout
+    let shortcut: ShortcutLayout
 }
 
 struct TitleLayout: Codable {
@@ -1779,6 +1780,13 @@ struct NavigationSettings: Codable {
     let size: CGFloat
     let spacing: CGFloat
     let bottomPadding: CGFloat
+}
+
+struct ShortcutLayout: Codable {
+    let leadingPadding: CGFloat
+    let bottomPadding: CGFloat
+    let titleSize: CGFloat
+    let subtitleSize: CGFloat
 }
 
 class WindowSizeMonitor: ObservableObject {
@@ -1875,11 +1883,41 @@ class SizingManager: ObservableObject {
     static let shared = SizingManager()
     
     private init() {
-        self.sizing = SizingGuide.getSizing(for: NSScreen.main?.frame.size ?? .zero)
+        // Initialize with safe default values first
+        let defaultSize = CGSize(width: 1920, height: 1080)
+        self.sizing = SizingGuide.getSizing(for: defaultSize)
+        
+        // Then update with actual screen size if available
+        if let screen = NSScreen.main {
+            self.updateSizing(for: screen.frame.size)
+        }
     }
     
     func updateSizing(for size: CGSize) {
-        self.sizing = SizingGuide.getSizing(for: size)
+        // Ensure we're not trying to access settings during initialization
+        DispatchQueue.main.async {
+            self.sizing = SizingGuide.getSizing(for: size)
+        }
+    }
+}
+
+// First create the new view
+struct ShortcutHintView: View {
+    @StateObject private var sizingManager = SizingManager.shared
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("Toggle Mouse Pointer")
+                .foregroundColor(.white)
+                .font(.system(size: SizingGuide.getCurrentSettings().layout.shortcut.titleSize))
+            Text("Press Command+M")
+                .foregroundColor(.gray)
+                .font(.system(size: SizingGuide.getCurrentSettings().layout.shortcut.subtitleSize))
+        }
+        .padding(8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+        .padding(.leading, SizingGuide.getCurrentSettings().layout.shortcut.leadingPadding)
+        .padding(.bottom, SizingGuide.getCurrentSettings().layout.shortcut.bottomPadding)
     }
 }
 

@@ -60,6 +60,15 @@
                 "cornerRadius": 1.334,
                 "gridSpacing": 0.4,
                 "mouseIndicatorIconSize": 0.28
+            },
+            "layout": {
+                "clock": {
+                    "topPadding": 13,
+                    "trailingPadding": 20
+                },
+                "mouseIndicator": {
+                    "bottomPadding": 114
+                }
             }
         },
         "resolutions": {
@@ -103,6 +112,12 @@
                     },
                     "mouseIndicator": {
                         "bottomPadding": 454
+                    },
+                    "shortcut": {
+                        "leadingPadding": 30,
+                        "bottomPadding": 30,
+                        "titleSize": 16,
+                        "subtitleSize": 14
                     }
                 }
             },
@@ -146,6 +161,12 @@
                     },
                     "mouseIndicator": {
                         "bottomPadding": 304
+                    },
+                    "shortcut": {
+                        "leadingPadding": 30,
+                        "bottomPadding": 30,
+                        "titleSize": 14,
+                        "subtitleSize": 12
                     }
                 }
             },
@@ -189,6 +210,12 @@
                     },
                     "mouseIndicator": {
                         "bottomPadding": 226
+                    },
+                    "shortcut": {
+                        "leadingPadding": 30,
+                        "bottomPadding": 30,
+                        "titleSize": 13,
+                        "subtitleSize": 11
                     }
                 }
             },
@@ -232,6 +259,12 @@
                     },
                     "mouseIndicator": {
                         "bottomPadding": 170
+                    },
+                    "shortcut": {
+                        "leadingPadding": 30,
+                        "bottomPadding": 30,
+                        "titleSize": 12,
+                        "subtitleSize": 10
                     }
                 }
             },
@@ -275,6 +308,12 @@
                     },
                     "mouseIndicator": {
                         "bottomPadding": 170
+                    },
+                    "shortcut": {
+                        "leadingPadding": 30,
+                        "bottomPadding": 30,
+                        "titleSize": 12,
+                        "subtitleSize": 10
                     }
                 }
             },
@@ -318,6 +357,12 @@
                     },
                     "mouseIndicator": {
                         "bottomPadding": 141
+                    },
+                    "shortcut": {
+                        "leadingPadding": 30,
+                        "bottomPadding": 30,
+                        "titleSize": 11,
+                        "subtitleSize": 9
                     }
                 }
             },
@@ -361,6 +406,12 @@
                     },
                     "mouseIndicator": {
                         "bottomPadding": 128
+                    },
+                    "shortcut": {
+                        "leadingPadding": 30,
+                        "bottomPadding": 30,
+                        "titleSize": 10,
+                        "subtitleSize": 8
                     }
                 }
             },
@@ -404,6 +455,12 @@
                     },
                     "mouseIndicator": {
                         "bottomPadding": 114
+                    },
+                    "shortcut": {
+                        "leadingPadding": 30,
+                        "bottomPadding": 30,
+                        "titleSize": 9,
+                        "subtitleSize": 7
                     }
                 }
             }

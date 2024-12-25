@@ -39,7 +39,7 @@ enum Action: String, Codable {
         case .sleep:
             SystemActions.sendAppleEvent(kAESleep)
         case .logout:
-            SystemActions.sendAppleEvent(kAELogOut)
+            SystemActions.sendAppleEvent(kAEShutDown)
         case .quit:
             NSApplication.shared.terminate(nil)
         case .path:
@@ -1107,8 +1107,7 @@ struct ContentView: View {
                 
                 // Make sure selectedIndex is valid for current page
                 if startIndex + selectedIndex < endIndex {
-                    let selectedItem = sourceItems[startIndex + selectedIndex]
-                    // Highlight the selected item
+                    // Just call handleSelection directly, remove unused selectedItem
                     handleSelection()
                 }
             }

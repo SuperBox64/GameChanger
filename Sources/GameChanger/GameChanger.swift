@@ -17,14 +17,8 @@ struct Section: RawRepresentable, Codable {
     }
     
     static var allCases: [Section] = {
-        guard let url = Bundle.main.url(forResource: "app_items", withExtension: "json"),
-              let data = try? Data(contentsOf: url),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            return []
-        }
-        return json.keys.map { Section(rawValue: $0) }
+        return AppDataManager.shared.sections
     }()
-
 }
 
 enum Action: String, Codable {
@@ -181,20 +175,8 @@ struct AppItemManager {
         print("Bundle URL:", Bundle.main.bundleURL)
         print("All Bundle Resources:", Bundle.main.paths(forResourcesOfType: nil, inDirectory: nil))
         
-        if let url = Bundle.main.url(forResource: "app_items", withExtension: "json") {
-            print("Found JSON at:", url)
-            do {
-                let data = try Data(contentsOf: url)
-                print("JSON Content:", String(data: data, encoding: .utf8) ?? "Could not read JSON content")
-                self.items = try JSONDecoder().decode([String: [AppItem]].self, from: data)
-                print("Successfully loaded sections:", self.items.keys)
-            } catch {
-                print("Error loading/decoding JSON:", error)
-                print("Error description:", error.localizedDescription)
-            }
-        } else {
-            print("Failed to find app_items.json in bundle")
-        }
+        self.items = AppDataManager.shared.itemsBySection
+        
         print("=== END DEBUG ===")
     }
     
@@ -803,7 +785,7 @@ struct ContentView: View {
     @State private var isTransitioning = false
     @State private var opacity: Double = 1.0
     @State private var titleOpacity: Double = 1
-    @State private var currentSection: String = Section.allCases.first?.rawValue ?? "GC"
+    @State private var currentSection: String = Section.allCases.first?.rawValue ?? "Game Changer"
     @State private var mouseProgress: CGFloat = 0
     @State private var mouseDirection: Int = 0
     @State private var showingProgress = false
@@ -1848,4 +1830,54 @@ class WindowSizeMonitor: ObservableObject {
         observers.forEach { NotificationCenter.default.removeObserver($0) }
     }
 } 
+
+// Add this class near the top of the file
+class AppDataManager {
+    static let shared = AppDataManager()
+    
+    private(set) var sections: [Section] = []
+    private(set) var itemsBySection: [String: [AppItem]] = [:]
+    
+    private init() {
+        loadData()
+    }
+    
+    private func loadData() {
+        guard let url = Bundle.main.url(forResource: "app_items", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            print("ERROR: Failed to load app_items.json")
+            return
+        }
+        
+        // Parse sections, ensuring "Game Changer" is first
+        var allSections = json.keys.map { Section(rawValue: $0) }
+        if let gcIndex = allSections.firstIndex(where: { $0.rawValue == "Game Changer" }) {
+            let gc = allSections.remove(at: gcIndex)
+            allSections.insert(gc, at: 0)
+        }
+        sections = allSections
+        
+        // Parse items for each section
+        for (sectionKey, itemsArray) in json {
+            if let items = itemsArray as? [[String: Any]] {
+                itemsBySection[sectionKey] = items.compactMap { itemDict in
+                    guard let name = itemDict["name"] as? String else { return nil }
+                    
+                    return AppItem(
+                        name: name,
+                        systemIcon: (itemDict["systemIcon"] as? String) ?? "",
+                        parent: (itemDict["parent"] as? String) ?? "",
+                        action: (itemDict["action"] as? String) ?? "",
+                        path: (itemDict["path"] as? String) ?? ""
+                    )
+                }
+            }
+        }
+    }
+    
+    func items(for section: Section) -> [AppItem] {
+        return itemsBySection[section.rawValue] ?? []
+    }
+}
 

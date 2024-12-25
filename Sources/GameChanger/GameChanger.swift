@@ -249,23 +249,23 @@ struct GameChangerApp: App {
             ZStack {
                 BackgroundView()
                 LogoView()
-                    .opacity(uiVisibility.isVisible ? 1 : 0)
+                    //.opacity(uiVisibility.isVisible ? 1 : 0)
                 ClockView()
-                    .opacity(uiVisibility.isVisible ? 1 : 0)
+                    //.opacity(uiVisibility.isVisible ? 1 : 0)
                 ContentView()
-                    .opacity(uiVisibility.isVisible ? 1 : 0)
+                    //.opacity(uiVisibility.isVisible ? 1 : 0)
                 MouseIndicatorView()
-                    .opacity(uiVisibility.isVisible ? 1 : 0)
+                    //.opacity(uiVisibility.isVisible ? 1 : 0)
                 NavigationOverlayView()
-                    .opacity(uiVisibility.isVisible ? 1 : 0)
+                    //.opacity(uiVisibility.isVisible ? 1 : 0)
                 ShortcutHintView()
-                    .opacity(uiVisibility.isVisible ? 1 : 0)
+                    //.opacity(uiVisibility.isVisible ? 1 : 0)
             }
             .frame(width: .infinity, height: .infinity)
             .environmentObject(windowSizeMonitor)
-            .animation(SizingGuide.getCommonSettings().animations.fadeEnabled ? 
-                .easeOut(duration: SizingGuide.getCommonSettings().animations.fade.duration) : nil, 
-                value: uiVisibility.isVisible)
+            // .animation(SizingGuide.getCommonSettings().animations.fadeEnabled ? 
+            //     .easeOut(duration: SizingGuide.getCommonSettings().animations.fade.duration) : nil, 
+            //     value: uiVisibility.isVisible)
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.automatic)
@@ -889,7 +889,7 @@ struct ContentView: View {
            !AppDataManager.shared.items(for: selectedItem.sectionEnum).isEmpty {
             let fadeEnabled = SizingGuide.getCommonSettings().animations.fadeEnabled
             
-            if fadeEnabled {
+            if fadeEnabled && 1 == 2 {
                 let fadeDuration = SizingGuide.getCommonSettings().animations.fade.duration
                 
                 withAnimation(.linear(duration: fadeDuration / 2)) {  // Half duration for each phase
@@ -1090,10 +1090,10 @@ struct ContentView: View {
                 object: nil,
                 queue: .main) { notification in
                     if let page = notification.userInfo?["page"] as? Int {
-                        // First fade out current items
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            opacity = 0
-                        }
+                        //First fade out current items
+                        // withAnimation(.easeOut(duration: 0.2)) {
+                        //     opacity = 0
+                        // }
                         
                         // After fade out, update page and start bounce animations
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
@@ -1101,15 +1101,15 @@ struct ContentView: View {
                             selectedIndex = 0
                             
                             // Show new items with bounce
-                            withAnimation(
-                                .spring(
-                                    response: 0.5,      // Controls the overall duration
-                                    dampingFraction: 0.65,  // Controls the bounciness (lower = more bounce)
-                                    blendDuration: 0    // Immediate start
-                                )
-                            ) {
-                                opacity = 1
-                            }
+                            // withAnimation(
+                            //     .spring(
+                            //         response: 0.5,      // Controls the overall duration
+                            //         dampingFraction: 0.65,  // Controls the bounciness (lower = more bounce)
+                            //         blendDuration: 0    // Immediate start
+                            //     )
+                            // ) {
+                            //     opacity = 1
+                            // }
                         }
                     }
             }
@@ -1468,7 +1468,7 @@ struct ContentView: View {
             if !parentSection.rawValue.isEmpty {
                 let fadeEnabled = SizingGuide.getCommonSettings().animations.fadeEnabled
                 
-                if fadeEnabled {
+                if fadeEnabled && 1 == 2 {
                     let fadeDuration = SizingGuide.getCommonSettings().animations.fade.duration
                     
                     withAnimation(.linear(duration: fadeDuration / 2)) {  // Half duration for each phase
@@ -1786,9 +1786,9 @@ struct NavigationDotsView: View {
                     .fill(Color.white)
                     .frame(width: settings.size, height: settings.size)
                     .opacity(totalPages == 1 ? 0 : (index == currentPage ? 1 : SizingGuide.getCommonSettings().navigation.opacity))
-                    .animation(SizingGuide.getCommonSettings().animations.fadeEnabled ? 
-                        .easeInOut(duration: SizingGuide.getCommonSettings().animations.fade.duration) : nil, 
-                        value: totalPages)
+                    // .animation(SizingGuide.getCommonSettings().animations.fadeEnabled ? 
+                    //     .easeInOut(duration: SizingGuide.getCommonSettings().animations.fade.duration) : nil, 
+                    //     value: totalPages)
                     .onTapGesture {
                         if uiVisibility.mouseVisible && index != currentPage {
                             onPageSelect(index)

@@ -1328,30 +1328,11 @@ struct ContentView: View {
     public func back() {
         let sourceItems = getSourceItems()
         if !sourceItems.isEmpty, let parentSection = sourceItems[0].parentEnum {
-            let fadeEnabled = SizingGuide.getCommonSettings().animations.fadeEnabled
-            
-            if fadeEnabled {
-                let fadeDuration = SizingGuide.getCommonSettings().animations.fade.duration
-                
-                withAnimation(.linear(duration: fadeDuration / 2)) {  // Half duration for each phase
-                    opacity = 0.0
-                    titleOpacity = 0.0
-                }
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + (fadeDuration / 2)) {
+            // Only go back if the parent exists and isn't empty
+            if !parentSection.rawValue.isEmpty {
+                withAnimation {
                     currentSection = parentSection.rawValue
-                    selectedIndex = 0
-                    currentPage = 0
-                    
-                    withAnimation(.linear(duration: fadeDuration / 2)) {
-                        opacity = 1.0
-                        titleOpacity = 1.0
-                    }
                 }
-            } else {
-                currentSection = parentSection.rawValue
-                selectedIndex = 0
-                currentPage = 0
             }
         }
     }
@@ -1393,6 +1374,19 @@ struct ContentView: View {
                 selectedIndex += 1
             }
         }
+    }
+    
+    private func getSelectedItem() -> AppItem? {
+        let sourceItems = getSourceItems()
+        let startIndex = currentPage * 4
+        let endIndex = min(startIndex + 4, sourceItems.count)
+        
+        // Make sure selectedIndex is valid for current page
+        guard startIndex + selectedIndex < endIndex else {
+            return nil
+        }
+        
+        return sourceItems[startIndex + selectedIndex]
     }
 }
 

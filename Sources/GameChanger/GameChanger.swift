@@ -403,14 +403,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Pre-initialize the cache
         initializeCache()
         
-        let presOptions: NSApplication.PresentationOptions = [.hideDock, .hideMenuBar]
-        NSApp.presentationOptions = presOptions
-
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         
-
-
         // Clean window setup code
         DispatchQueue.main.async {
             if let window = NSApp.windows.first {
@@ -425,8 +420,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                 }
             }
-
-       
         }
     }
     

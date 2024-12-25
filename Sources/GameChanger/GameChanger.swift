@@ -193,6 +193,8 @@ struct AppItem: Codable {
 
 extension Notification.Name {
     static let escKeyPressed = Notification.Name("escKeyPressed")
+    static let swipeLeft = Notification.Name("swipeLeft")
+    static let swipeRight = Notification.Name("swipeRight")
 }
 
 class NavigationState: ObservableObject {
@@ -326,6 +328,58 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var screenshotTimer: Timer?
     @StateObject private var appState = AppState.shared
     
+    private func initializeCache() {
+        var loadedImages = 0
+        var totalImages = 0
+        
+        // First pass - count total images
+        for section in Section.allCases {
+            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
+            totalImages += items.count
+        }
+        
+        // Second pass - load images synchronously
+        for section in Section.allCases {
+            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
+            for item in items {
+                autoreleasepool {
+                    if let iconURL = Bundle.main.url(forResource: item.systemIcon, 
+                                                   withExtension: "svg", 
+                                                   subdirectory: "images/svg") {
+                        if let image = NSImage(contentsOf: iconURL) {
+                            ImageCache.shared.cache[item.systemIcon] = image
+                            loadedImages += 1
+                            print("[\(loadedImages)/\(totalImages)] Loaded: \(item.name)")
+                        } else {
+                            print("Failed to load image for: \(item.name)")
+                        }
+                    } else {
+                        print("Failed to find image URL for: \(item.name)")
+                    }
+                }
+            }
+        }
+        
+        // Verify cache
+        print("=== Verifying Cache ===")
+        for section in Section.allCases {
+            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
+            for item in items {
+                if ImageCache.shared.cache[item.systemIcon] == nil {
+                    print("WARNING: Missing cache entry for \(item.name)")
+                }
+            }
+        }
+        
+        // Only set isLoaded after ALL images are confirmed in cache
+        if loadedImages == totalImages {
+            AppState.shared.isLoaded = true
+            print("App state set to loaded")
+        } else {
+            print("ERROR: Not all images loaded!")
+        }
+    }
+    
     func applicationDidFinishLaunching(_ notification: Notification) {
         // FIRST: Block until all images are loaded
         print("=== Starting Image Loading ===")
@@ -340,6 +394,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
         guard self != nil else { return event }
 
+        // Handle Command-M for mouse visibility
+        if event.modifierFlags.contains(.command) && event.keyCode == kVK_ANSI_M {
+            UIVisibilityState.shared.mouseVisible.toggle()
+            if UIVisibilityState.shared.mouseVisible {
+                NSCursor.unhide()
+            } else {
+                NSCursor.hide()
+            }
+            return nil
+        }
+
         if event.keyCode == 53 { // ESC key
             NotificationCenter.default.post(name: .escKeyPressed, object: nil)
             return nil
@@ -349,14 +414,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
         //Hide cursor and start timer to keep it hidden
-                       NSCursor.hide()
+        NSCursor.hide()
         NSApp.hideOtherApplications(nil)
 
-        // cursorHideTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-        //         NSCursor.hide()
-           
-        // }
-        
         // Set up menu bar
         let mainMenu = NSMenu()
         NSApp.mainMenu = mainMenu
@@ -423,73 +483,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.takeScreenshot()
             }
         }
-    }
-    
-    private func initializeCache() {
-        var loadedImages = 0
-        var totalImages = 0
-        
-        // First pass - count total images
-        for section in Section.allCases {
-            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
-            totalImages += items.count
-        }
-        
-        // Second pass - load images synchronously
-        for section in Section.allCases {
-            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
-            for item in items {
-                autoreleasepool {
-                    if let iconURL = Bundle.main.url(forResource: item.systemIcon, 
-                                                   withExtension: "svg", 
-                                                   subdirectory: "images/svg") {
-                        if let image = NSImage(contentsOf: iconURL) {
-                            ImageCache.shared.cache[item.systemIcon] = image
-                            loadedImages += 1
-                            print("[\(loadedImages)/\(totalImages)] Loaded: \(item.name)")
-                        } else {
-                            print("Failed to load image for: \(item.name)")
-                        }
-                    } else {
-                        print("Failed to find image URL for: \(item.name)")
-                    }
-                }
-            }
-        }
-        
-        // Verify cache
-        print("=== Verifying Cache ===")
-        for section in Section.allCases {
-            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
-            for item in items {
-                if ImageCache.shared.cache[item.systemIcon] == nil {
-                    print("WARNING: Missing cache entry for \(item.name)")
-                }
-            }
-        }
-        
-        // Only set isLoaded after ALL images are confirmed in cache
-        if loadedImages == totalImages {
-            AppState.shared.isLoaded = true
-            print("App state set to loaded")
-        } else {
-            print("ERROR: Not all images loaded!")
-        }
-    }
-    
-    private func preloadAllImages() {
-        print("=== DEBUG IMAGE LOADING ===")
-        print("Bundle URL:", Bundle.main.bundleURL)
-        print("SVG Directory exists:", Bundle.main.url(forResource: nil, withExtension: nil, subdirectory: "images/svg") != nil)
-        
-        // Preload all sections using Section.allCases
-        for section in Section.allCases {
-            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
-            print("\(section.rawValue) items:", items.map { $0.name })
-            ImageCache.shared.preloadImages(from: items)
-        }
-        
-        print("=== END IMAGE LOADING ===")
     }
     
     func applicationWillTerminate(_ notification: Notification) {
@@ -748,10 +741,14 @@ struct CarouselView: View {
     let showingNextItems: Bool
     let nextOffset: CGFloat
     let nextItems: [AppItem]
+    let onHighlight: (Int) -> Void
+    let onSelect: (Int) -> Void
+    let onBack: (Int) -> Void
+    let onSwipeLeft: () -> Void
+    let onSwipeRight: () -> Void
     
     var body: some View {
         ZStack {
-            // Current items
             LazyVGrid(columns: [
                 GridItem(.flexible(), spacing: sizing.gridSpacing),
                 GridItem(.flexible(), spacing: sizing.gridSpacing),
@@ -761,13 +758,15 @@ struct CarouselView: View {
                 ForEach(0..<visibleItems.count, id: \.self) { index in
                     AppIconView(
                         item: visibleItems[index],
-                        isSelected: index == selectedIndex
+                        isSelected: index == selectedIndex,
+                        onHighlight: { onHighlight(index) },
+                        onSelect: { onSelect(index) },
+                        onBack: { onBack(index) }
                     )
                 }
             }
             .offset(x: currentOffset)
             
-            // Next items (if showing)
             if showingNextItems {
                 LazyVGrid(columns: [
                     GridItem(.flexible(), spacing: sizing.gridSpacing),
@@ -778,7 +777,10 @@ struct CarouselView: View {
                     ForEach(0..<nextItems.count, id: \.self) { index in
                         AppIconView(
                             item: nextItems[index],
-                            isSelected: false
+                            isSelected: false,
+                            onHighlight: { },
+                            onSelect: { },
+                            onBack: { }
                         )
                     }
                 }
@@ -786,6 +788,18 @@ struct CarouselView: View {
             }
         }
         .padding(sizing.gridSpacing)
+        .gesture(
+            DragGesture()
+                .onEnded { value in
+                    if abs(value.translation.width) > 50 { // Minimum swipe distance
+                        if value.translation.width < 0 {
+                            onSwipeLeft()
+                        } else {
+                            onSwipeRight()
+                        }
+                    }
+                }
+        )
     }
 }
 
@@ -866,8 +880,8 @@ struct ContentView: View {
                 }
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + (fadeDuration / 2)) {
-                    selectedIndex = 0
-                    currentPage = 0
+                    selectedIndex = 0  // Reset selection
+                    currentPage = 0    // Reset to first page
                     currentSection = selectedItem.sectionEnum.rawValue
                     
                     withAnimation(.linear(duration: fadeDuration / 2)) {
@@ -876,8 +890,8 @@ struct ContentView: View {
                     }
                 }
             } else {
-                selectedIndex = 0
-                currentPage = 0
+                selectedIndex = 0  // Reset selection
+                currentPage = 0    // Reset to first page
                 currentSection = selectedItem.sectionEnum.rawValue
             }
         }
@@ -1008,12 +1022,35 @@ struct ContentView: View {
             // Carousel in center
             CarouselView(
                 visibleItems: visibleItems,
-                selectedIndex: selectedIndex,
+                selectedIndex: UIVisibilityState.shared.mouseVisible ? -1 : selectedIndex,  // No selection when mouse is visible
                 sizing: sizingManager.sizing,
                 currentOffset: currentOffset,
                 showingNextItems: showingNextItems,
                 nextOffset: nextOffset,
-                nextItems: nextItems
+                nextItems: nextItems,
+                onHighlight: { index in
+                    if UIVisibilityState.shared.mouseVisible {
+                        selectedIndex = index
+                    }
+                },
+                onSelect: { index in
+                    selectedIndex = index
+                    handleSelection()
+                },
+                onBack: { index in
+                    selectedIndex = index
+                    back()
+                },
+                onSwipeLeft: {
+                    if UIVisibilityState.shared.mouseVisible {
+                        moveRight()  // Swipe left moves to next page
+                    }
+                },
+                onSwipeRight: {
+                    if UIVisibilityState.shared.mouseVisible {
+                        moveLeft()   // Swipe right moves to previous page
+                    }
+                }
             )
             .opacity(opacity)
         }
@@ -1054,13 +1091,13 @@ struct ContentView: View {
             
             // Then handle other keys
             switch Int(event.keyCode) {
-            case kVK_ANSI_M:
-                UserDefaultsManager.shared.showMousePointer.toggle()
-                if UserDefaultsManager.shared.showMousePointer {
-                    NSCursor.unhide()
-                } else {
-                    NSCursor.hide()
-                }
+            //case kVK_ANSI_M:
+                // UIVisibilityState.shared.mouseVisible.toggle()
+                // if UIVisibilityState.shared.mouseVisible {
+                //     NSCursor.unhide()
+                // } else {
+                //     NSCursor.hide()
+                // }
             case 53: // Escape
                 resetMouseState()
                 back()
@@ -1178,7 +1215,7 @@ struct ContentView: View {
     private func setupMouseMonitor() {
         // Mouse movement
         mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { event in
-            if !UserDefaultsManager.shared.showMousePointer {
+            if !UIVisibilityState.shared.mouseVisible {
                 handleMouseMovement(event)
             } else {
                 resetMouseState()
@@ -1188,15 +1225,19 @@ struct ContentView: View {
         
         // Left click and A/B buttons - Select
         NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
-            resetMouseState()
-            handleSelection()
+            if !UIVisibilityState.shared.mouseVisible {
+                resetMouseState()
+                handleSelection()
+            }
             return event
         }
         
         // Right click - Back
         NSEvent.addLocalMonitorForEvents(matching: .rightMouseDown) { event in
-            resetMouseState()
-            back()
+            if !UIVisibilityState.shared.mouseVisible {
+                resetMouseState()
+                back()
+            }
             return event
         }
         
@@ -1487,48 +1528,15 @@ extension NSPoint {
 
 struct AppIconView: View {
     @EnvironmentObject private var windowSizeMonitor: WindowSizeMonitor
+    @StateObject private var uiVisibility = UIVisibilityState.shared
     let item: AppItem
     let isSelected: Bool
+    @State private var isHighlighted = false
+    let onHighlight: () -> Void
+    let onSelect: () -> Void
+    let onBack: () -> Void
     
     @StateObject private var sizingManager = SizingManager.shared
-    
-    private func loadIcon() -> some View {
-        // Force immediate loading from cache
-        let cachedImage = ImageCache.shared.getImage(named: item.systemIcon)
-        print("Loading icon for \(item.name): \(cachedImage != nil ? "Found in cache" : "Not found")")
-        
-        if let image = cachedImage {
-            return AnyView(Image(nsImage: image)
-                .resizable()
-                .frame(width: sizingManager.sizing.iconSize * 2, height: sizingManager.sizing.iconSize * 2)
-                .padding(0)
-                .cornerRadius(sizingManager.sizing.cornerRadius))
-        }
-        
-        // Fallback - try to load directly if not in cache
-        if let iconURL = Bundle.main.url(forResource: item.systemIcon, 
-                                       withExtension: "svg", 
-                                       subdirectory: "images/svg"),
-           let image = NSImage(contentsOf: iconURL) {
-            // Add to cache if found
-            ImageCache.shared.cache[item.systemIcon] = image
-            print("Loaded and cached icon for \(item.name)")
-            
-            return AnyView(Image(nsImage: image)
-                .resizable()
-                .frame(width: sizingManager.sizing.iconSize * 2, height: sizingManager.sizing.iconSize * 2)
-                .padding(0)
-                .cornerRadius(sizingManager.sizing.cornerRadius))
-        }
-        
-        print("Failed to load icon for \(item.name)")
-        return AnyView(Color.clear
-            .frame(width: sizingManager.sizing.iconSize * 2, height: sizingManager.sizing.iconSize * 2))
-    }
-    
-    private var labelFontSize: CGFloat {
-        SizingGuide.getCurrentSettings().label.size
-    }
     
     var body: some View {
         let multipliers = SizingGuide.getCommonSettings().multipliers
@@ -1541,7 +1549,7 @@ struct AppIconView: View {
                         height: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding
                     )
                 
-                if isSelected {
+                if isSelected || isHighlighted {
                     RoundedRectangle(cornerRadius: sizingManager.sizing.cornerRadius * multipliers.cornerRadius)
                         .fill(Color.white.opacity(SizingGuide.getCommonSettings().opacities.selectionHighlight))
                         .frame(
@@ -1558,11 +1566,67 @@ struct AppIconView: View {
                     SizingGuide.getCommonSettings().fonts.label,
                     size: sizingManager.sizing.labelSize
                 ))
-                .foregroundColor(isSelected ? 
+                .foregroundColor(isSelected || isHighlighted ? 
                     SizingGuide.getCommonSettings().colors.text.selectedUI : 
                     SizingGuide.getCommonSettings().colors.text.unselectedUI)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onHover { hovering in
+            if uiVisibility.mouseVisible {
+                isHighlighted = hovering
+                if hovering {
+                    onHighlight()
+                }
+            }
+        }
+        // Combine gestures with simultaneousGesture to handle both single and double clicks
+        .gesture(
+            TapGesture(count: 2)
+                .onEnded {
+                    if uiVisibility.mouseVisible {
+                        onBack()    // Double click goes back
+                    }
+                }
+        )
+        .simultaneousGesture(
+            TapGesture()
+                .onEnded {
+                    if uiVisibility.mouseVisible {
+                        onSelect()  // Single click runs selection
+                    }
+                }
+        )
+    }
+    
+    private func loadIcon() -> some View {
+        // Force immediate loading from cache
+        let cachedImage = ImageCache.shared.getImage(named: item.systemIcon)
+        
+        if let image = cachedImage {
+            return AnyView(Image(nsImage: image)
+                .resizable()
+                .frame(width: sizingManager.sizing.iconSize * 2, height: sizingManager.sizing.iconSize * 2)
+                .padding(0)
+                .cornerRadius(sizingManager.sizing.cornerRadius))
+        }
+        
+        // Fallback - try to load directly if not in cache
+        if let iconURL = Bundle.main.url(forResource: item.systemIcon, 
+                                       withExtension: "svg", 
+                                       subdirectory: "images/svg"),
+           let image = NSImage(contentsOf: iconURL) {
+            // Add to cache if found
+            ImageCache.shared.cache[item.systemIcon] = image
+            
+            return AnyView(Image(nsImage: image)
+                .resizable()
+                .frame(width: sizingManager.sizing.iconSize * 2, height: sizingManager.sizing.iconSize * 2)
+                .padding(0)
+                .cornerRadius(sizingManager.sizing.cornerRadius))
+        }
+        
+        return AnyView(Color.clear
+            .frame(width: sizingManager.sizing.iconSize * 2, height: sizingManager.sizing.iconSize * 2))
     }
 }
 
@@ -1968,6 +2032,7 @@ class SizingManager: ObservableObject {
 // First create the new view
 struct ShortcutHintView: View {
     @StateObject private var sizingManager = SizingManager.shared
+    @StateObject private var uiVisibility = UIVisibilityState.shared
     
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -1982,39 +2047,13 @@ struct ShortcutHintView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         .padding(.leading, SizingGuide.getCurrentSettings().layout.shortcut.leadingPadding)
         .padding(.bottom, SizingGuide.getCurrentSettings().layout.shortcut.bottomPadding)
+        .opacity(uiVisibility.mouseVisible ? 0 : 1) // Hide hint when mouse is visible
     }
 }
 
-class UserDefaultsManager: ObservableObject {
-    static let shared = UserDefaultsManager()
-    private let defaults = UserDefaults.standard
-    
-    // Keys
-    private enum Keys {
-        static let showMousePointer = "showMousePointer"
-    }
-    
-    // Published properties that automatically update views
-    @Published var showMousePointer: Bool {
-        didSet {
-            defaults.set(showMousePointer, forKey: Keys.showMousePointer)
-        }
-    }
-    
-    private init() {
-        // Initialize with stored values or defaults
-        self.showMousePointer = defaults.bool(forKey: Keys.showMousePointer)
-    }
-    
-    func resetToDefaults() {
-        showMousePointer = false
-        defaults.synchronize()
-    }
-}
-
-// Add near the top with other state objects
 class UIVisibilityState: ObservableObject {
     static let shared = UIVisibilityState()
     @Published var isVisible = true
+    @Published var mouseVisible = false
 }
 

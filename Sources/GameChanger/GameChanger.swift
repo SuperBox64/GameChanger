@@ -400,30 +400,112 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // FIRST: Block until all images are loaded
+        print("=== Starting Image Loading ===")
+        
         // Pre-initialize the cache
         initializeCache()
         
+        // Rest of initialization
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
+
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+        guard self != nil else { return event }
+
+        // Handle Command-M for mouse visibility
+        if event.modifierFlags.contains(.command) && event.keyCode == kVK_ANSI_M {
+            UIVisibilityState.shared.mouseVisible.toggle()
+            if UIVisibilityState.shared.mouseVisible {
+                NSCursor.unhide()
+            } else {
+                NSCursor.hide()
+            }
+            return nil
+        }
+
+        if event.keyCode == 53 { // ESC key
+            NotificationCenter.default.post(name: .escKeyPressed, object: nil)
+            return nil
+        }
         
-        // Clean window setup code
+        return event
+    }
+
+        //Hide cursor and start timer to keep it hidden
+        NSCursor.hide()
+        NSApp.hideOtherApplications(nil)
+
+        // Set up menu bar
+        let mainMenu = NSMenu()
+        NSApp.mainMenu = mainMenu
+        
+        // Add App menu
+        let appMenu = NSMenu()
+        let appMenuItem = NSMenuItem()
+        appMenuItem.submenu = appMenu
+        mainMenu.addItem(appMenuItem)
+        
+        // Add Quit item
+        let quitMenuItem = NSMenuItem(
+            title: "Quit",
+            action: #selector(NSApplication.terminate(_:)),
+            keyEquivalent: "q"
+        )
+        appMenu.addItem(quitMenuItem)
+        
+        let presOptions: NSApplication.PresentationOptions = [.hideDock, .hideMenuBar]
+        NSApp.presentationOptions = presOptions
+
+        // Make window borderless and full screen
         DispatchQueue.main.async {
             if let window = NSApp.windows.first {
-                window.styleMask = [.borderless, .fullSizeContentView]
+                window.styleMask = [.borderless, .fullSizeContentView]  // Make window borderless
                 window.makeKeyAndOrderFront(nil)
+                //window.titlebarAppearsTransparent = true
+                //window.titleVisibility = .hidden
+                //window.title = ""
                 window.level = .init(rawValue: -10000)
                 window.setFrame(NSScreen.main?.frame ?? .zero, display: true)
-                
+                // Take screenshot after a short delay to ensure UI is fully loaded
+
                 if SizingGuide.getCommonSettings().enableScreenshots {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                         self.takeScreenshot()
                     }
                 }
+              
+                //NSApp.activate(ignoringOtherApps: true)
+                //NSApp.hideOtherApplications(nil) // Changed from (self) to (nil)
+            }
+        }
+
+    //     //DispatchQueue.main.async {
+    //         if let window = NSApp.windows.first {
+    //             let frame = NSScreen.main!.frame
+    //             window.setFrame(frame, display: true)
+    //             //window.styleMask = [.borderless]
+    //             window.level = NSWindow.Level(rawValue: -1000)  // Desktop window level
+    //             //window.toggleFullScreen(nil)  // Add this line to make it full screen
+    //             window.hasShadow = true
+    //             //window.isOpaque = false
+    //             //window.backgroundColor = .clear
+    //         }
+
+    //         let presOptions: NSApplication.PresentationOptions = [.hideDock, .hideMenuBar]
+    // NSApp.presentationOptions = presOptions
+    //    // }
+        
+        // Set up screenshot timer
+        if SizingGuide.getCommonSettings().enableScreenshots {
+            screenshotTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+                self?.takeScreenshot()
             }
         }
     }
     
     func applicationWillTerminate(_ notification: Notification) {
+        //cursorHideTimer?.invalidate()
         screenshotTimer?.invalidate()
         NSCursor.unhide()
     }

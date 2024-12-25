@@ -44,13 +44,43 @@ enum Action: String, Codable {
             NSApplication.shared.terminate(nil)
         case .path:
             if let pathToOpen = path {
-                launchApplication(at: pathToOpen)
+                let fileManager = FileManager.default
+                var isDirectory: ObjCBool = false
                 
-                if let appName = appName {
-                    toggleFullScreen(for: appName)
+                // Check if path exists and is executable
+                if fileManager.fileExists(atPath: pathToOpen, isDirectory: &isDirectory) {
+                    // Hide UI elements first
+                    DispatchQueue.main.async {
+                        UIVisibilityState.shared.isVisible = false
+                        
+                        // Small delay to ensure UI has time to hide
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            // For directories, just verify existence
+                            if isDirectory.boolValue {
+                                launchApplication(at: pathToOpen)
+                                if let appName = appName {
+                                    toggleFullScreen(for: appName)
+                                }
+                            } else {
+                                // For files, verify executable permission
+                                if fileManager.isExecutableFile(atPath: pathToOpen) {
+                                    launchApplication(at: pathToOpen)
+                                    if let appName = appName {
+                                        toggleFullScreen(for: appName)
+                                    }
+                                } else {
+                                    print("Path exists but is not executable: \(pathToOpen)")
+                                    // Show UI again if launch fails
+                                    UIVisibilityState.shared.isVisible = true
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    print("Invalid path - does not exist: \(pathToOpen)")
                 }
             } else {
-                print("Invalid path")
+                print("Invalid path - path is nil")
             }
         }
     }
@@ -192,19 +222,30 @@ struct NavigationOverlayView: View {
 struct GameChangerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var windowSizeMonitor = WindowSizeMonitor.shared
+    @StateObject private var uiVisibility = UIVisibilityState.shared
     
     var body: some Scene {
         WindowGroup {
             ZStack {
                 BackgroundView()
+                LogoView()
+                    .opacity(uiVisibility.isVisible ? 1 : 0)
                 ClockView()
+                    .opacity(uiVisibility.isVisible ? 1 : 0)
                 ContentView()
+                    .opacity(uiVisibility.isVisible ? 1 : 0)
                 MouseIndicatorView()
+                    .opacity(uiVisibility.isVisible ? 1 : 0)
                 NavigationOverlayView()
+                    .opacity(uiVisibility.isVisible ? 1 : 0)
                 ShortcutHintView()
+                    .opacity(uiVisibility.isVisible ? 1 : 0)
             }
             .frame(width: .infinity, height: .infinity)
             .environmentObject(windowSizeMonitor)
+            .animation(SizingGuide.getCommonSettings().animations.fadeEnabled ? 
+                .easeOut(duration: SizingGuide.getCommonSettings().animations.fade.duration) : nil, 
+                value: uiVisibility.isVisible)
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.automatic)
@@ -212,17 +253,10 @@ struct GameChangerApp: App {
 }
 
 struct BackgroundView: View {
-    
     @StateObject private var sizingManager = SizingManager.shared
-    
-    private var logoSize: CGFloat {
-        let settings = SizingGuide.getCurrentSettings()
-        return settings.title.size * 6.8
-    }
     
     var body: some View {
         ZStack {
-
             // Background image and gradient
             GeometryReader { geometry in
                 Group {
@@ -249,18 +283,28 @@ struct BackgroundView: View {
                 )
             }
             .edgesIgnoringSafeArea(.all)
-            
-             // Logo
-            if let logoURL = Bundle.main.url(forResource: "superbox64headerlogo", withExtension: "svg", subdirectory: "images/logo"),
-               let logoImage = NSImage(contentsOf: logoURL) {
-                Image(nsImage: logoImage)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: logoSize)
-                    .padding(.leading, SizingGuide.getCurrentSettings().layout.logo?.leadingPadding ?? 30)
-                    .padding(.top, SizingGuide.getCurrentSettings().layout.logo?.topPadding ?? 30)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            }
+        }
+    }
+}
+
+struct LogoView: View {
+    @StateObject private var sizingManager = SizingManager.shared
+    
+    private var logoSize: CGFloat {
+        let settings = SizingGuide.getCurrentSettings()
+        return settings.title.size * 6.8
+    }
+    
+    var body: some View {
+        if let logoURL = Bundle.main.url(forResource: "superbox64headerlogo", withExtension: "svg", subdirectory: "images/logo"),
+           let logoImage = NSImage(contentsOf: logoURL) {
+            Image(nsImage: logoImage)
+                .resizable()
+                .scaledToFit()
+                .frame(width: logoSize)
+                .padding(.leading, SizingGuide.getCurrentSettings().layout.logo?.leadingPadding ?? 30)
+                .padding(.top, SizingGuide.getCurrentSettings().layout.logo?.topPadding ?? 30)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }
 }
@@ -292,7 +336,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Rest of initialization
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
-        
+
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
         guard self != nil else { return event }
 
@@ -459,6 +503,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             NSCursor.hide()
             NSApp.hideOtherApplications(nil)
+            
+            // Wait 1 second before showing UI elements
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                UIVisibilityState.shared.isVisible = true
+            }
         }
     }
 
@@ -1961,5 +2010,11 @@ class UserDefaultsManager: ObservableObject {
         showMousePointer = false
         defaults.synchronize()
     }
+}
+
+// Add near the top with other state objects
+class UIVisibilityState: ObservableObject {
+    static let shared = UIVisibilityState()
+    @Published var isVisible = true
 }
 

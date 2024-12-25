@@ -29,7 +29,7 @@ enum Action: String, Codable {
     case quit = "quit"
     case path = "path"
     
-    func execute(with path: String? = nil, appName: String? = nil) {
+    func execute(with path: String? = nil, appName: String? = nil, fullscreen: Bool? = nil) {
         print("Executing action: \(self)")
         switch self {
         case .none:
@@ -57,18 +57,18 @@ enum Action: String, Codable {
                     UIVisibilityState.shared.isVisible = false
                     
                     // Small delay to ensure UI has faded out
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         // For directories, just verify existence
                         if isDirectory.boolValue {
                             launchApplication(at: pathToOpen)
-                            if let appName = appName {
+                            if let appName = appName, fullscreen == true {
                                 toggleFullScreen(for: appName)
                             }
                         } else {
                             // For files, verify executable permission
                             if fileManager.isExecutableFile(atPath: pathToOpen) {
                                 launchApplication(at: pathToOpen)
-                                if let appName = appName {
+                                if let appName = appName, fullscreen == true {
                                     toggleFullScreen(for: appName)
                                 }
                             } else {
@@ -172,6 +172,7 @@ struct AppItem: Codable {
     let parent: String?
     let action: String?
     let path: String?
+    let fullscreen: Bool?
     
     var sectionEnum: Section {
         return Section(rawValue: name)
@@ -190,7 +191,7 @@ struct AppItem: Codable {
         
         // Execute with path and name if it's a path action
         if actionEnum == .path {
-            actionEnum?.execute(with: path, appName: name)
+            actionEnum?.execute(with: path, appName: name, fullscreen: fullscreen)
         }
         
         return actionEnum ?? .none
@@ -1584,9 +1585,11 @@ struct AppIconView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onHover { hovering in
-            isHighlighted = hovering
-            if hovering {
-                onHighlight()
+            if uiVisibility.mouseVisible {
+                isHighlighted = hovering
+                if hovering {
+                    onHighlight()
+                }
             }
         }
         // Add onChange to reset highlight when switching modes
@@ -2044,7 +2047,8 @@ class AppDataManager {
                         systemIcon: (itemDict["systemIcon"] as? String) ?? "",
                         parent: (itemDict["parent"] as? String) ?? "",
                         action: (itemDict["action"] as? String) ?? "",
-                        path: (itemDict["path"] as? String) ?? ""
+                        path: (itemDict["path"] as? String) ?? "",
+                        fullscreen: itemDict["fullscreen"] as? Bool
                     )
                 }
             }

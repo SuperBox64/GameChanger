@@ -37,7 +37,8 @@
             "systemIcon": "webkit",
             "parent": "Game Changer",
             "action": "path",
-            "path": "/Applications/Safari.app"
+            "path": "/Applications/Safari.app",
+            "fullscreen": false
         }
     ],
     "Arcade": [

@@ -1087,6 +1087,17 @@ struct ContentView: View {
             }
             updateNavigationState()
             
+            // Start with opacity at 0
+            opacity = 0
+            
+            // Add bounce animation when view appears
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { // Small delay to ensure view is ready
+                withAnimation(.easeOut(duration: 1.5)) {  // Extended from 0.8 to 1.5 seconds
+                    opacity = 1  // Fade in
+                }
+                NotificationCenter.default.post(name: .bounceItems, object: nil)
+            }
+            
             // Add observer for page jumps
             NotificationCenter.default.addObserver(
                 forName: .jumpToPage,
@@ -1332,7 +1343,6 @@ struct ContentView: View {
     
     private func moveLeft() {
         let sourceItems = getSourceItems()
-        let itemsOnCurrentPage = min(4, sourceItems.count - (currentPage * 4))
         let lastPage = (sourceItems.count - 1) / 4
         
         if selectedIndex > 0 {
@@ -1634,14 +1644,18 @@ struct AppIconView: View {
                 }
         )
         .onReceive(NotificationCenter.default.publisher(for: .bounceItems)) { _ in
-            // Stagger based on item index
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(itemIndex) * 0.1) {
-                bounceOffset = -50
+            // Stagger based on item index with random offset
+            let randomDelay = Double.random(in: 0...0.1)  // Random delay between 0 and 0.1
+            let baseDelay = Double(itemIndex) * 0.05      // Base stagger delay
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + baseDelay + randomDelay) {
+                let randomBounce = Double.random(in: (-45)...(-35))  // Added parentheses to fix ambiguity
+                bounceOffset = randomBounce  // Bounce higher than before
                 
                 withAnimation(
                     .spring(
-                        response: 0.6,
-                        dampingFraction: 0.5,
+                        response: 1.0,            // Longer response for more pronounced bounce
+                        dampingFraction: 0.55,    // Less damping for more bounce
                         blendDuration: 0
                     )
                 ) {

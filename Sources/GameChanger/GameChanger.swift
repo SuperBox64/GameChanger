@@ -212,7 +212,8 @@ struct GameChangerApp: App {
 }
 
 struct BackgroundView: View {
-    @State private var sizing: CarouselSizing = SizingGuide.getSizing(for: NSScreen.main!.frame.size)
+    
+    @StateObject private var sizingManager = SizingManager.shared
     
     private var logoSize: CGFloat {
         let settings = SizingGuide.getCurrentSettings()
@@ -748,7 +749,7 @@ struct ContentView: View {
     @State private var accumulatedMouseX: CGFloat = 0
     @State private var accumulatedMouseY: CGFloat = 0
     @State private var isMouseInWindow = false
-    @State private var sizing: CarouselSizing = SizingGuide.getSizing(for: NSScreen.main!.frame.size)
+    @StateObject private var sizingManager = SizingManager.shared
     @State private var currentPage = 0
     @State private var currentSlideOffset: CGFloat = 0
     @State private var nextSlideOffset: CGFloat = 0
@@ -959,7 +960,7 @@ struct ContentView: View {
             CarouselView(
                 visibleItems: visibleItems,
                 selectedIndex: selectedIndex,
-                sizing: sizing,
+                sizing: sizingManager.sizing,
                 currentOffset: currentOffset,
                 showingNextItems: showingNextItems,
                 nextOffset: nextOffset,
@@ -974,7 +975,7 @@ struct ContentView: View {
             setupMouseMonitor()
             setupMouseTrackingMonitor()
             if let screen = NSScreen.main {
-                sizing = SizingGuide.getSizing(for: screen.frame.size)
+                sizingManager.updateSizing(for: screen.frame.size)
                 windowWidth = screen.frame.width
             }
             updateNavigationState()
@@ -1425,10 +1426,7 @@ struct AppIconView: View {
     let item: AppItem
     let isSelected: Bool
     
-    private var sizing: CarouselSizing {
-        let size = SizingGuide.getScreenSize(for: windowSizeMonitor.currentResolution)
-        return SizingGuide.getSizing(for: size)
-    }
+    @StateObject private var sizingManager = SizingManager.shared
     
     private func loadIcon() -> some View {
         // Force immediate loading from cache
@@ -1438,9 +1436,9 @@ struct AppIconView: View {
         if let image = cachedImage {
             return AnyView(Image(nsImage: image)
                 .resizable()
-                .frame(width: sizing.iconSize * 2, height: sizing.iconSize * 2)
+                .frame(width: sizingManager.sizing.iconSize * 2, height: sizingManager.sizing.iconSize * 2)
                 .padding(0)
-                .cornerRadius(sizing.cornerRadius))
+                .cornerRadius(sizingManager.sizing.cornerRadius))
         }
         
         // Fallback - try to load directly if not in cache
@@ -1454,14 +1452,14 @@ struct AppIconView: View {
             
             return AnyView(Image(nsImage: image)
                 .resizable()
-                .frame(width: sizing.iconSize * 2, height: sizing.iconSize * 2)
+                .frame(width: sizingManager.sizing.iconSize * 2, height: sizingManager.sizing.iconSize * 2)
                 .padding(0)
-                .cornerRadius(sizing.cornerRadius))
+                .cornerRadius(sizingManager.sizing.cornerRadius))
         }
         
         print("Failed to load icon for \(item.name)")
         return AnyView(Color.clear
-            .frame(width: sizing.iconSize * 2, height: sizing.iconSize * 2))
+            .frame(width: sizingManager.sizing.iconSize * 2, height: sizingManager.sizing.iconSize * 2))
     }
     
     private var labelFontSize: CGFloat {
@@ -1470,21 +1468,21 @@ struct AppIconView: View {
     
     var body: some View {
         let multipliers = SizingGuide.getCommonSettings().multipliers
-        VStack(spacing: sizing.gridSpacing * multipliers.gridSpacing) {
+        VStack(spacing: multipliers.gridSpacing * multipliers.gridSpacing) {
             ZStack {
-                RoundedRectangle(cornerRadius: sizing.cornerRadius * multipliers.cornerRadius)
+                RoundedRectangle(cornerRadius: multipliers.cornerRadius * multipliers.cornerRadius)
                     .fill(Color.clear)
                     .frame(
-                        width: sizing.iconSize * multipliers.iconSize + sizing.selectionPadding,
-                        height: sizing.iconSize * multipliers.iconSize + sizing.selectionPadding
+                        width: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding,
+                        height: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding
                     )
                 
                 if isSelected {
-                    RoundedRectangle(cornerRadius: sizing.cornerRadius * multipliers.cornerRadius)
+                    RoundedRectangle(cornerRadius: multipliers.cornerRadius * multipliers.cornerRadius)
                         .fill(Color.white.opacity(SizingGuide.getCommonSettings().opacities.selectionHighlight))
                         .frame(
-                            width: sizing.iconSize * multipliers.iconSize + sizing.selectionPadding,
-                            height: sizing.iconSize * multipliers.iconSize + sizing.selectionPadding
+                            width: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding,
+                            height: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding
                         )
                 }
                 
@@ -1494,7 +1492,7 @@ struct AppIconView: View {
             Text(item.name)
                 .font(.custom(
                     SizingGuide.getCommonSettings().fonts.label,
-                    size: sizing.labelSize
+                    size: sizingManager.sizing.labelSize
                 ))
                 .foregroundColor(isSelected ? 
                     SizingGuide.getCommonSettings().colors.text.selectedUI : 
@@ -1867,6 +1865,21 @@ class AppDataManager {
     
     func items(for section: Section) -> [AppItem] {
         return itemsBySection[section.rawValue] ?? []
+    }
+}
+
+// Add this class at the top level of the file
+class SizingManager: ObservableObject {
+    @Published private(set) var sizing: CarouselSizing
+    
+    static let shared = SizingManager()
+    
+    private init() {
+        self.sizing = SizingGuide.getSizing(for: NSScreen.main?.frame.size ?? .zero)
+    }
+    
+    func updateSizing(for size: CGSize) {
+        self.sizing = SizingGuide.getSizing(for: size)
     }
 }
 

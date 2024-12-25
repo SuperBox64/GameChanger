@@ -1,13 +1,6 @@
 {
     "Game Changer": [
         {
-            "name": "Safari",
-            "systemIcon": "app",
-            "parent": "",
-            "action": "path",
-            "path": "/Applications/Safari.app"
-        },
-        {
             "name": "Arcade",
             "systemIcon": "arcade",
             "parent": "",
@@ -36,6 +29,15 @@
             "systemIcon": "hello",
             "parent": "",
             "action": ""
+        }
+    ],
+    "Internet": [
+        {
+            "name": "Safari",
+            "systemIcon": "app",
+            "parent": "",
+            "action": "path",
+            "path": "/Applications/Safari.app"
         }
     ],
     "Arcade": [

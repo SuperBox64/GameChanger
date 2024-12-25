@@ -195,6 +195,7 @@ extension Notification.Name {
     static let escKeyPressed = Notification.Name("escKeyPressed")
     static let swipeLeft = Notification.Name("swipeLeft")
     static let swipeRight = Notification.Name("swipeRight")
+    static let jumpToPage = Notification.Name("jumpToPage")
 }
 
 class NavigationState: ObservableObject {
@@ -206,17 +207,34 @@ class NavigationState: ObservableObject {
 
 struct NavigationOverlayView: View {
     @StateObject private var navigationState = NavigationState.shared
+    @StateObject private var contentState = ContentState.shared
     
     var body: some View {
         VStack {
             Spacer()
             NavigationDotsView(
                 currentPage: navigationState.currentPage,
-                totalPages: navigationState.numberOfPages
+                totalPages: navigationState.numberOfPages,
+                onPageSelect: { page in
+                    contentState.jumpToPage(page)
+                }
             )
         }
         .opacity(navigationState.opacity)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+class ContentState: ObservableObject {
+    static let shared = ContentState()
+    
+    func jumpToPage(_ page: Int) {
+        // Post notification for page jump
+        NotificationCenter.default.post(
+            name: .jumpToPage,
+            object: nil,
+            userInfo: ["page": page]
+        )
     }
 }
 
@@ -1065,6 +1083,24 @@ struct ContentView: View {
                 windowWidth = screen.frame.width
             }
             updateNavigationState()
+            
+            // Add observer for page jumps
+            NotificationCenter.default.addObserver(
+                forName: .jumpToPage,
+                object: nil,
+                queue: .main) { notification in
+                    if let page = notification.userInfo?["page"] as? Int {
+                        currentPage = page
+                        selectedIndex = 0  // Reset selection when jumping to new page
+                        
+                        // Animate the transition if enabled
+                        if SizingGuide.getCommonSettings().animations.slideEnabled {
+                            withAnimation(.carouselSlide(settings: animationSettings)) {
+                                currentOffset = 0
+                            }
+                        }
+                    }
+            }
         }
         .onDisappear {
             if let monitor = keyMonitor {
@@ -1740,8 +1776,10 @@ struct MouseProgressView: View {
 
 struct NavigationDotsView: View {
     @EnvironmentObject private var windowSizeMonitor: WindowSizeMonitor
+    @StateObject private var uiVisibility = UIVisibilityState.shared
     let currentPage: Int
     let totalPages: Int
+    let onPageSelect: (Int) -> Void
     
     private var settings: NavigationSettings {
         return SizingGuide.getSettings(for: windowSizeMonitor.currentResolution).navigationDots
@@ -1755,7 +1793,13 @@ struct NavigationDotsView: View {
                     .frame(width: settings.size, height: settings.size)
                     .opacity(totalPages == 1 ? 0 : (index == currentPage ? 1 : SizingGuide.getCommonSettings().navigation.opacity))
                     .animation(SizingGuide.getCommonSettings().animations.fadeEnabled ? 
-                        .easeInOut(duration: 0.3) : nil, value: totalPages)
+                        .easeInOut(duration: SizingGuide.getCommonSettings().animations.fade.duration) : nil, 
+                        value: totalPages)
+                    .onTapGesture {
+                        if uiVisibility.mouseVisible && index != currentPage {
+                            onPageSelect(index)
+                        }
+                    }
             }
         }
         .padding(.bottom, settings.bottomPadding)

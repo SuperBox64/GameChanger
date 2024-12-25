@@ -1361,11 +1361,12 @@ struct ContentView: View {
             if SizingGuide.getCommonSettings().animations.slideEnabled {
                 showingNextItems = true
                 currentPage = 0            // First update page to show new items
-                nextOffset = windowWidth   // Position new items off right edge
+                nextOffset = -windowWidth  // Position OLD items at center (will slide left)
+                currentOffset = windowWidth // Position NEW items off right edge
                 
                 withAnimation(.carouselSlide(settings: animationSettings)) {
-                    currentOffset = -windowWidth  // Slide old items left and out
-                    nextOffset = 0               // Slide new items left and in
+                    nextOffset = -windowWidth * 2  // Slide OLD items left and out
+                    currentOffset = 0              // Slide NEW items left and in
                 }
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
@@ -1382,11 +1383,12 @@ struct ContentView: View {
             if SizingGuide.getCommonSettings().animations.slideEnabled {
                 showingNextItems = true
                 currentPage += 1           // First update page to show new items
-                nextOffset = windowWidth   // Position new items off right edge
+                nextOffset = -windowWidth  // Position OLD items at center (will slide left)
+                currentOffset = windowWidth // Position NEW items off right edge
                 
                 withAnimation(.carouselSlide(settings: animationSettings)) {
-                    currentOffset = -windowWidth  // Slide old items left and out
-                    nextOffset = 0               // Slide new items left and in
+                    nextOffset = -windowWidth * 2  // Slide OLD items left and out
+                    currentOffset = 0              // Slide NEW items left and in
                 }
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {

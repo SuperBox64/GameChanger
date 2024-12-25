@@ -196,6 +196,7 @@ extension Notification.Name {
     static let swipeLeft = Notification.Name("swipeLeft")
     static let swipeRight = Notification.Name("swipeRight")
     static let jumpToPage = Notification.Name("jumpToPage")
+    static let bounceItems = Notification.Name("bounceItems")
 }
 
 class NavigationState: ObservableObject {
@@ -1091,25 +1092,25 @@ struct ContentView: View {
                 queue: .main) { notification in
                     if let page = notification.userInfo?["page"] as? Int {
                         //First fade out current items
-                        // withAnimation(.easeOut(duration: 0.2)) {
-                        //     opacity = 0
-                        // }
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            opacity = 0
+                        }
                         
                         // After fade out, update page and start bounce animations
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                             currentPage = page
                             selectedIndex = 0
                             
-                            // Show new items with bounce
-                            // withAnimation(
-                            //     .spring(
-                            //         response: 0.5,      // Controls the overall duration
-                            //         dampingFraction: 0.65,  // Controls the bounciness (lower = more bounce)
-                            //         blendDuration: 0    // Immediate start
-                            //     )
-                            // ) {
-                            //     opacity = 1
-                            // }
+                            //Show new items with bounce
+                            withAnimation(
+                                .spring(
+                                    response: 0.5,      // Controls the overall duration
+                                    dampingFraction: 0.65,  // Controls the bounciness (lower = more bounce)
+                                    blendDuration: 0    // Immediate start
+                                )
+                            ) {
+                                opacity = 1
+                            }
                         }
                     }
             }
@@ -1565,6 +1566,7 @@ struct AppIconView: View {
     let onHighlight: () -> Void
     let onSelect: () -> Void
     let onBack: () -> Void
+    @State private var bounceOffset: CGFloat = 0
     
     @StateObject private var sizingManager = SizingManager.shared
     
@@ -1590,6 +1592,7 @@ struct AppIconView: View {
                 
                 loadIcon()
             }
+            .offset(y: bounceOffset)
             
             Text(item.name)
                 .font(.custom(
@@ -1626,6 +1629,21 @@ struct AppIconView: View {
                     }
                 }
         )
+        .onReceive(NotificationCenter.default.publisher(for: .bounceItems)) { _ in
+            // Start from above final position
+            bounceOffset = -50
+            
+            // Physics-based spring animation
+            withAnimation(
+                .spring(
+                    response: 0.6,         // Duration
+                    dampingFraction: 0.5,  // More bounce (lower = bouncier)
+                    blendDuration: 0
+                )
+            ) {
+                bounceOffset = 0  // Return to original position
+            }
+        }
     }
     
     private func loadIcon() -> some View {
@@ -1786,12 +1804,14 @@ struct NavigationDotsView: View {
                     .fill(Color.white)
                     .frame(width: settings.size, height: settings.size)
                     .opacity(totalPages == 1 ? 0 : (index == currentPage ? 1 : SizingGuide.getCommonSettings().navigation.opacity))
-                    // .animation(SizingGuide.getCommonSettings().animations.fadeEnabled ? 
-                    //     .easeInOut(duration: SizingGuide.getCommonSettings().animations.fade.duration) : nil, 
-                    //     value: totalPages)
                     .onTapGesture {
                         if uiVisibility.mouseVisible && index != currentPage {
                             onPageSelect(index)
+                            // Post notification for bounce animation
+                            NotificationCenter.default.post(
+                                name: .bounceItems,
+                                object: nil
+                            )
                         }
                     }
             }

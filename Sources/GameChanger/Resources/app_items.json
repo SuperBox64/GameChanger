@@ -34,8 +34,8 @@
     "Internet": [
         {
             "name": "Safari",
-            "systemIcon": "app",
-            "parent": "",
+            "systemIcon": "webkit",
+            "parent": "Game Changer",
             "action": "path",
             "path": "/Applications/Safari.app"
         }

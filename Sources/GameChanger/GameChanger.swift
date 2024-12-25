@@ -50,29 +50,27 @@ enum Action: String, Codable {
                 // Check if path exists and is executable
                 if fileManager.fileExists(atPath: pathToOpen, isDirectory: &isDirectory) {
                     // Hide UI elements first
-                    DispatchQueue.main.async {
-                        UIVisibilityState.shared.isVisible = false
-                        
-                        // Small delay to ensure UI has time to hide
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            // For directories, just verify existence
-                            if isDirectory.boolValue {
+                    UIVisibilityState.shared.isVisible = false
+                    
+                    // Small delay to ensure UI has faded out - reduced to 0.75 seconds
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+                        // For directories, just verify existence
+                        if isDirectory.boolValue {
+                            launchApplication(at: pathToOpen)
+                            if let appName = appName {
+                                toggleFullScreen(for: appName)
+                            }
+                        } else {
+                            // For files, verify executable permission
+                            if fileManager.isExecutableFile(atPath: pathToOpen) {
                                 launchApplication(at: pathToOpen)
                                 if let appName = appName {
                                     toggleFullScreen(for: appName)
                                 }
                             } else {
-                                // For files, verify executable permission
-                                if fileManager.isExecutableFile(atPath: pathToOpen) {
-                                    launchApplication(at: pathToOpen)
-                                    if let appName = appName {
-                                        toggleFullScreen(for: appName)
-                                    }
-                                } else {
-                                    print("Path exists but is not executable: \(pathToOpen)")
-                                    // Show UI again if launch fails
-                                    UIVisibilityState.shared.isVisible = true
-                                }
+                                print("Path exists but is not executable: \(pathToOpen)")
+                                // Show UI again if launch fails
+                                UIVisibilityState.shared.isVisible = true
                             }
                         }
                     }
@@ -243,13 +241,13 @@ class ContentState: ObservableObject {
 struct GameChangerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var windowSizeMonitor = WindowSizeMonitor.shared
-    @State private var opacity: Double = 0
+    @StateObject private var uiVisibility = UIVisibilityState.shared
     
     var body: some Scene {
         WindowGroup {
             ZStack {
+                BackgroundView()  // Keep this outside the Group
                 Group {
-                    BackgroundView()
                     LogoView()
                     ClockView()
                     ContentView()
@@ -257,16 +255,15 @@ struct GameChangerApp: App {
                     NavigationOverlayView()
                     ShortcutHintView()
                 }
-                .opacity(opacity)
-                .animation(.easeOut(duration: 1.5), value: opacity)
+                .opacity(uiVisibility.isVisible ? 1 : 0)
+                .animation(.easeOut(duration: 1.875), value: uiVisibility.isVisible)
             }
             .background(Color.black)
             .frame(width: .infinity, height: .infinity)
             .environmentObject(windowSizeMonitor)
             .onAppear {
-                opacity = 1
+                uiVisibility.isVisible = true
                 
-                // Trigger bounce after fade starts
                 if SizingGuide.getCommonSettings().animations.bounceEnabled {
                     NotificationCenter.default.post(name: .bounceItems, object: nil)
                 }
@@ -479,12 +476,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidBecomeActive(_ notification: Notification) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-             if UIVisibilityState.shared.mouseVisible {
-                    NSCursor.unhide()
-                } else {
-                    NSCursor.hide()
-                }
+            if UIVisibilityState.shared.mouseVisible {
+                NSCursor.unhide()
+            } else {
+                NSCursor.hide()
+            }
             NSApp.hideOtherApplications(nil)
+            
+            // Fade UI elements back in with longer duration
+            withAnimation(.easeOut(duration: 1.875)) {
+                UIVisibilityState.shared.isVisible = true
+            }
         }
     }
 
@@ -1067,7 +1069,6 @@ struct ContentView: View {
                         if SizingGuide.getCommonSettings().animations.bounceEnabled {
                             opacity = 0
 
-
                             withAnimation(.easeOut(duration: 1.0)) {
                                 opacity = 1
                             }
@@ -1566,32 +1567,26 @@ struct AppIconView: View {
                 .foregroundColor(isSelected || isHighlighted ? 
                     SizingGuide.getCommonSettings().colors.text.selectedUI : 
                     SizingGuide.getCommonSettings().colors.text.unselectedUI)
-                .offset(y: bounceOffset)  // Make text bounce too
+                .offset(y: bounceOffset)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onHover { hovering in
-            if uiVisibility.mouseVisible {
-                isHighlighted = hovering
-                if hovering {
-                    onHighlight()
-                }
+            isHighlighted = hovering
+            if hovering {
+                onHighlight()
             }
         }
         // Combine gestures with simultaneousGesture to handle both single and double clicks
         .gesture(
             TapGesture(count: 2)
                 .onEnded {
-                    if uiVisibility.mouseVisible {
-                        onBack()    // Double click goes back
-                    }
+                    onBack()    // Double click goes back
                 }
         )
         .simultaneousGesture(
             TapGesture()
                 .onEnded {
-                    if uiVisibility.mouseVisible {
-                        onSelect()  // Single click runs selection
-                    }
+                    onSelect()  // Single click runs selection
                 }
         )
         .onReceive(NotificationCenter.default.publisher(for: .bounceItems)) { _ in

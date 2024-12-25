@@ -780,7 +780,8 @@ struct CarouselView: View {
                         isSelected: index == selectedIndex,
                         onHighlight: { onHighlight(index) },
                         onSelect: { onSelect(index) },
-                        onBack: { onBack(index) }
+                        onBack: { onBack(index) },
+                        itemIndex: index
                     )
                 }
             }
@@ -799,7 +800,8 @@ struct CarouselView: View {
                             isSelected: false,
                             onHighlight: { },
                             onSelect: { },
-                            onBack: { }
+                            onBack: { },
+                            itemIndex: index
                         )
                     }
                 }
@@ -1567,6 +1569,7 @@ struct AppIconView: View {
     let onSelect: () -> Void
     let onBack: () -> Void
     @State private var bounceOffset: CGFloat = 0
+    let itemIndex: Int
     
     @StateObject private var sizingManager = SizingManager.shared
     
@@ -1602,6 +1605,7 @@ struct AppIconView: View {
                 .foregroundColor(isSelected || isHighlighted ? 
                     SizingGuide.getCommonSettings().colors.text.selectedUI : 
                     SizingGuide.getCommonSettings().colors.text.unselectedUI)
+                .offset(y: bounceOffset)  // Make text bounce too
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onHover { hovering in
@@ -1630,18 +1634,19 @@ struct AppIconView: View {
                 }
         )
         .onReceive(NotificationCenter.default.publisher(for: .bounceItems)) { _ in
-            // Start from above final position
-            bounceOffset = -50
-            
-            // Physics-based spring animation
-            withAnimation(
-                .spring(
-                    response: 0.6,         // Duration
-                    dampingFraction: 0.5,  // More bounce (lower = bouncier)
-                    blendDuration: 0
-                )
-            ) {
-                bounceOffset = 0  // Return to original position
+            // Stagger based on item index
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(itemIndex) * 0.1) {
+                bounceOffset = -50
+                
+                withAnimation(
+                    .spring(
+                        response: 0.6,
+                        dampingFraction: 0.5,
+                        blendDuration: 0
+                    )
+                ) {
+                    bounceOffset = 0
+                }
             }
         }
     }

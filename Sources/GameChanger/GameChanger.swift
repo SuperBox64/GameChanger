@@ -44,6 +44,10 @@ enum Action: String, Codable {
             NSApplication.shared.terminate(nil)
         case .path:
             if let pathToOpen = path {
+                // Guard against multiple executions
+                guard !UIVisibilityState.shared.isExecutingPath else { return }
+                UIVisibilityState.shared.isExecutingPath = true
+                
                 let fileManager = FileManager.default
                 var isDirectory: ObjCBool = false
                 
@@ -52,7 +56,7 @@ enum Action: String, Codable {
                     // Hide UI elements first
                     UIVisibilityState.shared.isVisible = false
                     
-                    // Small delay to ensure UI has faded out - reduced to 0.75 seconds
+                    // Small delay to ensure UI has faded out
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
                         // For directories, just verify existence
                         if isDirectory.boolValue {
@@ -73,12 +77,16 @@ enum Action: String, Codable {
                                 UIVisibilityState.shared.isVisible = true
                             }
                         }
+                        // Reset the executing flag
+                        UIVisibilityState.shared.isExecutingPath = false
                     }
                 } else {
                     print("Invalid path - does not exist: \(pathToOpen)")
+                    UIVisibilityState.shared.isExecutingPath = false
                 }
             } else {
                 print("Invalid path - path is nil")
+                UIVisibilityState.shared.isExecutingPath = false
             }
         }
     }
@@ -1814,15 +1822,17 @@ struct MouseIndicatorView: View {
     @StateObject private var mouseState = MouseIndicatorState.shared
     
     var body: some View {
-        ZStack {
-            if mouseState.showingProgress {
-                MouseProgressView(
-                    progress: mouseState.mouseProgress,
-                    direction: mouseState.mouseDirection
-                )
+        if !UIVisibilityState.shared.mouseVisible {
+            ZStack {
+                if mouseState.showingProgress {
+                    MouseProgressView(
+                        progress: mouseState.mouseProgress,
+                        direction: mouseState.mouseDirection
+                    )
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -2097,5 +2107,6 @@ class UIVisibilityState: ObservableObject {
     static let shared = UIVisibilityState()
     @Published var isVisible = true
     @Published var mouseVisible = false
+    @Published var isExecutingPath = false
 }
 

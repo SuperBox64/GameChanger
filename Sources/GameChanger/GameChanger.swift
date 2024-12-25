@@ -1337,14 +1337,53 @@ struct ContentView: View {
             selectedIndex -= 1
         } else if currentPage == 0 {
             // Loop to last page
-            currentPage = lastPage
             let itemsOnLastPage = min(4, sourceItems.count - (lastPage * 4))
-            selectedIndex = itemsOnLastPage - 1
+            
+            if SizingGuide.getCommonSettings().animations.slideEnabled {
+                showingNextItems = true
+                currentPage = lastPage      // First update page to show new items
+                selectedIndex = itemsOnLastPage - 1  // Select last item BEFORE animation
+                nextOffset = 0             // Start OLD items at center
+                currentOffset = -windowWidth // Start NEW items off left edge
+                
+                withAnimation(.carouselSlide(settings: animationSettings)) {
+                    nextOffset = windowWidth    // OLD items slide right and out
+                    currentOffset = 0          // NEW items slide right and in
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
+                    currentOffset = 0
+                    showingNextItems = false
+                }
+            } else {
+                currentPage = lastPage
+                selectedIndex = itemsOnLastPage - 1
+            }
         } else {
             // Normal previous page behavior
-            currentPage -= 1
-            let itemsOnNextPage = min(4, sourceItems.count - ((currentPage) * 4))
-            selectedIndex = itemsOnNextPage - 1
+            let nextPage = currentPage - 1
+            let itemsOnNextPage = min(4, sourceItems.count - (nextPage * 4))
+            
+            if SizingGuide.getCommonSettings().animations.slideEnabled {
+                showingNextItems = true
+                currentPage -= 1           // First update page to show new items
+                selectedIndex = itemsOnNextPage - 1  // Select last item BEFORE animation
+                nextOffset = 0             // Start OLD items at center
+                currentOffset = -windowWidth // Start NEW items off left edge
+                
+                withAnimation(.carouselSlide(settings: animationSettings)) {
+                    nextOffset = windowWidth    // OLD items slide right and out
+                    currentOffset = 0          // NEW items slide right and in
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
+                    currentOffset = 0
+                    showingNextItems = false
+                }
+            } else {
+                currentPage -= 1
+                selectedIndex = itemsOnNextPage - 1
+            }
         }
     }
     

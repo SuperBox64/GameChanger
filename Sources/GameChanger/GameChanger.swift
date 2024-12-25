@@ -1101,17 +1101,20 @@ struct ContentView: View {
     private func setupKeyMonitor() {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             // Handle Command-M first
-         
+            if event.modifierFlags.contains(.command) && event.keyCode == kVK_ANSI_M {
+                UIVisibilityState.shared.mouseVisible.toggle()
+                if UIVisibilityState.shared.mouseVisible {
+                    NSCursor.unhide()
+                    // Immediately hide mouse indicator and reset its state
+                    resetMouseState()
+                } else {
+                    NSCursor.hide()
+                }
+                return nil
+            }
             
             // Then handle other keys
             switch Int(event.keyCode) {
-            //case kVK_ANSI_M:
-                // UIVisibilityState.shared.mouseVisible.toggle()
-                // if UIVisibilityState.shared.mouseVisible {
-                //     NSCursor.unhide()
-                // } else {
-                //     NSCursor.hide()
-                // }
             case 53: // Escape
                 resetMouseState()
                 back()
@@ -1578,6 +1581,13 @@ struct AppIconView: View {
                 onHighlight()
             }
         }
+        // Add onChange to reset highlight when switching modes
+        .onChange(of: uiVisibility.mouseVisible) { newValue in
+            if !newValue {
+                // Reset highlight when leaving mouse mode
+                isHighlighted = false
+            }
+        }
         // Add right-click gesture
         .gesture(
             TapGesture(count: 2)  // Right click
@@ -1777,18 +1787,17 @@ struct NavigationDotsView: View {
                     .fill(Color.white)
                     .frame(width: settings.size, height: settings.size)
                     .opacity(totalPages == 1 ? 0 : (index == currentPage ? 1 : SizingGuide.getCommonSettings().navigation.opacity))
+                    .contentShape(Rectangle())  // Make entire area clickable
+                    .frame(width: settings.size * 2, height: settings.size * 2)  // Larger hit area
                     .onTapGesture {
                         if uiVisibility.mouseVisible && index != currentPage {
                             onPageSelect(index)
-                            // Only post bounce notification if enabled
-                            // if SizingGuide.getCommonSettings().animations.bounceEnabled {
-                            //     NotificationCenter.default.post(name: .bounceItems, object: nil)
-                            // }
                         }
                     }
             }
         }
         .padding(.bottom, settings.bottomPadding)
+        .zIndex(1)  // Ensure dots are above other views
     }
 }
 

@@ -53,11 +53,13 @@ enum Action: String, Codable {
                 
                 // Check if path exists and is executable
                 if fileManager.fileExists(atPath: pathToOpen, isDirectory: &isDirectory) {
-                    // Hide UI elements first
-                    UIVisibilityState.shared.isVisible = false
+                    // Hide UI elements first with shorter fade duration (0.375s instead of 0.75s)
+                    withAnimation(.easeOut(duration: 0.375)) {  // Cut duration in half
+                        UIVisibilityState.shared.isVisible = false
+                    }
                     
-                    // Reduced delay to 0.375 seconds (half of 0.75)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.375) {
+                    // Execute after fade out
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.375) {  // Match shorter duration
                         // For files, verify executable permission
                         if fileManager.isExecutableFile(atPath: pathToOpen) {
                             launchApplication(at: pathToOpen)

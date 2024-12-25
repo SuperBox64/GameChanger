@@ -1787,17 +1787,19 @@ struct NavigationDotsView: View {
                     .fill(Color.white)
                     .frame(width: settings.size, height: settings.size)
                     .opacity(totalPages == 1 ? 0 : (index == currentPage ? 1 : SizingGuide.getCommonSettings().navigation.opacity))
-                    .contentShape(Rectangle())  // Make entire area clickable
-                    .frame(width: settings.size * 2, height: settings.size * 2)  // Larger hit area
+                    .contentShape(Rectangle())
+                    .frame(width: settings.size * 2, height: settings.size * 2)
                     .onTapGesture {
                         if uiVisibility.mouseVisible && index != currentPage {
                             onPageSelect(index)
                         }
                     }
+                    .animation(.easeInOut(duration: 0.3), value: currentPage)
             }
         }
         .padding(.bottom, settings.bottomPadding)
-        .zIndex(1)  // Ensure dots are above other views
+        .zIndex(1)
+        .animation(.easeInOut(duration: 0.3), value: totalPages)
     }
 }
 

@@ -1251,6 +1251,8 @@ struct ContentView: View {
             if !UIVisibilityState.shared.mouseVisible {
                 resetMouseState()
                 back()
+            } else {
+                back()
             }
             return event
         }
@@ -1576,13 +1578,16 @@ struct AppIconView: View {
                 onHighlight()
             }
         }
-        // Combine gestures with simultaneousGesture to handle both single and double clicks
+        // Add right-click gesture
         .gesture(
-            TapGesture(count: 2)
+            TapGesture(count: 2)  // Right click
                 .onEnded {
-                    onBack()    // Double click goes back
+                    if uiVisibility.mouseVisible {  // Only in mouse mode
+                        onBack()
+                    }
                 }
         )
+        // Combine with existing gestures
         .simultaneousGesture(
             TapGesture()
                 .onEnded {

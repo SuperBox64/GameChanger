@@ -1332,7 +1332,6 @@ struct ContentView: View {
     
     private func moveLeft() {
         let sourceItems = getSourceItems()
-        let itemsOnCurrentPage = min(4, sourceItems.count - (currentPage * 4))
         let lastPage = (sourceItems.count - 1) / 4
         
         if selectedIndex > 0 {

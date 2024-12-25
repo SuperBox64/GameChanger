@@ -161,33 +161,6 @@ struct AppItem: Codable {
     }
 }
 
-// Add a new struct to manage app items
-struct AppItemManager {
-    static let shared = AppItemManager()
-    private var items: [String: [AppItem]] = [:]
-    
-    private init() {
-        loadItems()
-    }
-    
-    private mutating func loadItems() {
-        print("=== DEBUG JSON LOADING ===")
-        print("Bundle URL:", Bundle.main.bundleURL)
-        print("All Bundle Resources:", Bundle.main.paths(forResourcesOfType: nil, inDirectory: nil))
-        
-        self.items = AppDataManager.shared.itemsBySection
-        
-        print("=== END DEBUG ===")
-    }
-    
-    func getItems(for section: String) -> [AppItem] {
-        let items = items[section] ?? []
-        print("Getting items for section:", section)
-        print("Found items count:", items.count)
-        return items
-    }
-}
-
 extension Notification.Name {
     static let escKeyPressed = Notification.Name("escKeyPressed")
 }
@@ -413,13 +386,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // First pass - count total images
         for section in Section.allCases {
-            let items = AppItemManager.shared.getItems(for: section.rawValue)
+            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
             totalImages += items.count
         }
         
         // Second pass - load images synchronously
         for section in Section.allCases {
-            let items = AppItemManager.shared.getItems(for: section.rawValue)
+            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
             for item in items {
                 autoreleasepool {
                     if let iconURL = Bundle.main.url(forResource: item.systemIcon, 
@@ -442,7 +415,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Verify cache
         print("=== Verifying Cache ===")
         for section in Section.allCases {
-            let items = AppItemManager.shared.getItems(for: section.rawValue)
+            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
             for item in items {
                 if ImageCache.shared.cache[item.systemIcon] == nil {
                     print("WARNING: Missing cache entry for \(item.name)")
@@ -466,7 +439,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Preload all sections using Section.allCases
         for section in Section.allCases {
-            let items = AppItemManager.shared.getItems(for: section.rawValue)
+            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
             print("\(section.rawValue) items:", items.map { $0.name })
             ImageCache.shared.preloadImages(from: items)
         }
@@ -831,7 +804,7 @@ struct ContentView: View {
         }
         
         if let _ = selectedItem.parent,
-           !AppItemManager.shared.getItems(for: selectedItem.name).isEmpty {
+           !AppDataManager.shared.items(for: selectedItem.sectionEnum).isEmpty {
             let fadeEnabled = SizingGuide.getCommonSettings().animations.fadeEnabled
             
             if fadeEnabled {
@@ -957,7 +930,7 @@ struct ContentView: View {
     
     private func preloadImages() {
         for section in Section.allCases {
-            let items = AppItemManager.shared.getItems(for: section.rawValue)
+            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
             ImageCache.shared.preloadImages(from: items)
         }
     }
@@ -1384,7 +1357,7 @@ struct ContentView: View {
     }
     
     private func getSourceItems() -> [AppItem] {
-        return AppItemManager.shared.getItems(for: currentSection)
+        return AppDataManager.shared.items(for: Section(rawValue: currentSection))
     }
     
     private var nextItems: [AppItem] {

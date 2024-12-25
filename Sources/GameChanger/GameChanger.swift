@@ -1361,12 +1361,12 @@ struct ContentView: View {
             if SizingGuide.getCommonSettings().animations.slideEnabled {
                 showingNextItems = true
                 currentPage = 0            // First update page to show new items
-                nextOffset = -windowWidth  // Position OLD items at center (will slide left)
-                currentOffset = windowWidth // Position NEW items off right edge
+                nextOffset = 0             // Start OLD items at center
+                currentOffset = windowWidth // Start NEW items off right edge
                 
                 withAnimation(.carouselSlide(settings: animationSettings)) {
-                    nextOffset = -windowWidth * 2  // Slide OLD items left and out
-                    currentOffset = 0              // Slide NEW items left and in
+                    nextOffset = -windowWidth   // OLD items slide left and out
+                    currentOffset = 0          // NEW items slide left and in
                 }
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
@@ -1382,13 +1382,13 @@ struct ContentView: View {
             // Normal next page behavior
             if SizingGuide.getCommonSettings().animations.slideEnabled {
                 showingNextItems = true
-                currentPage += 1           // First update page to show new items
-                nextOffset = -windowWidth  // Position OLD items at center (will slide left)
-                currentOffset = windowWidth // Position NEW items off right edge
+                currentPage += 1            // First update page to show new items
+                nextOffset = 0             // Start OLD items at center
+                currentOffset = windowWidth // Start NEW items off right edge
                 
                 withAnimation(.carouselSlide(settings: animationSettings)) {
-                    nextOffset = -windowWidth * 2  // Slide OLD items left and out
-                    currentOffset = 0              // Slide NEW items left and in
+                    nextOffset = -windowWidth   // OLD items slide left and out
+                    currentOffset = 0          // NEW items slide left and in
                 }
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {

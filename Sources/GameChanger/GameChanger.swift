@@ -1400,6 +1400,7 @@ struct ContentView: View {
             if SizingGuide.getCommonSettings().animations.slideEnabled {
                 showingNextItems = true
                 currentPage = 0            // First update page to show new items
+                selectedIndex = 0          // Select first item BEFORE animation
                 nextOffset = 0             // Start OLD items at center
                 currentOffset = windowWidth // Start NEW items off right edge
                 
@@ -1409,7 +1410,6 @@ struct ContentView: View {
                 }
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
-                    selectedIndex = 0
                     currentOffset = 0
                     showingNextItems = false
                 }
@@ -1421,7 +1421,8 @@ struct ContentView: View {
             // Normal next page behavior
             if SizingGuide.getCommonSettings().animations.slideEnabled {
                 showingNextItems = true
-                currentPage += 1            // First update page to show new items
+                currentPage += 1           // First update page to show new items
+                selectedIndex = 0          // Select first item BEFORE animation
                 nextOffset = 0             // Start OLD items at center
                 currentOffset = windowWidth // Start NEW items off right edge
                 
@@ -1431,7 +1432,6 @@ struct ContentView: View {
                 }
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
-                    selectedIndex = 0
                     currentOffset = 0
                     showingNextItems = false
                 }

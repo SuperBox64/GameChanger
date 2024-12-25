@@ -1340,30 +1340,8 @@ struct ContentView: View {
         if currentPage == 0 && selectedIndex == 0 {
             let lastPage = (sourceItems.count - 1) / 4
             let itemsOnLastPage = min(4, sourceItems.count - (lastPage * 4))
-            
-            guard SizingGuide.getCommonSettings().animations.slideEnabled else {
-                currentPage = lastPage
-                selectedIndex = itemsOnLastPage - 1
-                return
-            }
-            
-            isAnimating = true
-            showingNextItems = true
-            nextOffset = -windowWidth
-            
-            withAnimation(.carouselSlide(settings: animationSettings)) {
-                currentOffset = windowWidth
-                nextOffset = 0
-            }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
-                currentPage = lastPage
-                selectedIndex = itemsOnLastPage - 1
-                currentOffset = 0
-                nextOffset = 0
-                showingNextItems = false
-                isAnimating = false
-            }
+            currentPage = lastPage
+            selectedIndex = itemsOnLastPage - 1
             return
         }
         
@@ -1371,92 +1349,26 @@ struct ContentView: View {
         if currentPage > 0 {
             let nextPage = currentPage - 1
             let itemsOnNextPage = min(4, sourceItems.count - (nextPage * 4))
-            
-            guard SizingGuide.getCommonSettings().animations.slideEnabled else {
-                currentPage = nextPage
-                selectedIndex = itemsOnNextPage - 1  // Start at last item
-                return
-            }
-            
-            isAnimating = true
-            showingNextItems = true
-            nextOffset = -windowWidth
-            
-            withAnimation(.carouselSlide(settings: animationSettings)) {
-                currentOffset = windowWidth
-                nextOffset = 0
-            }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
-                currentPage = nextPage
-                selectedIndex = itemsOnNextPage - 1  // Start at last item
-                currentOffset = 0
-                nextOffset = 0
-                showingNextItems = false
-                isAnimating = false
-            }
+            currentPage = nextPage
+            selectedIndex = itemsOnNextPage - 1  // Start at last item
         }
     }
     
     private func moveRight() {
-        if !isAnimating {
-            let sourceItems = getSourceItems()
-            let itemsOnCurrentPage = min(4, sourceItems.count - (currentPage * 4))
-            let lastPage = (sourceItems.count - 1) / 4
-            
-            if selectedIndex < itemsOnCurrentPage - 1 {
-                selectedIndex += 1
-            } else if currentPage == lastPage {
-                // Loop to first page
-                guard SizingGuide.getCommonSettings().animations.slideEnabled else {
-                    currentPage = 0
-                    selectedIndex = 0
-                    return
-                }
-                
-                isAnimating = true
-                showingNextItems = true
-                nextOffset = windowWidth
-                
-                withAnimation(.carouselSlide(settings: animationSettings)) {
-                    currentOffset = -windowWidth
-                    nextOffset = 0
-                }
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
-                    currentPage = 0
-                    selectedIndex = 0
-                    currentOffset = 0
-                    nextOffset = 0
-                    showingNextItems = false
-                    isAnimating = false
-                }
-            } else {
-                // Normal next page behavior
-                guard SizingGuide.getCommonSettings().animations.slideEnabled else {
-                    currentPage += 1
-                    selectedIndex = 0
-                    return
-                }
-                
-                isAnimating = true
-                showingNextItems = true
-                nextOffset = windowWidth
-                
-                withAnimation(.carouselSlide(settings: animationSettings)) {
-                    currentOffset = -windowWidth
-                    nextOffset = 0
-                }
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
-                    currentPage += 1
-                    selectedIndex = 0
-                    currentOffset = 0
-                    nextOffset = 0
-                    showingNextItems = false
-                    isAnimating = false
-                }
-            }
+        let sourceItems = getSourceItems()
+        let itemsOnCurrentPage = min(4, sourceItems.count - (currentPage * 4))
+        let lastPage = (sourceItems.count - 1) / 4
+        
+        if selectedIndex < itemsOnCurrentPage - 1 {
+            selectedIndex += 1
+        } else if currentPage == lastPage {
+            // Loop to first page
+            currentPage = 0
+            selectedIndex = 0
+        } else {
+            // Normal next page behavior
+            currentPage += 1
+            selectedIndex = 0
         }
     }
     

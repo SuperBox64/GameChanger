@@ -29,7 +29,7 @@ enum Action: String, Codable {
     case quit = "quit"
     case path = "path"
     
-    func execute(with path: String? = nil, appName: String? = nil) {
+    func execute(with path: String? = nil, appName: String? = nil, fullscreen: Bool? = nil) {
         print("Executing action: \(self)")
         switch self {
         case .none:
@@ -56,26 +56,18 @@ enum Action: String, Codable {
                     // Hide UI elements first
                     UIVisibilityState.shared.isVisible = false
                     
-                    // Small delay to ensure UI has faded out
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
-                        // For directories, just verify existence
-                        if isDirectory.boolValue {
+                    // Reduced delay to 0.375 seconds (half of 0.75)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.375) {
+                        // For files, verify executable permission
+                        if fileManager.isExecutableFile(atPath: pathToOpen) {
                             launchApplication(at: pathToOpen)
-                            if let appName = appName {
-                                toggleFullScreen(for: appName)
+                            if let appName, fullscreen == true {
+                                setFullScreen(for: appName)
                             }
                         } else {
-                            // For files, verify executable permission
-                            if fileManager.isExecutableFile(atPath: pathToOpen) {
-                                launchApplication(at: pathToOpen)
-                                if let appName = appName {
-                                    toggleFullScreen(for: appName)
-                                }
-                            } else {
-                                print("Path exists but is not executable: \(pathToOpen)")
-                                // Show UI again if launch fails
-                                UIVisibilityState.shared.isVisible = true
-                            }
+                            print("Path exists but is not executable: \(pathToOpen)")
+                            // Show UI again if launch fails
+                            UIVisibilityState.shared.isVisible = true
                         }
                         // Reset the executing flag
                         UIVisibilityState.shared.isExecutingPath = false
@@ -113,7 +105,7 @@ func launchApplication(at path: String, completion: ((Bool) -> Void)? = nil) {
 }
 
 // New function to handle osascript execution
-func toggleFullScreen(for appName: String) {
+func setFullScreen(for appName: String) {
     sleep(1)
     let script = """
     tell application "System Events" to tell process "\(appName)"
@@ -172,6 +164,7 @@ struct AppItem: Codable {
     let parent: String?
     let action: String?
     let path: String?
+    let fullscreen: Bool?
     
     var sectionEnum: Section {
         return Section(rawValue: name)
@@ -190,7 +183,8 @@ struct AppItem: Codable {
         
         // Execute with path and name if it's a path action
         if actionEnum == .path {
-            actionEnum?.execute(with: path, appName: name)
+            // Only pass name for fullscreen if fullscreen is true
+            actionEnum?.execute(with: path, appName: name, fullscreen: fullscreen ?? nil)
         }
         
         return actionEnum ?? .none
@@ -491,10 +485,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             NSApp.hideOtherApplications(nil)
             
-            // Fade UI elements back in with longer duration
-            withAnimation(.easeOut(duration: 1.875)) {
-                UIVisibilityState.shared.isVisible = true
-            }
+            // Just trigger the fade in
+            UIVisibilityState.shared.isVisible = true
         }
     }
 
@@ -1103,6 +1095,21 @@ struct ContentView: View {
         }
         .onChange(of: currentSection) { _ in
             updateNavigationState()
+        }
+        .onChange(of: UIVisibilityState.shared.isVisible) { isVisible in
+            if isVisible {
+                // When becoming visible, set selection first
+                let sourceItems = getSourceItems()
+                let startIndex = currentPage * 4
+                let endIndex = min(startIndex + 4, sourceItems.count)
+                
+                // Make sure selectedIndex is valid for current page
+                if startIndex + selectedIndex < endIndex {
+                    let selectedItem = sourceItems[startIndex + selectedIndex]
+                    // Highlight the selected item
+                    handleSelection()
+                }
+            }
         }
     }
     
@@ -2044,7 +2051,8 @@ class AppDataManager {
                         systemIcon: (itemDict["systemIcon"] as? String) ?? "",
                         parent: (itemDict["parent"] as? String) ?? "",
                         action: (itemDict["action"] as? String) ?? "",
-                        path: (itemDict["path"] as? String) ?? ""
+                        path: (itemDict["path"] as? String) ?? "",
+                        fullscreen: itemDict["fullscreen"] as? Bool
                     )
                 }
             }

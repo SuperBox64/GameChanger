@@ -295,7 +295,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
         guard self != nil else { return event }
-        
+
         if event.keyCode == 53 { // ESC key
             NotificationCenter.default.post(name: .escKeyPressed, object: nil)
             return nil
@@ -1000,7 +1000,18 @@ struct ContentView: View {
     
     private func setupKeyMonitor() {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            // Handle Command-M first
+         
+            
+            // Then handle other keys
             switch Int(event.keyCode) {
+            case kVK_ANSI_M:
+                UserDefaultsManager.shared.showMousePointer.toggle()
+                if UserDefaultsManager.shared.showMousePointer {
+                    NSCursor.unhide()
+                } else {
+                    NSCursor.hide()
+                }
             case 53: // Escape
                 resetMouseState()
                 back()
@@ -1118,7 +1129,11 @@ struct ContentView: View {
     private func setupMouseMonitor() {
         // Mouse movement
         mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { event in
-            handleMouseMovement(event)
+            if !UserDefaultsManager.shared.showMousePointer {
+                handleMouseMovement(event)
+            } else {
+                resetMouseState()
+            }
             return event
         }
         
@@ -1918,6 +1933,33 @@ struct ShortcutHintView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         .padding(.leading, SizingGuide.getCurrentSettings().layout.shortcut.leadingPadding)
         .padding(.bottom, SizingGuide.getCurrentSettings().layout.shortcut.bottomPadding)
+    }
+}
+
+class UserDefaultsManager: ObservableObject {
+    static let shared = UserDefaultsManager()
+    private let defaults = UserDefaults.standard
+    
+    // Keys
+    private enum Keys {
+        static let showMousePointer = "showMousePointer"
+    }
+    
+    // Published properties that automatically update views
+    @Published var showMousePointer: Bool {
+        didSet {
+            defaults.set(showMousePointer, forKey: Keys.showMousePointer)
+        }
+    }
+    
+    private init() {
+        // Initialize with stored values or defaults
+        self.showMousePointer = defaults.bool(forKey: Keys.showMousePointer)
+    }
+    
+    func resetToDefaults() {
+        showMousePointer = false
+        defaults.synchronize()
     }
 }
 

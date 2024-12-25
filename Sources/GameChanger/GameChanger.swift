@@ -1358,12 +1358,46 @@ struct ContentView: View {
             selectedIndex += 1
         } else if currentPage == lastPage {
             // Loop to first page
-            currentPage = 0
-            selectedIndex = 0
+            if SizingGuide.getCommonSettings().animations.slideEnabled {
+                showingNextItems = true
+                currentPage = 0            // First update page to show new items
+                nextOffset = windowWidth   // Position new items off right edge
+                
+                withAnimation(.carouselSlide(settings: animationSettings)) {
+                    currentOffset = -windowWidth  // Slide old items left and out
+                    nextOffset = 0               // Slide new items left and in
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
+                    selectedIndex = 0
+                    currentOffset = 0
+                    showingNextItems = false
+                }
+            } else {
+                currentPage = 0
+                selectedIndex = 0
+            }
         } else {
             // Normal next page behavior
-            currentPage += 1
-            selectedIndex = 0
+            if SizingGuide.getCommonSettings().animations.slideEnabled {
+                showingNextItems = true
+                currentPage += 1           // First update page to show new items
+                nextOffset = windowWidth   // Position new items off right edge
+                
+                withAnimation(.carouselSlide(settings: animationSettings)) {
+                    currentOffset = -windowWidth  // Slide old items left and out
+                    nextOffset = 0               // Slide new items left and in
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + animationSettings.slide.duration) {
+                    selectedIndex = 0
+                    currentOffset = 0
+                    showingNextItems = false
+                }
+            } else {
+                currentPage += 1
+                selectedIndex = 0
+            }
         }
     }
     

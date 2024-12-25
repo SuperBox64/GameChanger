@@ -250,23 +250,23 @@ struct GameChangerApp: App {
             ZStack {
                 BackgroundView()
                 LogoView()
-                    //.opacity(uiVisibility.isVisible ? 1 : 0)
+                    .opacity(uiVisibility.isVisible ? 1 : 0)
                 ClockView()
-                    //.opacity(uiVisibility.isVisible ? 1 : 0)
+                    .opacity(uiVisibility.isVisible ? 1 : 0)
                 ContentView()
-                    //.opacity(uiVisibility.isVisible ? 1 : 0)
+                    .opacity(uiVisibility.isVisible ? 1 : 0)
                 MouseIndicatorView()
-                    //.opacity(uiVisibility.isVisible ? 1 : 0)
+                    .opacity(uiVisibility.isVisible ? 1 : 0)
                 NavigationOverlayView()
-                    //.opacity(uiVisibility.isVisible ? 1 : 0)
+                    .opacity(uiVisibility.isVisible ? 1 : 0)
                 ShortcutHintView()
-                    //.opacity(uiVisibility.isVisible ? 1 : 0)
+                    .opacity(uiVisibility.isVisible ? 1 : 0)
             }
             .frame(width: .infinity, height: .infinity)
             .environmentObject(windowSizeMonitor)
-            // .animation(SizingGuide.getCommonSettings().animations.fadeEnabled ? 
-            //     .easeOut(duration: SizingGuide.getCommonSettings().animations.fade.duration) : nil, 
-            //     value: uiVisibility.isVisible)
+            .animation(SizingGuide.getCommonSettings().animations.fadeEnabled ? 
+                .easeOut(duration: SizingGuide.getCommonSettings().animations.fade.duration) : nil, 
+                value: uiVisibility.isVisible)
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.automatic)
@@ -892,7 +892,7 @@ struct ContentView: View {
            !AppDataManager.shared.items(for: selectedItem.sectionEnum).isEmpty {
             let fadeEnabled = SizingGuide.getCommonSettings().animations.fadeEnabled
             
-            if fadeEnabled && 1 == 2 {
+            if fadeEnabled {
                 let fadeDuration = SizingGuide.getCommonSettings().animations.fade.duration
                 
                 withAnimation(.linear(duration: fadeDuration / 2)) {  // Half duration for each phase
@@ -1471,7 +1471,7 @@ struct ContentView: View {
             if !parentSection.rawValue.isEmpty {
                 let fadeEnabled = SizingGuide.getCommonSettings().animations.fadeEnabled
                 
-                if fadeEnabled && 1 == 2 {
+                if fadeEnabled {
                     let fadeDuration = SizingGuide.getCommonSettings().animations.fade.duration
                     
                     withAnimation(.linear(duration: fadeDuration / 2)) {  // Half duration for each phase

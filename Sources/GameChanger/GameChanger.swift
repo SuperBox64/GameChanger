@@ -243,30 +243,34 @@ class ContentState: ObservableObject {
 struct GameChangerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var windowSizeMonitor = WindowSizeMonitor.shared
-    @StateObject private var uiVisibility = UIVisibilityState.shared
+    @State private var opacity: Double = 0
     
     var body: some Scene {
         WindowGroup {
             ZStack {
-                BackgroundView()
-                LogoView()
-                    .opacity(uiVisibility.isVisible ? 1 : 0)
-                ClockView()
-                    .opacity(uiVisibility.isVisible ? 1 : 0)
-                ContentView()
-                    .opacity(uiVisibility.isVisible ? 1 : 0)
-                MouseIndicatorView()
-                    .opacity(uiVisibility.isVisible ? 1 : 0)
-                NavigationOverlayView()
-                    .opacity(uiVisibility.isVisible ? 1 : 0)
-                ShortcutHintView()
-                    .opacity(uiVisibility.isVisible ? 1 : 0)
+                Group {
+                    BackgroundView()
+                    LogoView()
+                    ClockView()
+                    ContentView()
+                    MouseIndicatorView()
+                    NavigationOverlayView()
+                    ShortcutHintView()
+                }
+                .opacity(opacity)
+                .animation(.easeOut(duration: 1.5), value: opacity)
             }
+            .background(Color.black)
             .frame(width: .infinity, height: .infinity)
             .environmentObject(windowSizeMonitor)
-            .animation(SizingGuide.getCommonSettings().animations.fadeEnabled ? 
-                .easeOut(duration: SizingGuide.getCommonSettings().animations.fade.duration) : nil, 
-                value: uiVisibility.isVisible)
+            .onAppear {
+                opacity = 1
+                
+                // Trigger bounce after fade starts
+                if SizingGuide.getCommonSettings().animations.bounceEnabled {
+                    NotificationCenter.default.post(name: .bounceItems, object: nil)
+                }
+            }
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.automatic)
@@ -400,40 +404,34 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // FIRST: Block until all images are loaded
         print("=== Starting Image Loading ===")
-        
-        // Pre-initialize the cache
         initializeCache()
         
-        // Rest of initialization
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
 
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-        guard self != nil else { return event }
+            guard self != nil else { return event }
 
-        // Handle Command-M for mouse visibility
-        if event.modifierFlags.contains(.command) && event.keyCode == kVK_ANSI_M {
-            UIVisibilityState.shared.mouseVisible.toggle()
-            if UIVisibilityState.shared.mouseVisible {
-                NSCursor.unhide()
-            } else {
-                NSCursor.hide()
+            // Handle Command-M for mouse visibility
+            if event.modifierFlags.contains(.command) && event.keyCode == kVK_ANSI_M {
+                UIVisibilityState.shared.mouseVisible.toggle()
+                if UIVisibilityState.shared.mouseVisible {
+                    NSCursor.unhide()
+                } else {
+                    NSCursor.hide()
+                }
+                return nil
             }
-            return nil
+
+            if event.keyCode == 53 { // ESC key
+                NotificationCenter.default.post(name: .escKeyPressed, object: nil)
+                return nil
+            }
+            
+            return event
         }
 
-        if event.keyCode == 53 { // ESC key
-            NotificationCenter.default.post(name: .escKeyPressed, object: nil)
-            return nil
-        }
-        
-        return event
-    }
-
-        //Hide cursor and start timer to keep it hidden
-        NSCursor.hide()
         NSApp.hideOtherApplications(nil)
 
         // Set up menu bar
@@ -457,49 +455,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let presOptions: NSApplication.PresentationOptions = [.hideDock, .hideMenuBar]
         NSApp.presentationOptions = presOptions
 
-        // Make window borderless and full screen
         DispatchQueue.main.async {
             if let window = NSApp.windows.first {
-                window.styleMask = [.borderless, .fullSizeContentView]  // Make window borderless
+                window.styleMask = [.borderless, .fullSizeContentView]
                 window.makeKeyAndOrderFront(nil)
-                //window.titlebarAppearsTransparent = true
-                //window.titleVisibility = .hidden
-                //window.title = ""
                 window.level = .init(rawValue: -10000)
                 window.setFrame(NSScreen.main?.frame ?? .zero, display: true)
-                // Take screenshot after a short delay to ensure UI is fully loaded
-
+                
                 if SizingGuide.getCommonSettings().enableScreenshots {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                         self.takeScreenshot()
                     }
                 }
-              
-                //NSApp.activate(ignoringOtherApps: true)
-                //NSApp.hideOtherApplications(nil) // Changed from (self) to (nil)
-            }
-        }
-
-    //     //DispatchQueue.main.async {
-    //         if let window = NSApp.windows.first {
-    //             let frame = NSScreen.main!.frame
-    //             window.setFrame(frame, display: true)
-    //             //window.styleMask = [.borderless]
-    //             window.level = NSWindow.Level(rawValue: -1000)  // Desktop window level
-    //             //window.toggleFullScreen(nil)  // Add this line to make it full screen
-    //             window.hasShadow = true
-    //             //window.isOpaque = false
-    //             //window.backgroundColor = .clear
-    //         }
-
-    //         let presOptions: NSApplication.PresentationOptions = [.hideDock, .hideMenuBar]
-    // NSApp.presentationOptions = presOptions
-    //    // }
-        
-        // Set up screenshot timer
-        if SizingGuide.getCommonSettings().enableScreenshots {
-            screenshotTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
-                self?.takeScreenshot()
             }
         }
     }
@@ -511,15 +478,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationDidBecomeActive(_ notification: Notification) {
-        // Add a small delay to ensure window is active
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            NSCursor.hide()
+             if UIVisibilityState.shared.mouseVisible {
+                    NSCursor.unhide()
+                } else {
+                    NSCursor.hide()
+                }
             NSApp.hideOtherApplications(nil)
-            
-            // Wait 1 second before showing UI elements
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                UIVisibilityState.shared.isVisible = true
-            }
         }
     }
 
@@ -1088,17 +1053,6 @@ struct ContentView: View {
             }
             updateNavigationState()
             
-            // Start with opacity at 0
-            opacity = 0
-            
-            // Add bounce animation when view appears
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { // Small delay to ensure view is ready
-                withAnimation(.easeOut(duration: 1.5)) {  // Extended from 0.8 to 1.5 seconds
-                    opacity = 1  // Fade in
-                }
-                NotificationCenter.default.post(name: .bounceItems, object: nil)
-            }
-            
             // Add observer for page jumps
             NotificationCenter.default.addObserver(
                 forName: .jumpToPage,
@@ -1106,30 +1060,21 @@ struct ContentView: View {
                 queue: .main) { notification in
                     if let page = notification.userInfo?["page"] as? Int {
                         //First fade out current items
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            opacity = 0
-                        }
+                        currentPage = page
+                        selectedIndex = 0
                         
-                        // After fade out, update page and start bounce animations
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            currentPage = page
-                            selectedIndex = 0
-                            
-                            //Show new items with bounce
-                            withAnimation(
-                                .spring(
-                                    response: 0.5,
-                                    dampingFraction: 0.65,
-                                    blendDuration: 0
-                                )
-                            ) {
+                        // Only trigger bounce if enabled
+                        if SizingGuide.getCommonSettings().animations.bounceEnabled {
+                            opacity = 0
+
+
+                            withAnimation(.easeOut(duration: 1.0)) {
                                 opacity = 1
                             }
-                            
-                            // Only trigger bounce if enabled
-                            if SizingGuide.getCommonSettings().animations.bounceEnabled {
-                                NotificationCenter.default.post(name: .bounceItems, object: nil)
-                            }
+                        
+                            NotificationCenter.default.post(name: .bounceItems, object: nil)
+                        } else {
+                            opacity = 1
                         }
                     }
             }
@@ -1836,9 +1781,9 @@ struct NavigationDotsView: View {
                         if uiVisibility.mouseVisible && index != currentPage {
                             onPageSelect(index)
                             // Only post bounce notification if enabled
-                            if SizingGuide.getCommonSettings().animations.bounceEnabled {
-                                NotificationCenter.default.post(name: .bounceItems, object: nil)
-                            }
+                            // if SizingGuide.getCommonSettings().animations.bounceEnabled {
+                            //     NotificationCenter.default.post(name: .bounceItems, object: nil)
+                            // }
                         }
                     }
             }

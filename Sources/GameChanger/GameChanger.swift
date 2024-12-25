@@ -1470,19 +1470,19 @@ struct AppIconView: View {
         let multipliers = SizingGuide.getCommonSettings().multipliers
         VStack(spacing: multipliers.gridSpacing * multipliers.gridSpacing) {
             ZStack {
-                RoundedRectangle(cornerRadius: multipliers.cornerRadius * multipliers.cornerRadius)
+                RoundedRectangle(cornerRadius: sizingManager.sizing.cornerRadius * 1.334)
                     .fill(Color.clear)
                     .frame(
-                        width: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding,
-                        height: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding
+                        width: sizingManager.sizing.iconSize * 2 + sizingManager.sizing.selectionPadding,
+                        height: sizingManager.sizing.iconSize * 2 + sizingManager.sizing.selectionPadding
                     )
                 
                 if isSelected {
-                    RoundedRectangle(cornerRadius: multipliers.cornerRadius * multipliers.cornerRadius)
+                    RoundedRectangle(cornerRadius: sizingManager.sizing.cornerRadius * 1.334)
                         .fill(Color.white.opacity(SizingGuide.getCommonSettings().opacities.selectionHighlight))
                         .frame(
-                            width: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding,
-                            height: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding
+                            width: sizingManager.sizing.iconSize * 2 + sizingManager.sizing.selectionPadding,
+                            height: sizingManager.sizing.iconSize * 2 + sizingManager.sizing.selectionPadding
                         )
                 }
                 

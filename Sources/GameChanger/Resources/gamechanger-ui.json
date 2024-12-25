@@ -3,6 +3,7 @@
         "common": {
             "mouseSensitivity": 1.0,
             "enableScreenshots": false,
+            "bounceEnabled": true,
             "fonts": {
                 "title": "Avenir Next Medium",
                 "label": "Avenir Next",
@@ -35,6 +36,7 @@
             "animations": {
                 "slideEnabled": true,
                 "fadeEnabled": true,
+                "bounceEnabled": true,
                 "slide": {
                     "duration": 0.6,
                     "curve": {

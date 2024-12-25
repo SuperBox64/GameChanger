@@ -584,6 +584,7 @@ struct CommonSettings: Codable {
     let navigation: NavigationCommonSettings
     let enableScreenshots: Bool
     let mouseSensitivity: Double
+    let bounceEnabled: Bool
 }
 
 struct MouseIndicatorCommonSettings: Codable {
@@ -1117,12 +1118,17 @@ struct ContentView: View {
                             //Show new items with bounce
                             withAnimation(
                                 .spring(
-                                    response: 0.5,      // Controls the overall duration
-                                    dampingFraction: 0.65,  // Controls the bounciness (lower = more bounce)
-                                    blendDuration: 0    // Immediate start
+                                    response: 0.5,
+                                    dampingFraction: 0.65,
+                                    blendDuration: 0
                                 )
                             ) {
                                 opacity = 1
+                            }
+                            
+                            // Only trigger bounce if enabled
+                            if SizingGuide.getCommonSettings().animations.bounceEnabled {
+                                NotificationCenter.default.post(name: .bounceItems, object: nil)
                             }
                         }
                     }
@@ -1644,22 +1650,25 @@ struct AppIconView: View {
                 }
         )
         .onReceive(NotificationCenter.default.publisher(for: .bounceItems)) { _ in
-            // Stagger based on item index with random offset
-            let randomDelay = Double.random(in: 0...0.1)  // Random delay between 0 and 0.1
-            let baseDelay = Double(itemIndex) * 0.05      // Base stagger delay
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + baseDelay + randomDelay) {
-                let randomBounce = Double.random(in: (-45)...(-35))  // Added parentheses to fix ambiguity
-                bounceOffset = randomBounce  // Bounce higher than before
+            // Only perform bounce if enabled in settings
+            if SizingGuide.getCommonSettings().animations.bounceEnabled {
+                // Stagger based on item index with random offset
+                let randomDelay = Double.random(in: 0...0.1)  // Random delay between 0 and 0.1
+                let baseDelay = Double(itemIndex) * 0.05      // Base stagger delay
                 
-                withAnimation(
-                    .spring(
-                        response: 1.0,            // Longer response for more pronounced bounce
-                        dampingFraction: 0.55,    // Less damping for more bounce
-                        blendDuration: 0
-                    )
-                ) {
-                    bounceOffset = 0
+                DispatchQueue.main.asyncAfter(deadline: .now() + baseDelay + randomDelay) {
+                    let randomBounce = Double.random(in: (-45)...(-35))
+                    bounceOffset = randomBounce
+                    
+                    withAnimation(
+                        .spring(
+                            response: 1.0,
+                            dampingFraction: 0.55,
+                            blendDuration: 0
+                        )
+                    ) {
+                        bounceOffset = 0
+                    }
                 }
             }
         }
@@ -1826,11 +1835,10 @@ struct NavigationDotsView: View {
                     .onTapGesture {
                         if uiVisibility.mouseVisible && index != currentPage {
                             onPageSelect(index)
-                            // Post notification for bounce animation
-                            NotificationCenter.default.post(
-                                name: .bounceItems,
-                                object: nil
-                            )
+                            // Only post bounce notification if enabled
+                            if SizingGuide.getCommonSettings().animations.bounceEnabled {
+                                NotificationCenter.default.post(name: .bounceItems, object: nil)
+                            }
                         }
                     }
             }
@@ -1879,6 +1887,7 @@ extension Animation {
 struct AnimationSettings: Codable {
     let slideEnabled: Bool
     let fadeEnabled: Bool
+    let bounceEnabled: Bool
     let slide: SlideAnimation
     let fade: FadeAnimation
 }

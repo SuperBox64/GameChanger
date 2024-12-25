@@ -1329,28 +1329,22 @@ struct ContentView: View {
     
     private func moveLeft() {
         let sourceItems = getSourceItems()
+        let itemsOnCurrentPage = min(4, sourceItems.count - (currentPage * 4))
+        let lastPage = (sourceItems.count - 1) / 4
         
-        // If we can move left within current page
         if selectedIndex > 0 {
+            // Move left within current page
             selectedIndex -= 1
-            return
-        }
-        
-        // If on first page and first item, loop to last page
-        if currentPage == 0 && selectedIndex == 0 {
-            let lastPage = (sourceItems.count - 1) / 4
-            let itemsOnLastPage = min(4, sourceItems.count - (lastPage * 4))
+        } else if currentPage == 0 {
+            // Loop to last page
             currentPage = lastPage
+            let itemsOnLastPage = min(4, sourceItems.count - (lastPage * 4))
             selectedIndex = itemsOnLastPage - 1
-            return
-        }
-        
-        // Normal previous page behavior
-        if currentPage > 0 {
-            let nextPage = currentPage - 1
-            let itemsOnNextPage = min(4, sourceItems.count - (nextPage * 4))
-            currentPage = nextPage
-            selectedIndex = itemsOnNextPage - 1  // Start at last item
+        } else {
+            // Normal previous page behavior
+            currentPage -= 1
+            let itemsOnNextPage = min(4, sourceItems.count - ((currentPage) * 4))
+            selectedIndex = itemsOnNextPage - 1
         }
     }
     
@@ -1360,6 +1354,7 @@ struct ContentView: View {
         let lastPage = (sourceItems.count - 1) / 4
         
         if selectedIndex < itemsOnCurrentPage - 1 {
+            // Move right within current page
             selectedIndex += 1
         } else if currentPage == lastPage {
             // Loop to first page

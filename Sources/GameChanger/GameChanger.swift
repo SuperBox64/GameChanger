@@ -425,7 +425,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 return nil
             }
 
-            if event.keyCode == 53 { // ESC key
+            if event.keyCode == kVK_Escape { 
                 NotificationCenter.default.post(name: .escKeyPressed, object: nil)
                 return nil
             }
@@ -899,25 +899,47 @@ struct ContentView: View {
         mouseState.mouseDirection = 0
     }
     
-    // Update keyboard handling
-    private var keyboardHandler: some View {
-        Color.clear
-            .focusable()
-            .onAppear {
-                NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-                    switch Int(event.keyCode) {
-                    case kVK_Return:
-                        resetMouseState()
-                        handleSelection()
-                    case kVK_Escape:
-                        resetMouseState()
-                        back()
-                    default:
-                        break
-                    }
-                    return event
+    private func setupKeyMonitor() {
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            // Handle Command-M first
+            if event.modifierFlags.contains(.command) && event.keyCode == kVK_ANSI_M {
+                UIVisibilityState.shared.mouseVisible.toggle()
+                if UIVisibilityState.shared.mouseVisible {
+                    NSCursor.unhide()
+                    resetMouseState()
+                } else {
+                    NSCursor.hide()
                 }
+                return nil
             }
+            
+            // Then handle other keys
+            switch Int(event.keyCode) {
+            case kVK_Escape:
+                resetMouseState()
+                back()
+            case kVK_UpArrow:
+                resetMouseState()
+                back()
+            case kVK_DownArrow:
+                resetMouseState()
+                handleSelection()
+            case kVK_LeftArrow:
+                resetMouseState()
+                moveLeft()
+            case kVK_RightArrow:
+                resetMouseState()
+                moveRight()
+            case kVK_Return:
+                resetMouseState()
+                handleSelection()
+            case kVK_Space:
+                resetMouseState()
+                handleSelection()
+            default: break
+            }
+            return event
+        }
     }
     
     private var titleFontSize: CGFloat {
@@ -1111,50 +1133,6 @@ struct ContentView: View {
                     handleSelection()
                 }
             }
-        }
-    }
-    
-    private func setupKeyMonitor() {
-        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            // Handle Command-M first
-            if event.modifierFlags.contains(.command) && event.keyCode == kVK_ANSI_M {
-                UIVisibilityState.shared.mouseVisible.toggle()
-                if UIVisibilityState.shared.mouseVisible {
-                    NSCursor.unhide()
-                    // Immediately hide mouse indicator and reset its state
-                    resetMouseState()
-                } else {
-                    NSCursor.hide()
-                }
-                return nil
-            }
-            
-            // Then handle other keys
-            switch Int(event.keyCode) {
-            case 53: // Escape
-                resetMouseState()
-                back()
-            case 126: // Up Arrow
-                resetMouseState()
-                back()
-            case 125: // Down Arrow
-                resetMouseState()
-                handleSelection()
-            case 123: // Left Arrow
-                resetMouseState()
-                moveLeft()
-            case 124: // Right Arrow
-                resetMouseState()
-                moveRight()
-            case 36: // Return
-                resetMouseState()
-                handleSelection()
-            case 49: // Space
-                resetMouseState()
-                handleSelection()
-            default: break
-            }
-            return event
         }
     }
     

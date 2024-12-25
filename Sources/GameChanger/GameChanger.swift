@@ -1090,13 +1090,25 @@ struct ContentView: View {
                 object: nil,
                 queue: .main) { notification in
                     if let page = notification.userInfo?["page"] as? Int {
-                        currentPage = page
-                        selectedIndex = 0  // Reset selection when jumping to new page
+                        // First fade out current items
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            opacity = 0
+                        }
                         
-                        // Animate the transition if enabled
-                        if SizingGuide.getCommonSettings().animations.slideEnabled {
-                            withAnimation(.carouselSlide(settings: animationSettings)) {
-                                currentOffset = 0
+                        // After fade out, update page and start bounce animations
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            currentPage = page
+                            selectedIndex = 0
+                            
+                            // Show new items with bounce
+                            withAnimation(
+                                .spring(
+                                    response: 0.5,      // Controls the overall duration
+                                    dampingFraction: 0.65,  // Controls the bounciness (lower = more bounce)
+                                    blendDuration: 0    // Immediate start
+                                )
+                            ) {
+                                opacity = 1
                             }
                         }
                     }

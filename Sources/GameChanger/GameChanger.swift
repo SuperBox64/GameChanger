@@ -1860,7 +1860,7 @@ private let defaultNavigationSettings = NavigationSettings(
 ) 
 
 // Add these constants at the top level
-private let mouseSensitivity: CGFloat = 100.0
+private let mouseSensitivity: CGFloat = 200.0
 private let enableScreenshots = true 
 
 // Add LayoutSettings struct

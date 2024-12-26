@@ -53,14 +53,17 @@ enum Action: String, Codable {
                 
                 // Check if path exists and is executable
                 if fileManager.fileExists(atPath: pathToOpen, isDirectory: &isDirectory) {
-                    // Hide UI elements first with shorter fade duration (0.375s instead of 0.75s)
-                    withAnimation(.easeOut(duration: 0.375)) {  // Cut duration in half
+                    // Clear selection and reset content state
+                    ContentState.shared.selectedIndex = -1
+                    ContentState.shared.currentSection = "Game Changer"  // Add this property to ContentState
+                    
+                    // Hide UI elements first with shorter fade duration
+                    withAnimation(.easeOut(duration: 0.375)) {
                         UIVisibilityState.shared.isVisible = false
                     }
                     
                     // Execute after fade out
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.375) {  // Match shorter duration
-                        // For files, verify executable permission
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.375) {
                         if fileManager.isExecutableFile(atPath: pathToOpen) {
                             launchApplication(at: pathToOpen)
                             if let appName, fullscreen == true {
@@ -68,19 +71,14 @@ enum Action: String, Codable {
                             }
                         } else {
                             print("Path exists but is not executable: \(pathToOpen)")
-                            // Show UI again if launch fails
                             UIVisibilityState.shared.isVisible = true
                         }
-                        // Reset the executing flag
                         UIVisibilityState.shared.isExecutingPath = false
                     }
                 } else {
                     print("Invalid path - does not exist: \(pathToOpen)")
                     UIVisibilityState.shared.isExecutingPath = false
                 }
-            } else {
-                print("Invalid path - path is nil")
-                UIVisibilityState.shared.isExecutingPath = false
             }
         }
     }
@@ -105,36 +103,6 @@ func launchApplication(at path: String, completion: ((Bool) -> Void)? = nil) {
         }
     }
 }
-
-// // New function to handle osascript execution
-// func setFullScreen(for appName: String) {
-//     sleep(1)
-//     let script = """
-//     tell application "System Events" to tell process "\(appName)"
-//         set value of attribute "AXFullScreen" of window 1 to true
-//     end tell
-//     """
-
-//     let process = Process()
-//     process.launchPath = "/usr/bin/osascript"
-//     process.arguments = ["-e", script]
-
-//     let pipe = Pipe()
-//     process.standardOutput = pipe
-//     process.standardError = pipe
-
-//     do {
-//         try process.run()
-//         process.waitUntilExit()
-
-//         let data = pipe.fileHandleForReading.readDataToEndOfFile()
-//         if let output = String(data: data, encoding: .utf8) {
-//             print("Output: \(output)")
-//         }
-//     } catch {
-//         print("Failed to run osascript: \(error)")
-//     }
-// }
 
 // New function to handle osascript execution
 func setFullScreen(for appName: String) {
@@ -253,9 +221,10 @@ struct NavigationOverlayView: View {
 
 class ContentState: ObservableObject {
     static let shared = ContentState()
+    @Published var selectedIndex = 0
+    @Published var currentSection = "Game Changer"  // Add this
     
     func jumpToPage(_ page: Int) {
-        // Post notification for page jump
         NotificationCenter.default.post(
             name: .jumpToPage,
             object: nil,
@@ -1071,19 +1040,23 @@ struct ContentView: View {
                 },
                 onSelect: { index in
                     selectedIndex = index
+                    resetMouseState()
                     handleSelection()
                 },
                 onBack: { index in
                     selectedIndex = index
+                    resetMouseState()
                     back()
                 },
                 onSwipeLeft: {
                     if UIVisibilityState.shared.mouseVisible {
+                        resetMouseState()
                         moveRight()  // Swipe left moves to next page
                     }
                 },
                 onSwipeRight: {
                     if UIVisibilityState.shared.mouseVisible {
+                        resetMouseState()
                         moveLeft()   // Swipe right moves to previous page
                     }
                 }
@@ -1131,9 +1104,6 @@ struct ContentView: View {
             if let monitor = keyMonitor {
                 NSEvent.removeMonitor(monitor)
             }
-            if let monitor = mouseMonitor {
-                NSEvent.removeMonitor(monitor)
-            }
             NotificationCenter.default.removeObserver(self)
             NSCursor.unhide()  // Make sure cursor is visible when view disappears
         }
@@ -1152,6 +1122,7 @@ struct ContentView: View {
                 
                 // Make sure selectedIndex is valid for current page
                 if startIndex + selectedIndex < endIndex {
+                    resetMouseState()
                     // Just call handleSelection directly, remove unused selectedItem
                     handleSelection()
                 }
@@ -1272,6 +1243,7 @@ struct ContentView: View {
                 resetMouseState()
                 back()
             } else {
+                resetMouseState()
                 back()
             }
             return event
@@ -1568,7 +1540,7 @@ struct AppIconView: View {
                         height: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding
                     )
                 
-                if isSelected || isHighlighted {
+                if isSelected || (isHighlighted && uiVisibility.mouseVisible) {
                     RoundedRectangle(cornerRadius: sizingManager.sizing.cornerRadius * multipliers.cornerRadius)
                         .fill(Color.white.opacity(SizingGuide.getCommonSettings().opacities.selectionHighlight))
                         .frame(
@@ -1586,47 +1558,34 @@ struct AppIconView: View {
                     SizingGuide.getCommonSettings().fonts.label,
                     size: sizingManager.sizing.labelSize
                 ))
-                .foregroundColor(isSelected || isHighlighted ? 
+                .foregroundColor(isSelected || (isHighlighted && uiVisibility.mouseVisible) ? 
                     SizingGuide.getCommonSettings().colors.text.selectedUI : 
                     SizingGuide.getCommonSettings().colors.text.unselectedUI)
                 .offset(y: bounceOffset)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onHover { hovering in
-            isHighlighted = hovering
-            if hovering {
-                onHighlight()
+            if uiVisibility.mouseVisible {
+                isHighlighted = hovering
+                if hovering {
+                    onHighlight()
+                }
             }
         }
-        // Add onChange to reset highlight when switching modes
         .onChange(of: uiVisibility.mouseVisible) { newValue in
             if !newValue {
-                // Reset highlight when leaving mouse mode
                 isHighlighted = false
             }
         }
-        // Add right-click gesture
-        .gesture(
-            TapGesture(count: 2)  // Right click
-                .onEnded {
-                    if uiVisibility.mouseVisible {  // Only in mouse mode
-                        onBack()
-                    }
-                }
-        )
-        // Combine with existing gestures
-        .simultaneousGesture(
-            TapGesture()
-                .onEnded {
-                    onSelect()  // Single click runs selection
-                }
-        )
+        .onTapGesture {
+            if uiVisibility.mouseVisible {
+                onSelect()
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .bounceItems)) { _ in
-            // Only perform bounce if enabled in settings
             if SizingGuide.getCommonSettings().animations.bounceEnabled {
-                // Stagger based on item index with random offset
-                let randomDelay = Double.random(in: 0...0.1)  // Random delay between 0 and 0.1
-                let baseDelay = Double(itemIndex) * 0.05      // Base stagger delay
+                let randomDelay = Double.random(in: 0...0.1)
+                let baseDelay = Double(itemIndex) * 0.05
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + baseDelay + randomDelay) {
                     let randomBounce = Double.random(in: (-45)...(-35))
@@ -1647,7 +1606,6 @@ struct AppIconView: View {
     }
     
     private func loadIcon() -> some View {
-        // Force immediate loading from cache
         let cachedImage = ImageCache.shared.getImage(named: item.systemIcon)
         
         if let image = cachedImage {
@@ -1658,12 +1616,10 @@ struct AppIconView: View {
                 .cornerRadius(sizingManager.sizing.cornerRadius))
         }
         
-        // Fallback - try to load directly if not in cache
         if let iconURL = Bundle.main.url(forResource: item.systemIcon, 
                                        withExtension: "svg", 
                                        subdirectory: "images/svg"),
            let image = NSImage(contentsOf: iconURL) {
-            // Add to cache if found
             ImageCache.shared.cache[item.systemIcon] = image
             
             return AnyView(Image(nsImage: image)

@@ -76,7 +76,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let window = NSApp.windows.first {
             window.styleMask = [.borderless]
             window.makeKeyAndOrderFront(nil)
-            window.level = .init(rawValue: 10000)
+            //window.level = .init(rawValue: 10000)
             window.setFrame(NSScreen.main?.frame ?? .zero, display: true)
             
             if SizingGuide.getCommonSettings().enableScreenshots {

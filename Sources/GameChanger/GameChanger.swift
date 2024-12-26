@@ -5,7 +5,6 @@
 
 import SwiftUI
 import GameController
-import Cocoa
 import Carbon.HIToolbox
 
 // Types needed for items

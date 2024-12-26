@@ -219,7 +219,7 @@ struct NavigationOverlayView: View {
 
 class ContentState: ObservableObject {
     static let shared = ContentState()
-    @Published var selectedIndex = 0
+    @Published var selectedIndex = -1
     @Published var currentSection = "Game Changer"  // Add this
     
     func jumpToPage(_ page: Int) {
@@ -1557,7 +1557,7 @@ struct AppIconView: View {
                         height: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding
                     )
                 
-                if isSelected || (isHighlighted && uiVisibility.mouseVisible) {
+                if isSelected || isHighlighted {
                     RoundedRectangle(cornerRadius: sizingManager.sizing.cornerRadius * multipliers.cornerRadius)
                         .fill(Color.white.opacity(SizingGuide.getCommonSettings().opacities.selectionHighlight))
                         .frame(
@@ -1575,7 +1575,7 @@ struct AppIconView: View {
                     SizingGuide.getCommonSettings().fonts.label,
                     size: sizingManager.sizing.labelSize
                 ))
-                .foregroundColor(isSelected || (isHighlighted && uiVisibility.mouseVisible) ? 
+                .foregroundColor(isSelected || isHighlighted ? 
                     SizingGuide.getCommonSettings().colors.text.selectedUI : 
                     SizingGuide.getCommonSettings().colors.text.unselectedUI)
                 .offset(y: bounceOffset)

@@ -98,8 +98,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard self != nil else { return event }
             
-            // Handle Command-M for mouse visibility
-            if event.keyCode == kVK_ANSI_M {
+            // Handle mouse visibility
+            if event.keyCode == kVK_Escape {
                 UIVisibilityState.shared.mouseVisible.toggle()
                 if UIVisibilityState.shared.mouseVisible {
                     SystemActions.sendAppleEvent(kAEActivate)
@@ -111,10 +111,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 //return nil
             }
             
-            if event.keyCode == kVK_Escape { 
-                NotificationCenter.default.post(name: .escKeyPressed, object: nil)
-                return nil
-            }
+            // if event.keyCode == kVK_Escape { 
+            //     NotificationCenter.default.post(name: .escKeyPressed, object: nil)
+            //     return nil
+            // }
             
             return event
         }
@@ -950,9 +950,6 @@ struct ContentView: View {
     
             // Then handle other keys
             switch Int(event.keyCode) {
-            case kVK_Escape:
-                resetMouseState()
-                back()
             case kVK_UpArrow:
                 resetMouseState()
                 back()
@@ -1835,19 +1832,17 @@ class MouseIndicatorState: ObservableObject {
 
 struct MouseIndicatorView: View {
     @StateObject private var mouseState = MouseIndicatorState.shared
-    
+    @StateObject private var uiVisibilityState = UIVisibilityState.shared
+
     var body: some View {
-        if !UIVisibilityState.shared.mouseVisible {
-            ZStack {
-                if mouseState.showingProgress {
-                    MouseProgressView(
-                        progress: mouseState.mouseProgress,
-                        direction: mouseState.mouseDirection
-                    )
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        ZStack {
+            MouseProgressView(
+                progress: mouseState.mouseProgress,
+                direction: mouseState.mouseDirection
+            )
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .opacity(mouseState.showingProgress && !uiVisibilityState.mouseVisible ? 1 : 0)
     }
 }
 
@@ -2104,10 +2099,10 @@ struct ShortcutHintView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("Hide Mouse Pointer")
+            Text("To Hide Mouse Pointer")
                 .foregroundColor(.white)
                 .font(.system(size: SizingGuide.getCurrentSettings().layout.shortcut.titleSize))
-            Text("Press The M Key")
+            Text("Press the Escape Key")
                 .foregroundColor(.gray)
                 .font(.system(size: SizingGuide.getCurrentSettings().layout.shortcut.subtitleSize))
         }

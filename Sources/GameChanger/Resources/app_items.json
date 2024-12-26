@@ -38,7 +38,7 @@
             "parent": "Game Changer",
             "action": "path",
             "path": "/Applications/Safari.app",
-            "fullscreen": false
+            "fullscreen": true
         }
     ],
     "Arcade": [

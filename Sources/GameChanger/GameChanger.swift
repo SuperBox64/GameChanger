@@ -106,33 +106,56 @@ func launchApplication(at path: String, completion: ((Bool) -> Void)? = nil) {
     }
 }
 
+// // New function to handle osascript execution
+// func setFullScreen(for appName: String) {
+//     sleep(1)
+//     let script = """
+//     tell application "System Events" to tell process "\(appName)"
+//         set value of attribute "AXFullScreen" of window 1 to true
+//     end tell
+//     """
+
+//     let process = Process()
+//     process.launchPath = "/usr/bin/osascript"
+//     process.arguments = ["-e", script]
+
+//     let pipe = Pipe()
+//     process.standardOutput = pipe
+//     process.standardError = pipe
+
+//     do {
+//         try process.run()
+//         process.waitUntilExit()
+
+//         let data = pipe.fileHandleForReading.readDataToEndOfFile()
+//         if let output = String(data: data, encoding: .utf8) {
+//             print("Output: \(output)")
+//         }
+//     } catch {
+//         print("Failed to run osascript: \(error)")
+//     }
+// }
+
 // New function to handle osascript execution
 func setFullScreen(for appName: String) {
     sleep(1)
-    let script = """
-    tell application "System Events" to tell process "\(appName)"
-        set value of attribute "AXFullScreen" of window 1 to true
-    end tell
-    """
-
-    let process = Process()
-    process.launchPath = "/usr/bin/osascript"
-    process.arguments = ["-e", script]
-
-    let pipe = Pipe()
-    process.standardOutput = pipe
-    process.standardError = pipe
-
-    do {
-        try process.run()
-        process.waitUntilExit()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        if let output = String(data: data, encoding: .utf8) {
-            print("Output: \(output)")
-        }
-    } catch {
-        print("Failed to run osascript: \(error)")
+    
+    guard let app = NSWorkspace.shared.runningApplications.first(where: { $0.localizedName == appName }) else {
+        print("Could not find application: \(appName)")
+        return
+    }
+    
+    let appElement = AXUIElementCreateApplication(app.processIdentifier)
+    
+    var windowRef: CFTypeRef?
+    let result = AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowRef)
+    
+    if result == .success,
+       let windows = windowRef as? [AXUIElement],
+       let window = windows.first {
+        AXUIElementSetAttributeValue(window, "AXFullScreen" as CFString, true as CFBoolean)
+    } else {
+        print("Failed to get window or set fullscreen for: \(appName)")
     }
 }
 

@@ -2089,7 +2089,7 @@ struct ShortcutHintView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("To Hide Mouse Pointer")
+            Text("Hide The Pointer")
                 .foregroundColor(.white)
                 .font(.system(size: SizingGuide.getCurrentSettings().layout.shortcut.titleSize))
             Text("Press the Escape Key")

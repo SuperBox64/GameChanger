@@ -7,6 +7,223 @@ import SwiftUI
 import GameController
 import Carbon.HIToolbox
 
+class UIVisibilityState: ObservableObject {
+    static let shared = UIVisibilityState()
+    @Published var isVisible = true
+    @Published var mouseVisible = true
+    @Published var isExecutingPath = false
+}
+
+class AppDelegate: NSObject, NSApplicationDelegate {
+    var cursorHideTimer: Timer?
+    var screenshotTimer: Timer?
+    @StateObject private var appState = AppState.shared
+    
+    private func initializeCache() {
+        var loadedImages = 0
+        var totalImages = 0
+        
+        // First pass - count total images
+        for section in Section.allCases {
+            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
+            totalImages += items.count
+        }
+        
+        // Second pass - load images synchronously
+        for section in Section.allCases {
+            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
+            for item in items {
+                autoreleasepool {
+                    if let iconURL = Bundle.main.url(forResource: item.systemIcon, 
+                                                   withExtension: "svg", 
+                                                   subdirectory: "images/svg") {
+                        if let image = NSImage(contentsOf: iconURL) {
+                            ImageCache.shared.cache[item.systemIcon] = image
+                            loadedImages += 1
+                            print("[\(loadedImages)/\(totalImages)] Loaded: \(item.name)")
+                        } else {
+                            print("Failed to load image for: \(item.name)")
+                        }
+                    } else {
+                        print("Failed to find image URL for: \(item.name)")
+                    }
+                }
+            }
+        }
+        
+        // Verify cache
+        print("=== Verifying Cache ===")
+        for section in Section.allCases {
+            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
+            for item in items {
+                if ImageCache.shared.cache[item.systemIcon] == nil {
+                    print("WARNING: Missing cache entry for \(item.name)")
+                }
+            }
+        }
+        
+        // Only set isLoaded after ALL images are confirmed in cache
+        if loadedImages == totalImages {
+            AppState.shared.isLoaded = true
+            print("App state set to loaded")
+        } else {
+            print("ERROR: Not all images loaded!")
+        }
+    }
+    
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        //DispatchQueue.main.async {
+        if let window = NSApp.windows.first {
+            window.styleMask = [.borderless]
+            window.makeKeyAndOrderFront(nil)
+            window.level = .init(rawValue: 10000)
+            window.setFrame(NSScreen.main?.frame ?? .zero, display: true)
+            
+            if SizingGuide.getCommonSettings().enableScreenshots {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    self.takeScreenshot()
+                }
+            }
+        }
+
+        let presOptions: NSApplication.PresentationOptions = [.hideDock, .hideMenuBar]
+        NSApp.presentationOptions = presOptions
+
+        print("=== Starting Image Loading ===")
+        initializeCache()
+        
+        //NSApp.setActivationPolicy(.regular)
+        //NSApp.activate(ignoringOtherApps: true)
+
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard self != nil else { return event }
+            
+            // Handle Command-M for mouse visibility
+            if event.keyCode == kVK_ANSI_M {
+                UIVisibilityState.shared.mouseVisible.toggle()
+                if UIVisibilityState.shared.mouseVisible {
+                    SystemActions.sendAppleEvent(kAEActivate)
+                    NSCursor.unhide()
+                } else {
+                    NSCursor.hide()
+                    SystemActions.sendAppleEvent(kAEActivate)
+                }
+                //return nil
+            }
+            
+            if event.keyCode == kVK_Escape { 
+                NotificationCenter.default.post(name: .escKeyPressed, object: nil)
+                return nil
+            }
+            
+            return event
+        }
+
+        if UIVisibilityState.shared.mouseVisible {
+            NSCursor.unhide()
+        } else {
+            NSCursor.hide()
+        }
+
+        for index in 0..<3 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index)) {
+               
+                SystemActions.sendAppleEvent(kAEActivate)
+            }
+        }
+      
+        NSApp.hideOtherApplications(nil)
+
+        // Set up menu bar
+        let mainMenu = NSMenu()
+        NSApp.mainMenu = mainMenu
+        
+        // Add App menu
+        let appMenu = NSMenu()
+        let appMenuItem = NSMenuItem()
+        appMenuItem.submenu = appMenu
+        mainMenu.addItem(appMenuItem)
+        
+        // Add Quit item
+        let quitMenuItem = NSMenuItem(
+            title: "Quit",
+            action: #selector(NSApplication.terminate(_:)),
+            keyEquivalent: "q"
+        )
+        appMenu.addItem(quitMenuItem)
+        
+       
+        //}
+
+        // Add observer for system dialogs
+        // NSWorkspace.shared.notificationCenter.addObserver(
+        //     self,
+        //     selector: #selector(systemDialogDidAppear),
+        //     name: NSWorkspace.didActivateApplicationNotification,
+        //     object: nil
+        // )
+
+      
+    }
+    
+    // @objc private func systemDialogDidAppear(_ notification: Notification) {
+    //     if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+    //        app.bundleIdentifier == "com.apple.systempreferences" || 
+    //        app.bundleIdentifier == "com.apple.SecurityAgent" {
+    //         // Show mouse cursor when system dialog appears
+    //         UIVisibilityState.shared.mouseVisible = true
+    //         NSCursor.unhide()
+    //     }
+    // }
+    
+    func applicationWillTerminate(_ notification: Notification) {
+        //cursorHideTimer?.invalidate()
+        screenshotTimer?.invalidate()
+        NSCursor.unhide()
+    }
+    
+    func applicationDidBecomeActive(_ notification: Notification) {
+        // if UIVisibilityState.shared.mouseVisible {
+        //     NSCursor.unhide()
+        // } else {
+        //     NSCursor.hide()
+        // }
+        NSApp.hideOtherApplications(nil)
+        
+        // Just trigger the fade in
+        UIVisibilityState.shared.isVisible = true
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        return true
+    }
+    
+    private func takeScreenshot() {        
+        if let window = NSApp.windows.first,
+           let cgImage = CGWindowListCreateImage(
+            .null,
+            .optionIncludingWindow,
+            CGWindowID(window.windowNumber),
+            [.boundsIgnoreFraming]
+           ) {
+            let image = NSImage(cgImage: cgImage, size: window.frame.size)
+            if let tiffData = image.tiffRepresentation,
+               let bitmapRep = NSBitmapImageRep(data: tiffData),
+               let pngData = bitmapRep.representation(using: .png, properties: [:]) {
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+                let timestamp = dateFormatter.string(from: Date())
+                let desktopURL = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first!
+                let fileURL = desktopURL.appendingPathComponent("GameChanger_\(timestamp).png")
+                
+                try? pngData.write(to: fileURL)
+                print("Screenshot saved to: \(fileURL.path)")
+            }
+        }
+    }
+}
+
+
 // Types needed for items
 struct Section: RawRepresentable, Codable {
     let rawValue: String
@@ -27,12 +244,15 @@ enum Action: String, Codable {
     case logout = "logout"
     case quit = "quit"
     case path = "path"
-    
+    case activate = "activate"
+
     func execute(with path: String? = nil, appName: String? = nil, fullscreen: Bool? = nil) {
         print("Executing action: \(self)")
         switch self {
         case .none:
             return
+        case .activate:
+            SystemActions.sendAppleEvent(kAEActivate)
         case .restart:
             SystemActions.sendAppleEvent(kAERestart)
         case .sleep:
@@ -240,7 +460,7 @@ struct GameChangerApp: App {
                     ContentView()
                     MouseIndicatorView()
                     NavigationOverlayView()
-                    //ShortcutHintView()
+                    ShortcutHintView()
                 }
                 .opacity(uiVisibility.isVisible ? 1 : 0)
                 .animation(.easeOut(duration: 1.875), value: uiVisibility.isVisible)
@@ -250,13 +470,13 @@ struct GameChangerApp: App {
             .environmentObject(windowSizeMonitor)
             .onAppear {
                 // Initialize with mouse hidden
-                //uiVisibility.mouseVisible = false
+                // uiVisibility.mouseVisible = false
 
-                   if UIVisibilityState.shared.mouseVisible {
-                    NSCursor.unhide()
-                } else {
-                    NSCursor.hide()
-                }
+                //    if UIVisibilityState.shared.mouseVisible {
+                //     NSCursor.unhide()
+                // } else {
+                //     NSCursor.hide()
+                // }
             
            
 
@@ -341,197 +561,6 @@ class AppState: ObservableObject {
     @Published var isLoaded = false
 }
 
-class AppDelegate: NSObject, NSApplicationDelegate {
-    var cursorHideTimer: Timer?
-    var screenshotTimer: Timer?
-    @StateObject private var appState = AppState.shared
-    
-    private func initializeCache() {
-        var loadedImages = 0
-        var totalImages = 0
-        
-        // First pass - count total images
-        for section in Section.allCases {
-            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
-            totalImages += items.count
-        }
-        
-        // Second pass - load images synchronously
-        for section in Section.allCases {
-            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
-            for item in items {
-                autoreleasepool {
-                    if let iconURL = Bundle.main.url(forResource: item.systemIcon, 
-                                                   withExtension: "svg", 
-                                                   subdirectory: "images/svg") {
-                        if let image = NSImage(contentsOf: iconURL) {
-                            ImageCache.shared.cache[item.systemIcon] = image
-                            loadedImages += 1
-                            print("[\(loadedImages)/\(totalImages)] Loaded: \(item.name)")
-                        } else {
-                            print("Failed to load image for: \(item.name)")
-                        }
-                    } else {
-                        print("Failed to find image URL for: \(item.name)")
-                    }
-                }
-            }
-        }
-        
-        // Verify cache
-        print("=== Verifying Cache ===")
-        for section in Section.allCases {
-            let items = AppDataManager.shared.items(for: Section(rawValue: section.rawValue))
-            for item in items {
-                if ImageCache.shared.cache[item.systemIcon] == nil {
-                    print("WARNING: Missing cache entry for \(item.name)")
-                }
-            }
-        }
-        
-        // Only set isLoaded after ALL images are confirmed in cache
-        if loadedImages == totalImages {
-            AppState.shared.isLoaded = true
-            print("App state set to loaded")
-        } else {
-            print("ERROR: Not all images loaded!")
-        }
-    }
-    
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        print("=== Starting Image Loading ===")
-        initializeCache()
-        
-        //NSApp.setActivationPolicy(.regular)
-        //NSApp.activate(ignoringOtherApps: true)
-
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard self != nil else { return event }
-            
-            // Handle Command-M for mouse visibility
-            if event.modifierFlags.contains(.command) && event.keyCode == kVK_ANSI_M {
-                UIVisibilityState.shared.mouseVisible.toggle()
-                if UIVisibilityState.shared.mouseVisible {
-                    NSCursor.unhide()
-                } else {
-                    NSCursor.hide()
-                }
-                //return nil
-            }
-            
-            if event.keyCode == kVK_Escape { 
-                NotificationCenter.default.post(name: .escKeyPressed, object: nil)
-                return nil
-            }
-            
-            return event
-        }
-
-        NSApp.hideOtherApplications(nil)
-
-        // Set up menu bar
-        let mainMenu = NSMenu()
-        NSApp.mainMenu = mainMenu
-        
-        // Add App menu
-        let appMenu = NSMenu()
-        let appMenuItem = NSMenuItem()
-        appMenuItem.submenu = appMenu
-        mainMenu.addItem(appMenuItem)
-        
-        // Add Quit item
-        let quitMenuItem = NSMenuItem(
-            title: "Quit",
-            action: #selector(NSApplication.terminate(_:)),
-            keyEquivalent: "q"
-        )
-        appMenu.addItem(quitMenuItem)
-        
-        let presOptions: NSApplication.PresentationOptions = [.hideDock, .hideMenuBar]
-        NSApp.presentationOptions = presOptions
-
-        //DispatchQueue.main.async {
-            if let window = NSApp.windows.first {
-                //window.styleMask = [.borderless]
-                window.makeKeyAndOrderFront(nil)
-                //window.level = .mainMenu //.init(rawValue: -10000)
-                window.setFrame(NSScreen.main?.frame ?? .zero, display: true)
-                
-                if SizingGuide.getCommonSettings().enableScreenshots {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        self.takeScreenshot()
-                    }
-                }
-            }
-        //}
-
-        // Add observer for system dialogs
-        // NSWorkspace.shared.notificationCenter.addObserver(
-        //     self,
-        //     selector: #selector(systemDialogDidAppear),
-        //     name: NSWorkspace.didActivateApplicationNotification,
-        //     object: nil
-        // )
-
-      
-    }
-    
-    // @objc private func systemDialogDidAppear(_ notification: Notification) {
-    //     if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
-    //        app.bundleIdentifier == "com.apple.systempreferences" || 
-    //        app.bundleIdentifier == "com.apple.SecurityAgent" {
-    //         // Show mouse cursor when system dialog appears
-    //         UIVisibilityState.shared.mouseVisible = true
-    //         NSCursor.unhide()
-    //     }
-    // }
-    
-    func applicationWillTerminate(_ notification: Notification) {
-        //cursorHideTimer?.invalidate()
-        screenshotTimer?.invalidate()
-        NSCursor.unhide()
-    }
-    
-    func applicationDidBecomeActive(_ notification: Notification) {
-        // if UIVisibilityState.shared.mouseVisible {
-        //     NSCursor.unhide()
-        // } else {
-        //     NSCursor.hide()
-        // }
-        NSApp.hideOtherApplications(nil)
-        
-        // Just trigger the fade in
-        UIVisibilityState.shared.isVisible = true
-    }
-
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        return true
-    }
-    
-    private func takeScreenshot() {        
-        if let window = NSApp.windows.first,
-           let cgImage = CGWindowListCreateImage(
-            .null,
-            .optionIncludingWindow,
-            CGWindowID(window.windowNumber),
-            [.boundsIgnoreFraming]
-           ) {
-            let image = NSImage(cgImage: cgImage, size: window.frame.size)
-            if let tiffData = image.tiffRepresentation,
-               let bitmapRep = NSBitmapImageRep(data: tiffData),
-               let pngData = bitmapRep.representation(using: .png, properties: [:]) {
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-                let timestamp = dateFormatter.string(from: Date())
-                let desktopURL = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first!
-                let fileURL = desktopURL.appendingPathComponent("GameChanger_\(timestamp).png")
-                
-                try? pngData.write(to: fileURL)
-                print("Screenshot saved to: \(fileURL.path)")
-            }
-        }
-    }
-}
 
 struct GUISettings: Codable {
     let GameChangerUI: GameChangerUISettings
@@ -2075,10 +2104,10 @@ struct ShortcutHintView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("Toggle Mouse Pointer")
+            Text("Hide Mouse Pointer")
                 .foregroundColor(.white)
                 .font(.system(size: SizingGuide.getCurrentSettings().layout.shortcut.titleSize))
-            Text("Press Command+M")
+            Text("Press The M Key")
                 .foregroundColor(.gray)
                 .font(.system(size: SizingGuide.getCurrentSettings().layout.shortcut.subtitleSize))
         }
@@ -2086,14 +2115,9 @@ struct ShortcutHintView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         .padding(.leading, SizingGuide.getCurrentSettings().layout.shortcut.leadingPadding)
         .padding(.bottom, SizingGuide.getCurrentSettings().layout.shortcut.bottomPadding)
-        .opacity(uiVisibility.mouseVisible ? 0 : 1) // Hide hint when mouse is visible
+        .opacity(uiVisibility.mouseVisible ? 1 : 0) // Hide hint when mouse is visible
     }
 }
 
-class UIVisibilityState: ObservableObject {
-    static let shared = UIVisibilityState()
-    @Published var isVisible = true
-    @Published var mouseVisible = false
-    @Published var isExecutingPath = false
-}
+
 

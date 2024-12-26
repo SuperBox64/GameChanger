@@ -474,6 +474,11 @@ struct GameChangerApp: App {
                     withAnimation(.easeOut(duration: 1.875)) {
                         uiVisibility.isVisible = true
                     }
+                    
+                    // Trigger bounce after fade-in starts
+                    if SizingGuide.getCommonSettings().animations.bounceEnabled {
+                        NotificationCenter.default.post(name: .bounceItems, object: nil)
+                    }
                 }
             }
         }

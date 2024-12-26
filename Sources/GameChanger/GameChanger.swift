@@ -102,7 +102,7 @@ func launchApplication(at path: String, completion: ((Bool) -> Void)? = nil) {
     }
 }
 
-// New function to handle osascript execution
+// Handles fullscreen for applications using Accessibility API
 func setFullScreen(for appName: String) {  
     sleep(1)
     guard let app = NSWorkspace.shared.runningApplications.first(where: { $0.localizedName == appName }) else {

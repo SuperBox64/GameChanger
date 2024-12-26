@@ -882,7 +882,7 @@ struct ContentView: View {
     }
     
     private var normalizedMouseProgress: CGFloat {
-        min(abs(accumulatedMouseX) / mouseSensitivity, 1.0)
+        min(abs(accumulatedMouseX) / SizingGuide.getCommonSettings().mouseSensitivity, 1.0)
     }
     
     private func handleSelection() {
@@ -1017,7 +1017,7 @@ struct ContentView: View {
         accumulatedMouseX += deltaX
         mouseProgress = normalizedMouseProgress
         
-        if abs(accumulatedMouseX) > mouseSensitivity {
+        if abs(accumulatedMouseX) > SizingGuide.getCommonSettings().mouseSensitivity {
             if accumulatedMouseX < 0 {
                 moveLeft()
             } else {
@@ -1886,10 +1886,6 @@ private let defaultNavigationSettings = NavigationSettings(
     spacing: 24.0,
     bottomPadding: 40.0
 ) 
-
-// Add these constants at the top level
-private let mouseSensitivity: CGFloat = 150.0
-private let enableScreenshots = true 
 
 // Add LayoutSettings struct
 struct LayoutSettings: Codable {

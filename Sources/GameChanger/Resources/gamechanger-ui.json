@@ -1,7 +1,7 @@
 {
     "GameChangerUI": {
         "common": {
-            "mouseSensitivity": 0.5,
+            "mouseSensitivity": 175.0,
             "enableScreenshots": false,
             "bounceEnabled": true,
             "fonts": {

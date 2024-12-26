@@ -246,7 +246,7 @@ struct GameChangerApp: App {
                     ContentView()
                     MouseIndicatorView()
                     NavigationOverlayView()
-                    ShortcutHintView()
+                    //ShortcutHintView()
                 }
                 .opacity(uiVisibility.isVisible ? 1 : 0)
                 .animation(.easeOut(duration: 1.875), value: uiVisibility.isVisible)
@@ -409,14 +409,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             guard self != nil else { return event }
 
             // Handle Command-M for mouse visibility
-            if event.modifierFlags.contains(.command) && event.keyCode == kVK_ANSI_M {
-                UIVisibilityState.shared.mouseVisible.toggle()
-                if UIVisibilityState.shared.mouseVisible {
-                    NSCursor.unhide()
-                } else {
-                    NSCursor.hide()
-                }
-            }
+            // if event.modifierFlags.contains(.command) && event.keyCode == kVK_ANSI_M {
+            //     UIVisibilityState.shared.mouseVisible.toggle()
+            //     if UIVisibilityState.shared.mouseVisible {
+            //         NSCursor.unhide()
+            //     } else {
+            //         NSCursor.hide()
+            //     }
+            // }
 
             if event.keyCode == kVK_Escape { 
                 NotificationCenter.default.post(name: .escKeyPressed, object: nil)

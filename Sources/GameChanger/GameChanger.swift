@@ -240,7 +240,7 @@ struct GameChangerApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                BackgroundView()  // Keep this outside the Group
+                BackgroundView()
                 Group {
                     LogoView()
                     ClockView()
@@ -256,6 +256,11 @@ struct GameChangerApp: App {
             .frame(width: .infinity, height: .infinity)
             .environmentObject(windowSizeMonitor)
             .onAppear {
+                // Initialize with mouse hidden
+                uiVisibility.mouseVisible = false
+
+           
+
                 uiVisibility.isVisible = true
                 
                 if SizingGuide.getCommonSettings().animations.bounceEnabled {
@@ -420,6 +425,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             
             return event
+        }
+
+        if UIVisibilityState.shared.mouseVisible {
+            NSCursor.unhide()
+        } else {
+            NSCursor.hide()
         }
 
         NSApp.hideOtherApplications(nil)

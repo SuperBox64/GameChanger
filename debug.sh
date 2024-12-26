@@ -59,15 +59,12 @@ EOF
 # Build Universal Binary (Apple Silicon and Intel)
 echo "Building for Apple Silicon..."
 swift build -c debug --arch arm64 --jobs $(sysctl -n hw.ncpu)
-echo "Building for Intel..."
-swift build -c debug --arch x86_64 --jobs $(sysctl -n hw.ncpu)
+##echo "Building for Intel..."
+##swift build -c debug --arch x86_64 --jobs $(sysctl -n hw.ncpu)
 
 # Create Universal Binary
 echo "Creating Universal Binary..."
-lipo -create \
-    .build/arm64-apple-macosx/debug/GameChanger \
-    .build/x86_64-apple-macosx/debug/GameChanger \
-    -output GameChanger.app/Contents/MacOS/GameChanger
+cp .build/arm64-apple-macosx/debug/GameChanger GameChanger.app/Contents/MacOS/GameChanger
 
 # Create Resources directory structure
 mkdir -p GameChanger.app/Contents/Resources/images/{svg,jpg,png,logo}
@@ -115,5 +112,5 @@ else
 fi
 
 echo "App bundle created at GameChanger.app"
-#open GameChanger.app 
+open GameChanger.app 
 #./GameChanger.app/Contents/MacOS/GameChanger'

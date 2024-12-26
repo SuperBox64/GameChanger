@@ -250,8 +250,14 @@ struct GameChangerApp: App {
             .environmentObject(windowSizeMonitor)
             .onAppear {
                 // Initialize with mouse hidden
-                uiVisibility.mouseVisible = false
+                //uiVisibility.mouseVisible = false
 
+                   if UIVisibilityState.shared.mouseVisible {
+                    NSCursor.unhide()
+                } else {
+                    NSCursor.hide()
+                }
+            
            
 
                 uiVisibility.isVisible = true
@@ -396,22 +402,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("=== Starting Image Loading ===")
         initializeCache()
         
-        NSApp.setActivationPolicy(.regular)
-        NSApp.activate(ignoringOtherApps: true)
+        //NSApp.setActivationPolicy(.regular)
+        //NSApp.activate(ignoringOtherApps: true)
 
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard self != nil else { return event }
-
+            
             // Handle Command-M for mouse visibility
-            // if event.modifierFlags.contains(.command) && event.keyCode == kVK_ANSI_M {
-            //     UIVisibilityState.shared.mouseVisible.toggle()
-            //     if UIVisibilityState.shared.mouseVisible {
-            //         NSCursor.unhide()
-            //     } else {
-            //         NSCursor.hide()
-            //     }
-            // }
-
+            if event.modifierFlags.contains(.command) && event.keyCode == kVK_ANSI_M {
+                UIVisibilityState.shared.mouseVisible.toggle()
+                if UIVisibilityState.shared.mouseVisible {
+                    NSCursor.unhide()
+                } else {
+                    NSCursor.hide()
+                }
+                //return nil
+            }
+            
             if event.keyCode == kVK_Escape { 
                 NotificationCenter.default.post(name: .escKeyPressed, object: nil)
                 return nil
@@ -443,11 +450,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let presOptions: NSApplication.PresentationOptions = [.hideDock, .hideMenuBar]
         NSApp.presentationOptions = presOptions
 
-        DispatchQueue.main.async {
+        //DispatchQueue.main.async {
             if let window = NSApp.windows.first {
-                window.styleMask = [.borderless, .fullSizeContentView]
+                //window.styleMask = [.borderless]
                 window.makeKeyAndOrderFront(nil)
-                window.level = .init(rawValue: -10000)
+                //window.level = .mainMenu //.init(rawValue: -10000)
                 window.setFrame(NSScreen.main?.frame ?? .zero, display: true)
                 
                 if SizingGuide.getCommonSettings().enableScreenshots {
@@ -456,28 +463,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                 }
             }
-        }
+        //}
 
         // Add observer for system dialogs
-        NSWorkspace.shared.notificationCenter.addObserver(
-            self,
-            selector: #selector(systemDialogDidAppear),
-            name: NSWorkspace.didActivateApplicationNotification,
-            object: nil
-        )
+        // NSWorkspace.shared.notificationCenter.addObserver(
+        //     self,
+        //     selector: #selector(systemDialogDidAppear),
+        //     name: NSWorkspace.didActivateApplicationNotification,
+        //     object: nil
+        // )
 
       
     }
     
-    @objc private func systemDialogDidAppear(_ notification: Notification) {
-        if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
-           app.bundleIdentifier == "com.apple.systempreferences" || 
-           app.bundleIdentifier == "com.apple.SecurityAgent" {
-            // Show mouse cursor when system dialog appears
-            UIVisibilityState.shared.mouseVisible = true
-            NSCursor.unhide()
-        }
-    }
+    // @objc private func systemDialogDidAppear(_ notification: Notification) {
+    //     if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+    //        app.bundleIdentifier == "com.apple.systempreferences" || 
+    //        app.bundleIdentifier == "com.apple.SecurityAgent" {
+    //         // Show mouse cursor when system dialog appears
+    //         UIVisibilityState.shared.mouseVisible = true
+    //         NSCursor.unhide()
+    //     }
+    // }
     
     func applicationWillTerminate(_ notification: Notification) {
         //cursorHideTimer?.invalidate()
@@ -486,11 +493,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationDidBecomeActive(_ notification: Notification) {
-        if UIVisibilityState.shared.mouseVisible {
-            NSCursor.unhide()
-        } else {
-            NSCursor.hide()
-        }
+        // if UIVisibilityState.shared.mouseVisible {
+        //     NSCursor.unhide()
+        // } else {
+        //     NSCursor.hide()
+        // }
         NSApp.hideOtherApplications(nil)
         
         // Just trigger the fade in
@@ -1072,13 +1079,13 @@ struct ContentView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                if UIVisibilityState.shared.mouseVisible {
-                    NSCursor.unhide()
-                } else {
-                    NSCursor.hide()
-                }
-            }
+            // DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            //     if UIVisibilityState.shared.mouseVisible {
+            //         NSCursor.unhide()
+            //     } else {
+            //         NSCursor.hide()
+            //     }
+            // }
             setupKeyMonitor()
             setupGameController()
             setupMouseMonitor()

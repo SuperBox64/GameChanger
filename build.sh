@@ -115,5 +115,5 @@ else
 fi
 
 echo "App bundle created at GameChanger.app"
-#open GameChanger.app 
+open GameChanger.app 
 #./GameChanger.app/Contents/MacOS/GameChanger'

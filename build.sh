@@ -25,7 +25,7 @@ sips -z 1024 1024 Sources/GameChanger/images/png/superbox64.png --out AppIcon.ic
 iconutil -c icns AppIcon.iconset -o GameChanger.app/Contents/Resources/AppIcon.icns
 
 # Create Info.plist
-cat > GameChanger.app/Contents/Info.plist << EOL
+cat > GameChanger.app/Contents/Info.plist << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -48,9 +48,13 @@ cat > GameChanger.app/Contents/Info.plist << EOL
     </array>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>GameChanger needs to control window state of launched applications.</string>
+    <key>NSAccessibilityUsageDescription</key>
+    <string>GameChanger needs accessibility access to control application windows.</string>
 </dict>
 </plist>
-EOL
+EOF
 
 # Build Universal Binary (Apple Silicon and Intel)
 echo "Building for Apple Silicon..."
@@ -83,6 +87,11 @@ cp Sources/GameChanger/Resources/gamechanger-ui.json GameChanger.app/Contents/Re
 
 # Set permissions
 chmod +x GameChanger.app/Contents/MacOS/GameChanger
+
+# Clean any resource forks and Finder metadata
+xattr -cr GameChanger.app
+find GameChanger.app -type f -name "._*" -delete
+find GameChanger.app -type f -name ".DS_Store" -delete
 
 # Debug: Show all available certificates
 echo "Available certificates:"

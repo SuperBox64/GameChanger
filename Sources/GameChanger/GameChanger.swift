@@ -5,6 +5,7 @@
 
 import SwiftUI
 import GameController
+import Cocoa
 import Carbon.HIToolbox
 
 // Types needed for items
@@ -61,27 +62,26 @@ enum Action: String, Codable {
                         UIVisibilityState.shared.isVisible = false
                     }
                     
-                    // Execute after fade out
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.375) {
-                        if fileManager.isExecutableFile(atPath: pathToOpen) {
-                            launchApplication(at: pathToOpen)
-                            if let appName, fullscreen == true {
+                    if fileManager.isExecutableFile(atPath: pathToOpen) {
+                        launchApplication(at: pathToOpen)
+                                            
+                        if let appName, fullscreen == true {
+                            //DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                                 setFullScreen(for: appName)
                             }
-                        } else {
-                            print("Path exists but is not executable: \(pathToOpen)")
-                            UIVisibilityState.shared.isVisible = true
                         }
-                        UIVisibilityState.shared.isExecutingPath = false
+                    } else {
+                        print("Path exists but is not executable: \(pathToOpen)")
+                        UIVisibilityState.shared.isVisible = true
                     }
+                    UIVisibilityState.shared.isExecutingPath = false
                 } else {
-                    print("Invalid path - does not exist: \(pathToOpen)")
                     UIVisibilityState.shared.isExecutingPath = false
                 }
             }
         }
     }
-}
+
 
 func launchApplication(at path: String, completion: ((Bool) -> Void)? = nil) {
     DispatchQueue.global(qos: .userInitiated).async {
@@ -104,9 +104,8 @@ func launchApplication(at path: String, completion: ((Bool) -> Void)? = nil) {
 }
 
 // New function to handle osascript execution
-func setFullScreen(for appName: String) {
+func setFullScreen(for appName: String) {  
     sleep(1)
-    
     guard let app = NSWorkspace.shared.runningApplications.first(where: { $0.localizedName == appName }) else {
         print("Could not find application: \(appName)")
         return

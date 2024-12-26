@@ -10,7 +10,7 @@ import Carbon.HIToolbox
 class UIVisibilityState: ObservableObject {
     static let shared = UIVisibilityState()
     @Published var isVisible = false
-    @Published var mouseVisible = true
+    @Published var mouseVisible = false
     @Published var isExecutingPath = false
 }
 

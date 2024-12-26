@@ -477,6 +477,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSWorkspace.didActivateApplicationNotification,
             object: nil
         )
+
+        // Replace swipe gesture setup with trackpad event monitor
+        NSEvent.addLocalMonitorForEvents(matching: .swipe) { event in
+        print("Swipe event detected")
+            //if event.phase == .began && event.momentumPhase == .began {  // Fix comparison
+                let dx = event.scrollingDeltaX
+                if abs(dx) > 5 {  // Threshold for swipe detection
+                    print("Swipe detected: \(dx)")
+                    NotificationCenter.default.post(
+                        name: dx > 0 ? .swipeLeft : .swipeRight,
+                        object: nil
+                    )
+                }
+           // }
+            return event
+        }
     }
     
     @objc private func systemDialogDidAppear(_ notification: Notification) {

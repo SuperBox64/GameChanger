@@ -171,12 +171,6 @@ struct AppItem: Codable {
         let actionEnum = Action(rawValue: action)
         print("Converted to enum: \(String(describing: actionEnum))")
         
-        // Execute with path and name if it's a path action
-        if actionEnum == .path {
-            // Only pass name for fullscreen if fullscreen is true
-            actionEnum?.execute(with: path, appName: name, fullscreen: fullscreen ?? nil)
-        }
-        
         return actionEnum ?? .none
     }
 }

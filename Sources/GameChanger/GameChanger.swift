@@ -1115,7 +1115,7 @@ struct ContentView: View {
         }
         .onChange(of: UIVisibilityState.shared.isVisible) { isVisible in
             if isVisible {
-                // When becoming visible, set selection first
+                // When becoming visible, only set visual selection
                 let sourceItems = getSourceItems()
                 let startIndex = currentPage * 4
                 let endIndex = min(startIndex + 4, sourceItems.count)
@@ -1123,8 +1123,9 @@ struct ContentView: View {
                 // Make sure selectedIndex is valid for current page
                 if startIndex + selectedIndex < endIndex {
                     resetMouseState()
-                    // Just call handleSelection directly, remove unused selectedItem
-                    handleSelection()
+                    // Don't call handleSelection() - just reset state
+                    ContentState.shared.selectedIndex = selectedIndex
+                    ContentState.shared.currentSection = "Game Changer"
                 }
             }
         }

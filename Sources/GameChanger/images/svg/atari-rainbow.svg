@@ -11,7 +11,7 @@
       }
 
       .cls-2 {
-        fill: #000000;
+        fill: #000;
         mix-blend-mode: multiply;
       }
 
@@ -20,8 +20,7 @@
       }
 
       .cls-3 {
-        fill: #000000;
-        mix-blend-mode: multiply;
+        fill: #fff;
       }
     </style>
     <linearGradient id="linear-gradient" x1="512" y1="205.78" x2="512" y2="823.21" gradientUnits="userSpaceOnUse">

@@ -462,6 +462,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+
+        // Add observer for system dialogs
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(systemDialogDidAppear),
+            name: NSWorkspace.didActivateApplicationNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func systemDialogDidAppear(_ notification: Notification) {
+        if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+           app.bundleIdentifier == "com.apple.systempreferences" || 
+           app.bundleIdentifier == "com.apple.SecurityAgent" {
+            // Show mouse cursor when system dialog appears
+            UIVisibilityState.shared.mouseVisible = true
+            NSCursor.unhide()
+        }
     }
     
     func applicationWillTerminate(_ notification: Notification) {

@@ -3,7 +3,7 @@
   <defs>
     <style>
       .cls-1 {
-        fill: #000000;
+        fill: #000;
         mix-blend-mode: multiply;
       }
 
@@ -16,8 +16,7 @@
       }
 
       .cls-2 {
-        fill: #000000;
-        mix-blend-mode: multiply;
+        fill: #fff;
       }
     </style>
   </defs>

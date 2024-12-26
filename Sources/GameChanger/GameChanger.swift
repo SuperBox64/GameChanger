@@ -859,7 +859,12 @@ struct ContentView: View {
         let selectedItem = sourceItems[actualIndex]
         
         if selectedItem.actionEnum != .none {
-            selectedItem.actionEnum.execute()
+            // Pass the required parameters for path action
+            selectedItem.actionEnum.execute(
+                with: selectedItem.path,
+                appName: selectedItem.name,
+                fullscreen: selectedItem.fullscreen
+            )
             return
         }
         

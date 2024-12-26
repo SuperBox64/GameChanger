@@ -412,7 +412,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 } else {
                     NSCursor.hide()
                 }
-                return nil
             }
 
             if event.keyCode == kVK_Escape { 
@@ -487,17 +486,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationDidBecomeActive(_ notification: Notification) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            if UIVisibilityState.shared.mouseVisible {
-                NSCursor.unhide()
-            } else {
-                NSCursor.hide()
-            }
-            NSApp.hideOtherApplications(nil)
-            
-            // Just trigger the fade in
-            UIVisibilityState.shared.isVisible = true
+        if UIVisibilityState.shared.mouseVisible {
+            NSCursor.unhide()
+        } else {
+            NSCursor.hide()
         }
+        NSApp.hideOtherApplications(nil)
+        
+        // Just trigger the fade in
+        UIVisibilityState.shared.isVisible = true
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -909,18 +906,7 @@ struct ContentView: View {
     
     private func setupKeyMonitor() {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            // Handle Command-M first
-            if event.modifierFlags.contains(.command) && event.keyCode == kVK_ANSI_M {
-                UIVisibilityState.shared.mouseVisible.toggle()
-                if UIVisibilityState.shared.mouseVisible {
-                    NSCursor.unhide()
-                    resetMouseState()
-                } else {
-                    NSCursor.hide()
-                }
-                return nil
-            }
-            
+    
             // Then handle other keys
             switch Int(event.keyCode) {
             case kVK_Escape:

@@ -1555,13 +1555,14 @@ struct AppIconView: View {
                         height: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding
                     )
                 
-                if isSelected || (isHighlighted && uiVisibility.mouseVisible) {
+                if isSelected || (isHighlighted && UIVisibilityState.shared.mouseVisible) {
                     RoundedRectangle(cornerRadius: sizingManager.sizing.cornerRadius * multipliers.cornerRadius)
                         .fill(Color.white.opacity(SizingGuide.getCommonSettings().opacities.selectionHighlight))
                         .frame(
                             width: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding,
                             height: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding
                         )
+                        .animation(.carouselSlide(settings: SizingGuide.getCommonSettings().animations), value: isSelected)
                 }
                 
                 loadIcon()
@@ -1573,7 +1574,7 @@ struct AppIconView: View {
                     SizingGuide.getCommonSettings().fonts.label,
                     size: sizingManager.sizing.labelSize
                 ))
-                .foregroundColor(isSelected || (isHighlighted && uiVisibility.mouseVisible) ? 
+                .foregroundColor(isSelected || (isHighlighted && UIVisibilityState.shared.mouseVisible) ? 
                     SizingGuide.getCommonSettings().colors.text.selectedUI : 
                     SizingGuide.getCommonSettings().colors.text.unselectedUI)
                 .offset(y: bounceOffset)
@@ -1581,17 +1582,17 @@ struct AppIconView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onHover { hovering in
             isHighlighted = hovering  // Always update highlight state
-            if hovering && uiVisibility.mouseVisible {  // Only trigger highlight action in mouse mode
+            if hovering && UIVisibilityState.shared.mouseVisible {  // Only trigger highlight action in mouse mode
                 onHighlight()
             }
         }
-        .onChange(of: uiVisibility.mouseVisible) { newValue in
+        .onChange(of: UIVisibilityState.shared.mouseVisible) { newValue in
             if !newValue {
                 isHighlighted = false
             }
         }
         .onTapGesture {
-            if uiVisibility.mouseVisible {
+            if UIVisibilityState.shared.mouseVisible {
                 onSelect()
             }
         }

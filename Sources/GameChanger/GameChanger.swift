@@ -9,7 +9,7 @@ import Carbon.HIToolbox
 
 class UIVisibilityState: ObservableObject {
     static let shared = UIVisibilityState()
-    @Published var isVisible = true
+    @Published var isVisible = false
     @Published var mouseVisible = true
     @Published var isExecutingPath = false
 }
@@ -469,21 +469,11 @@ struct GameChangerApp: App {
             .frame(width: .infinity, height: .infinity)
             .environmentObject(windowSizeMonitor)
             .onAppear {
-                // Initialize with mouse hidden
-                // uiVisibility.mouseVisible = false
-
-                //    if UIVisibilityState.shared.mouseVisible {
-                //     NSCursor.unhide()
-                // } else {
-                //     NSCursor.hide()
-                // }
-            
-           
-
-                uiVisibility.isVisible = true
-                
-                if SizingGuide.getCommonSettings().animations.bounceEnabled {
-                    NotificationCenter.default.post(name: .bounceItems, object: nil)
+                // Delay the fade in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    withAnimation(.easeOut(duration: 1.875)) {
+                        uiVisibility.isVisible = true
+                    }
                 }
             }
         }

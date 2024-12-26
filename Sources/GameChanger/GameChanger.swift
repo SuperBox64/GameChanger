@@ -10,8 +10,9 @@ import Carbon.HIToolbox
 class UIVisibilityState: ObservableObject {
     static let shared = UIVisibilityState()
     @Published var isVisible = false
+    @Published var isGridVisible = false
     @Published var mouseVisible = false
-    @Published var isExecutingPath = false
+    @Published var isExecutingPath: Bool = false
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -421,7 +422,6 @@ struct GameChangerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var windowSizeMonitor = WindowSizeMonitor.shared
     @StateObject private var uiVisibility = UIVisibilityState.shared
-    @State private var showingGrid = false  // Changed back to false to hide grid
     
     var body: some Scene {
         WindowGroup {
@@ -430,7 +430,7 @@ struct GameChangerApp: App {
                 Group {
                     LogoView()
                     ClockView()
-                    if showingGrid {
+                    if uiVisibility.isGridVisible {
                         GameGridView()
                     } else {
                         ContentView()
@@ -446,15 +446,6 @@ struct GameChangerApp: App {
             .frame(width: .infinity, height: .infinity)
             .environmentObject(windowSizeMonitor)
             // Add keyboard shortcut to toggle views
-            .onAppear {
-                NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-                    if event.keyCode == kVK_ANSI_G && event.modifierFlags.contains(.command) {
-                        showingGrid.toggle()
-                        return nil
-                    }
-                    return event
-                }
-            }
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.automatic)
@@ -920,6 +911,8 @@ struct ContentView: View {
             // Then handle other keys
             switch Int(event.keyCode) {
                   // Handle mouse visibility
+            case kVK_ANSI_G:
+                UIVisibilityState.shared.isGridVisible.toggle()
             case kVK_ANSI_Q:
                 NSApplication.shared.terminate(nil)
                 return nil
@@ -1130,9 +1123,9 @@ struct ContentView: View {
             }
         }
         .onDisappear {
-            if let monitor = keyMonitor {
-                NSEvent.removeMonitor(monitor)
-            }
+            // if let monitor = keyMonitor {
+            //     NSEvent.removeMonitor(monitor)
+            // }
             NotificationCenter.default.removeObserver(self)
             NSCursor.unhide()  // Make sure cursor is visible when view disappears
         }

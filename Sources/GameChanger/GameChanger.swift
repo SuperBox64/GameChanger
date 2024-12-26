@@ -1543,7 +1543,7 @@ struct AppIconView: View {
                         height: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding
                     )
                 
-                if isSelected || isHighlighted {
+                if isSelected || (isHighlighted && uiVisibility.mouseVisible) {
                     RoundedRectangle(cornerRadius: sizingManager.sizing.cornerRadius * multipliers.cornerRadius)
                         .fill(Color.white.opacity(SizingGuide.getCommonSettings().opacities.selectionHighlight))
                         .frame(
@@ -1561,18 +1561,16 @@ struct AppIconView: View {
                     SizingGuide.getCommonSettings().fonts.label,
                     size: sizingManager.sizing.labelSize
                 ))
-                .foregroundColor(isSelected || isHighlighted ? 
+                .foregroundColor(isSelected || (isHighlighted && uiVisibility.mouseVisible) ? 
                     SizingGuide.getCommonSettings().colors.text.selectedUI : 
                     SizingGuide.getCommonSettings().colors.text.unselectedUI)
                 .offset(y: bounceOffset)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onHover { hovering in
-            if uiVisibility.mouseVisible {
-                isHighlighted = hovering
-                if hovering {
-                    onHighlight()
-                }
+            isHighlighted = hovering  // Always update highlight state
+            if hovering && uiVisibility.mouseVisible {  // Only trigger highlight action in mouse mode
+                onHighlight()
             }
         }
         .onChange(of: uiVisibility.mouseVisible) { newValue in

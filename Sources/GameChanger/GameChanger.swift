@@ -2134,7 +2134,7 @@ struct GameGridView: View {
             ScrollView {
                 if appState.isLoaded {
                     LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(0..<20, id: \.self) { index in  // Changed from 25 to 20
+                        ForEach(0..<20, id: \.self) { index in
                             GameGridItemView(
                                 item: gameItems[index],
                                 isSelected: selectedIndex == index,
@@ -2147,7 +2147,7 @@ struct GameGridView: View {
                     }
                     .padding(32)
                     .frame(
-                        minHeight: geometry.size.height,
+                        minHeight: max(0, geometry.size.height),
                         alignment: .center
                     )
                 } else {

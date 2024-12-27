@@ -92,6 +92,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("=== Starting Image Loading ===")
         initializeCache()
         
+        // After cache is initialized and app is loaded, trigger bounce
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            NotificationCenter.default.post(name: .bounceItems, object: nil)
+        }
+        
         if UIVisibilityState.shared.mouseVisible {
             NSCursor.unhide()
         } else {
@@ -124,7 +129,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
         appMenu.addItem(quitMenuItem)
         
-       
+        playPianoChord()
         //}
 
         // Add observer for system dialogs
@@ -2212,5 +2217,11 @@ extension Array {
     }
 }
 
-
+func playPianoChord() {
+    DispatchQueue.main.async {
+        if let glass = NSSound(named: "Pop") {
+            glass.play()
+        }
+    }
+}
 

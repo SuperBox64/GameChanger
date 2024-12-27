@@ -1643,19 +1643,16 @@ struct AppIconView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .bounceItems)) { _ in
-            if SizingGuide.getCommonSettings().animations.bounceEnabled {
-                let randomDelay = Double.random(in: 0...0.1)
-                let baseDelay = Double(itemIndex) * 0.05
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + baseDelay + randomDelay) {
-                    let randomBounce = Double.random(in: (-45)...(-35))
+            if SizingGuide.getCommonSettings().animations.bounceEnabled {      
+                DispatchQueue.main.async {
+                    let randomBounce = Double.random(in: -50 ... -25)
                     bounceOffset = randomBounce
                 
                 withAnimation(
                     .spring(
-                            response: 1.0,
-                            dampingFraction: 0.55,
-                        blendDuration: 0
+                        response: 2,
+                        dampingFraction: 1.5,
+                        blendDuration: 1.5
                     )
                 ) {
                     bounceOffset = 0

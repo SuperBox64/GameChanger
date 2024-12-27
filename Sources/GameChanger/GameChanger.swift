@@ -105,10 +105,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }      
         }
         
-        print("=== Starting Image Loading ===")
         initializeCache()
         
-        NotificationCenter.default.post(name: .bounceItems, object: nil)
+        NotificationCenter.default.post(name: .startupBounce, object: nil)
  
         if UIVisibilityState.shared.mouseVisible {
             NSCursor.unhide()
@@ -398,6 +397,7 @@ extension Notification.Name {
     static let swipeRight = Notification.Name("swipeRight")
     static let jumpToPage = Notification.Name("jumpToPage")
     static let bounceItems = Notification.Name("bounceItems")
+    static let startupBounce = Notification.Name("startupBounce")
 }
 
 class NavigationState: ObservableObject {
@@ -1639,8 +1639,16 @@ struct AppIconView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .bounceItems)) { _ in
-            if SizingGuide.getCommonSettings().animations.bounceEnabled {
-                let randomDelay = Double.random(in: 0.1...0.2)
+            bounceItems()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .startupBounce)) { _ in
+            startupBounce()
+        }
+    }
+    
+    private func startupBounce() {
+        if SizingGuide.getCommonSettings().animations.bounceEnabled {
+            let randomDelay = Double.random(in: 0.1...0.2)
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + randomDelay) {
                     let randomBounce = Double.random(in: -75 ... -25)
@@ -1651,6 +1659,29 @@ struct AppIconView: View {
                         response: 1.75,
                         dampingFraction: 0.5,
                         blendDuration: 0.25
+                    )
+                ) {
+                    bounceOffset = 0
+                    }
+                }
+        }
+    }
+    
+    private func bounceItems() {
+        if SizingGuide.getCommonSettings().animations.bounceEnabled {
+             if SizingGuide.getCommonSettings().animations.bounceEnabled {
+                let a = Double.random(in: 0.1...0.2)
+                let b = Double.random(in: 0.01...0.02)
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + a + b) {
+                    let randomBounce = Double.random(in: -35 ... -25)
+                    bounceOffset = randomBounce
+                
+                withAnimation(
+                    .spring(
+                        response: 0.75,
+                        dampingFraction: 1,
+                        blendDuration: 0.5
                     )
                 ) {
                     bounceOffset = 0

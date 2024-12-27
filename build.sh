@@ -1,119 +1,155 @@
 #!/bin/bash
+source ./common.sh
 
-# Clean previous builds
-rm -rf GameChanger.app
-rm -rf .build
-rm -rf AppIcon.iconset
+# Default values
+BUILD_TYPE="release"
+SHOULD_OPEN=false
+ONLY_OPEN=false
 
-# Create app bundle structure
-mkdir -p GameChanger.app/Contents/{MacOS,Resources}
-mkdir -p AppIcon.iconset
+show_help() {
+    echo "Usage: ./build.sh [-d|-r] [-o] [-h]"
+    echo ""
+    echo "Options:"
+    echo "  -d    Build debug version"
+    echo "  -r    Build release version (default)"
+    echo "  -o    Open app after building, or just open if no other flags"
+    echo "  -h    Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  ./build.sh -r        # Build release version"
+    echo "  ./build.sh -d        # Build debug version"
+    echo "  ./build.sh -o        # Open existing app"
+    echo "  ./build.sh -r -o     # Build release and open"
+    echo "  ./build.sh -d -o     # Build debug and open with debugger"
+    exit 0
+}
 
-# Create icon sizes from superbox64.png
-sips -z 16 16     Sources/GameChanger/images/png/superbox64.png --out AppIcon.iconset/icon_16x16.png
-sips -z 32 32     Sources/GameChanger/images/png/superbox64.png --out AppIcon.iconset/icon_16x16@2x.png
-sips -z 32 32     Sources/GameChanger/images/png/superbox64.png --out AppIcon.iconset/icon_32x32.png
-sips -z 64 64     Sources/GameChanger/images/png/superbox64.png --out AppIcon.iconset/icon_32x32@2x.png
-sips -z 128 128   Sources/GameChanger/images/png/superbox64.png --out AppIcon.iconset/icon_128x128.png
-sips -z 256 256   Sources/GameChanger/images/png/superbox64.png --out AppIcon.iconset/icon_128x128@2x.png
-sips -z 256 256   Sources/GameChanger/images/png/superbox64.png --out AppIcon.iconset/icon_256x256.png
-sips -z 512 512   Sources/GameChanger/images/png/superbox64.png --out AppIcon.iconset/icon_256x256@2x.png
-sips -z 512 512   Sources/GameChanger/images/png/superbox64.png --out AppIcon.iconset/icon_512x512.png
-sips -z 1024 1024 Sources/GameChanger/images/png/superbox64.png --out AppIcon.iconset/icon_512x512@2x.png
+# Parse command line arguments
+while getopts "droh" opt; do
+    case $opt in
+        d) BUILD_TYPE="debug" ;;
+        r) BUILD_TYPE="release" ;;
+        o) 
+            if [ $OPTIND -eq 2 ]; then
+                ONLY_OPEN=true
+            else
+                SHOULD_OPEN=true
+            fi
+            ;;
+        h) show_help ;;
+        \?) echo "Invalid option -$OPTARG" >&2; exit 1 ;;
+    esac
+done
 
-# Create icns file
-iconutil -c icns AppIcon.iconset -o GameChanger.app/Contents/Resources/AppIcon.icns
+# Add this function near the top of the script
+show_debug_help() {
+    echo ""
+    echo "Common LLDB Commands:"
+    echo "-----------------------------------"
+    echo "run                     # Start the app"
+    echo "breakpoint set -n name  # Set breakpoint at function name"
+    echo "bt                      # Show backtrace (call stack)"
+    echo "continue               # Continue execution"
+    echo "next                   # Step over"
+    echo "step                   # Step into"
+    echo "quit                   # Exit debugger"
+    echo "-----------------------------------"
+    echo ""
+}
 
-# Create Info.plist
-cat > GameChanger.app/Contents/Info.plist << EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>CFBundleExecutable</key>
-    <string>GameChanger</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.SuperBox64.GameChanger</string>
-    <key>CFBundleName</key>
-    <string>GameChanger</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-    <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
-    <key>LSMinimumSystemVersion</key>
-    <string>12.0</string>
-    <key>CFBundleSupportedPlatforms</key>
-    <array>
-        <string>MacOSX</string>
-    </array>
-    <key>CFBundleIconFile</key>
-    <string>AppIcon</string>
-    <key>NSAppleEventsUsageDescription</key>
-    <string>GameChanger needs to control window state of launched applications.</string>
-    <key>NSAccessibilityUsageDescription</key>
-    <string>GameChanger needs accessibility access to control application windows.</string>
-</dict>
-</plist>
-EOF
+check_debug_permissions() {
+    if ! csrutil status | grep -q "disabled"; then
+        echo "Note: System Integrity Protection might prevent debugging."
+        echo "You may need to grant additional permissions in:"
+        echo "System Settings > Privacy & Security > Developer Tools"
+        echo ""
+    fi
+    
+    if ! DevToolsSecurity -status | grep -q "enabled"; then
+        echo "Debug permissions not enabled. Please run:"
+        echo "sudo DevToolsSecurity -enable"
+        echo ""
+        echo "Then try again."
+        exit 1
+    fi
+    
+    if ! dscl . read /Groups/_developer GroupMembership | grep -q $(whoami); then
+        echo "User not in developer group. Please run:"
+        echo "sudo dscl . append /Groups/_developer GroupMembership $(whoami)"
+        echo ""
+        echo "Then try again."
+        exit 1
+    fi
+}
 
-# Build Universal Binary (Apple Silicon and Intel)
-echo "Building for Apple Silicon..."
-swift build -c release --arch arm64 --jobs $(sysctl -n hw.ncpu) -Xswiftc -O -Xswiftc -whole-module-optimization
-echo "Building for Intel..."
-swift build -c release --arch x86_64 --jobs $(sysctl -n hw.ncpu) -Xswiftc -O -Xswiftc -whole-module-optimization
+if [ "$ONLY_OPEN" = true ]; then
+    if [ -d "GameChanger.app" ]; then
+        echo "Opening existing GameChanger.app..."
+        open GameChanger.app
+        exit 0
+    else
+        echo "Error: GameChanger.app not found. Build it first."
+        exit 1
+    fi
+fi
 
-# Create Universal Binary
-echo "Creating Universal Binary..."
-lipo -create \
-    .build/arm64-apple-macosx/release/GameChanger \
-    .build/x86_64-apple-macosx/release/GameChanger \
-    -output GameChanger.app/Contents/MacOS/GameChanger
+# Execute common setup
+clean_builds
+create_app_structure
+create_info_plist
 
-# Create Resources directory structure
-mkdir -p GameChanger.app/Contents/Resources/images/{svg,jpg,png,logo}
-mkdir -p Sources/GameChanger/Resources
-
-# Copy JSON files if they don't exist in source
-[ ! -f Sources/GameChanger/Resources/app_items.json ] && cp Resources/app_items.json Sources/GameChanger/Resources/ || true
-[ ! -f Sources/GameChanger/Resources/gamechanger-ui.json ] && cp Resources/gamechanger-ui.json Sources/GameChanger/Resources/ || true
-
-# Copy resources
-cp -r Sources/GameChanger/images/svg/* GameChanger.app/Contents/Resources/images/svg/
-cp -r Sources/GameChanger/images/jpg/* GameChanger.app/Contents/Resources/images/jpg/
-cp -r Sources/GameChanger/images/png/* GameChanger.app/Contents/Resources/images/png/
-cp -r Sources/GameChanger/images/logo/* GameChanger.app/Contents/Resources/images/logo/
-cp Sources/GameChanger/Resources/app_items.json GameChanger.app/Contents/Resources/
-cp Sources/GameChanger/Resources/gamechanger-ui.json GameChanger.app/Contents/Resources/
-
-# Set permissions
-chmod +x GameChanger.app/Contents/MacOS/GameChanger
-
-# Clean any resource forks and Finder metadata
-xattr -cr GameChanger.app
-find GameChanger.app -type f -name "._*" -delete
-find GameChanger.app -type f -name ".DS_Store" -delete
-
-# Debug: Show all available certificates
-echo "Available certificates:"
-security find-identity -v -p codesigning
-
-# Get first available Developer ID (modified pattern)
-DEVELOPER_ID=$(security find-identity -v -p codesigning | grep "Apple Distribution" | head -1 | awk -F '"' '{print $2}')
-
-if [ -z "$DEVELOPER_ID" ]; then
-    echo "No Developer ID found. Using ad-hoc signing with entitlements."
-    codesign --force --deep --sign - \
-             --entitlements "GameChanger.entitlements" \
-             --options runtime \
-             GameChanger.app
+if [ "$BUILD_TYPE" = "debug" ]; then
+    echo "Building debug version for Apple Silicon..."
+    # Remove the problematic -O0 flag and simplify debug build
+    swift build -c debug \
+        --arch arm64 \
+        --jobs $(sysctl -n hw.ncpu) \
+        -Xswiftc "-g"
+    
+    # Copy binary
+    cp .build/arm64-apple-macosx/debug/GameChanger GameChanger.app/Contents/MacOS/GameChanger
 else
-    echo "Signing with: $DEVELOPER_ID"
-    codesign --force --deep --sign "$DEVELOPER_ID" \
-             --entitlements "GameChanger.entitlements" \
-             --options runtime \
-             GameChanger.app
+    echo "Building release version..."
+    # Build Universal Binary
+    echo "Building for Apple Silicon..."
+    swift build -c release --arch arm64 --jobs $(sysctl -n hw.ncpu) -Xswiftc -O -Xswiftc -whole-module-optimization
+    echo "Building for Intel..."
+    swift build -c release --arch x86_64 --jobs $(sysctl -n hw.ncpu) -Xswiftc -O -Xswiftc -whole-module-optimization
+
+    # Create Universal Binary
+    lipo -create \
+        .build/arm64-apple-macosx/release/GameChanger \
+        .build/x86_64-apple-macosx/release/GameChanger \
+        -output GameChanger.app/Contents/MacOS/GameChanger
+fi
+
+# Copy resources and sign
+copy_resources
+chmod +x GameChanger.app/Contents/MacOS/GameChanger
+sign_app
+
+# Add this after signing in debug mode
+if [ "$BUILD_TYPE" = "debug" ]; then
+    echo "Verifying debug build signing..."
+    codesign -dvv GameChanger.app
 fi
 
 echo "App bundle created at GameChanger.app"
-open GameChanger.app 
-#./GameChanger.app/Contents/MacOS/GameChanger'
+if [ "$SHOULD_OPEN" = true ]; then
+    if [ "$BUILD_TYPE" = "debug" ]; then
+        check_debug_permissions
+        show_debug_help
+        echo "Launching in debug mode with lldb..."
+        echo "Type 'run' to start the app"
+        echo "Type 'bt' for backtrace if it crashes"
+        echo "Type 'quit' to exit debugger"
+        echo "-----------------------------------"
+        
+        # Try launching with different flags
+        lldb -o "run" \
+             -f GameChanger.app/Contents/MacOS/GameChanger \
+             --wait-for
+    else
+        open GameChanger.app
+    fi
+fi

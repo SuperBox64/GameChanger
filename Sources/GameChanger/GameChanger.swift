@@ -2387,7 +2387,7 @@ class SoundPlayer {
 
 
 func showErrorModal(
-    title: String, 
+    title: String,
     message: String,
     buttons: [String] = ["OK"],
     defaultButton: String = "OK",
@@ -2398,12 +2398,17 @@ func showErrorModal(
         return
     }
     
-    // Play system sound for error
-    if let sound = NSSound(named: "Funk") {
-        sound.play()
-    }
+    NSCursor.unhide()  // Show cursor before creating alert
     
-    NSCursor.unhide()  // Keep this - it's important!
+    // Create a hidden window for alerts
+    let alertWindow = NSWindow(
+        contentRect: .zero,
+        styleMask: [.titled],
+        backing: .buffered,
+        defer: true
+    )
+    alertWindow.isReleasedWhenClosed = true
+    alertWindow.orderOut(nil)
     
     let alert = NSAlert()
     alert.messageText = title
@@ -2417,6 +2422,7 @@ func showErrorModal(
         }
     }
     
+    alert.window.level = .floating  // Make alert float above main window
     let response = alert.runModal()
     let buttonIndex = response.rawValue - NSApplication.ModalResponse.alertFirstButtonReturn.rawValue
     let clickedButton = buttons[Int(buttonIndex)]

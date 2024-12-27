@@ -108,11 +108,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("=== Starting Image Loading ===")
         initializeCache()
         
-        // After cache is initialized and app is loaded, trigger bounce
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            NotificationCenter.default.post(name: .bounceItems, object: nil)
-        }
-        
+        NotificationCenter.default.post(name: .bounceItems, object: nil)
+ 
         if UIVisibilityState.shared.mouseVisible {
             NSCursor.unhide()
         } else {
@@ -1643,16 +1640,18 @@ struct AppIconView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .bounceItems)) { _ in
-            if SizingGuide.getCommonSettings().animations.bounceEnabled {      
-                DispatchQueue.main.async {
-                    let randomBounce = Double.random(in: -50 ... -25)
+            if SizingGuide.getCommonSettings().animations.bounceEnabled {
+                let randomDelay = Double.random(in: 0...0.05)
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + randomDelay) {
+                    let randomBounce = Double.random(in: -75 ... -25)
                     bounceOffset = randomBounce
                 
                 withAnimation(
                     .spring(
-                        response: 2,
-                        dampingFraction: 1.5,
-                        blendDuration: 1.5
+                        response: 1.75,
+                        dampingFraction: 0.5,
+                        blendDuration: 0.25
                     )
                 ) {
                     bounceOffset = 0

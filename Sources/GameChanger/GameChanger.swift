@@ -98,6 +98,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.setFrame(NSScreen.main?.frame ?? .zero, display: true)
             window.alphaValue = 0.0
   
+            // Prevent window scaling when alerts appear
+            NotificationCenter.default.addObserver(
+                forName: NSWindow.willBeginSheetNotification,
+                object: window,
+                queue: .main
+            ) { _ in
+                window.setContentSize(NSScreen.main?.frame.size ?? .zero)
+            }
+  
             NSAnimationContext.runAnimationGroup { context in
                 context.duration = 0.5
                 context.timingFunction = CAMediaTimingFunction(name: .linear)
@@ -220,9 +229,7 @@ enum Action: String, Codable {
         UIVisibilityState.shared.isExecutingPath = true
         
         // Hide UI elements first with shorter fade duration
-        withAnimation(.easeOut(duration: 0.375)) {
-            UIVisibilityState.shared.isVisible = false
-        }
+        UIVisibilityState.shared.isVisible = false
         
         // Launch the process
         DispatchQueue.global(qos: .userInitiated).async {
@@ -414,16 +421,32 @@ struct NavigationOverlayView: View {
     var body: some View {
         VStack {
             Spacer()
-            NavigationDotsView(
+            NavigationDotsNSViewRepresentable(
                 currentPage: navigationState.currentPage,
                 totalPages: navigationState.numberOfPages,
                 onPageSelect: { page in
                     contentState.jumpToPage(page)
                 }
             )
+            .frame(width: 600, height: 100)
+            .opacity(navigationState.numberOfPages > 1 ? 1 : 0)  // Hide if only one page
         }
         .opacity(navigationState.opacity)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+struct SizePreservingView<Content: View>: View {
+    let content: () -> Content
+    
+    init(@ViewBuilder content: @escaping () -> Content) {
+        self.content = content
+    }
+    
+    var body: some View {
+        content()
+            .fixedSize()
+            .allowsHitTesting(true)
     }
 }
 
@@ -1669,22 +1692,22 @@ struct AppIconView: View {
     
     private func bounceItems() {
         if SizingGuide.getCommonSettings().animations.bounceEnabled {
-             if SizingGuide.getCommonSettings().animations.bounceEnabled {
-                let a = Double.random(in: 0.1...0.2)
-                let b = Double.random(in: 0.01...0.02)
+              if SizingGuide.getCommonSettings().animations.bounceEnabled {
+                let randomDelay = Double.random(in: 0...0.1)
+                let baseDelay = Double(itemIndex) * 0.05
                 
-                DispatchQueue.main.asyncAfter(deadline: .now() + a + b) {
-                    let randomBounce = Double.random(in: -35 ... -25)
+                DispatchQueue.main.asyncAfter(deadline: .now() + baseDelay + randomDelay) {
+                    let randomBounce = Double.random(in: (-45)...(-35))
                     bounceOffset = randomBounce
-                
-                withAnimation(
-                    .spring(
-                        response: 0.75,
-                        dampingFraction: 1,
-                        blendDuration: 0.5
-                    )
-                ) {
-                    bounceOffset = 0
+                    
+                    withAnimation(
+                        .spring(
+                            response: 1.0,
+                            dampingFraction: 0.55,
+                            blendDuration: 0
+                        )
+                    ) {
+                        bounceOffset = 0
                     }
                 }
             }
@@ -1828,37 +1851,98 @@ struct MouseProgressView: View {
     }
 }
 
-struct NavigationDotsView: View {
-    @EnvironmentObject private var windowSizeMonitor: WindowSizeMonitor
-    @StateObject private var uiVisibility = UIVisibilityState.shared
-    let currentPage: Int
-    let totalPages: Int
-    let onPageSelect: (Int) -> Void
+class NavigationDotsNSView: NSView {
+    var currentPage: Int = 0
+    var totalPages: Int = 0
+    var onPageSelect: ((Int) -> Void)?
     
-    private var settings: NavigationSettings {
-        return SizingGuide.getSettings(for: windowSizeMonitor.currentResolution).navigationDots
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        wantsLayer = true
     }
     
-    var body: some View {
-        HStack(spacing: settings.spacing) {
-            ForEach(0..<totalPages, id: \.self) { index in
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: settings.size, height: settings.size)
-                    .opacity(totalPages == 1 ? 0 : (index == currentPage ? 1 : SizingGuide.getCommonSettings().navigation.opacity))
-                    .contentShape(Rectangle())
-                    .frame(width: settings.size * 2, height: settings.size * 2)
-                    .onTapGesture {
-                        if uiVisibility.mouseVisible && index != currentPage {
-                            onPageSelect(index)
-                        }
-                    }
-                    .animation(.easeInOut(duration: 0.3), value: currentPage)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        
+        let dotSize: CGFloat = 16
+        let spacing: CGFloat = 26  // 16px dot + 10px space between dots
+        let bottomPadding: CGFloat = 30
+        
+        let maxDotsPerRow = 12
+        let rows = (totalPages + maxDotsPerRow - 1) / maxDotsPerRow
+        let dotsInLastRow = totalPages % maxDotsPerRow == 0 ? maxDotsPerRow : totalPages % maxDotsPerRow
+        
+        for row in 0..<rows {
+            let dotsInThisRow = row == rows - 1 ? dotsInLastRow : maxDotsPerRow
+            let totalWidth = CGFloat(dotsInThisRow) * (dotSize + spacing) - spacing
+            let startX = (bounds.width - totalWidth) / 2
+            let y = bounds.height - bottomPadding - CGFloat(row) * (dotSize + spacing) - dotSize
+            
+            for col in 0..<dotsInThisRow {
+                let index = row * maxDotsPerRow + col
+                let x = startX + CGFloat(col) * (dotSize + spacing)
+                let dotRect = NSRect(x: x, y: y, width: dotSize, height: dotSize)
+                let path = NSBezierPath(ovalIn: dotRect)
+                
+                if index == currentPage {
+                    NSColor.white.setFill()
+                } else {
+                    NSColor.white.withAlphaComponent(0.3).setFill()
+                }
+                path.fill()
             }
         }
-        .padding(.bottom, settings.bottomPadding)
-        .zIndex(1)
-        .animation(.easeInOut(duration: 0.3), value: totalPages)
+    }
+    
+    override func mouseDown(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
+        let dotSize: CGFloat = 16
+        let spacing: CGFloat = 26  // 16px dot + 10px space between dots
+        let bottomPadding: CGFloat = 30
+        let maxDotsPerRow = 12
+        let rows = (totalPages + maxDotsPerRow - 1) / maxDotsPerRow
+        
+        for row in 0..<rows {
+            let dotsInThisRow = row == rows - 1 ? (totalPages % maxDotsPerRow == 0 ? maxDotsPerRow : totalPages % maxDotsPerRow) : maxDotsPerRow
+            let totalWidth = CGFloat(dotsInThisRow) * (dotSize + spacing) - spacing
+            let startX = (bounds.width - totalWidth) / 2
+            let y = bounds.height - bottomPadding - CGFloat(row) * (dotSize + spacing) - dotSize
+            
+            for col in 0..<dotsInThisRow {
+                let index = row * maxDotsPerRow + col
+                let x = startX + CGFloat(col) * (dotSize + spacing)
+                let dotRect = NSRect(x: x, y: y, width: dotSize, height: dotSize)
+                if dotRect.contains(point) {
+                    onPageSelect?(index)
+                    break
+                }
+            }
+        }
+    }
+}
+
+struct NavigationDotsNSViewRepresentable: NSViewRepresentable {
+    var currentPage: Int
+    var totalPages: Int
+    var onPageSelect: (Int) -> Void
+    
+    func makeNSView(context: Context) -> NavigationDotsNSView {
+        let view = NavigationDotsNSView(frame: .zero)
+        view.currentPage = currentPage
+        view.totalPages = totalPages
+        view.onPageSelect = onPageSelect
+        return view
+    }
+    
+    func updateNSView(_ nsView: NavigationDotsNSView, context: Context) {
+        nsView.currentPage = currentPage
+        nsView.totalPages = totalPages
+        nsView.onPageSelect = onPageSelect
+        nsView.needsDisplay = true
     }
 }
 

@@ -10,8 +10,9 @@ import Carbon.HIToolbox
 class UIVisibilityState: ObservableObject {
     static let shared = UIVisibilityState()
     @Published var isVisible = false
+    @Published var isGridVisible = false
     @Published var mouseVisible = false
-    @Published var isExecutingPath = false
+    @Published var isExecutingPath: Bool = false
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -76,7 +77,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let window = NSApp.windows.first {
             window.styleMask = [.borderless]
             window.makeKeyAndOrderFront(nil)
-            //window.level = .init(rawValue: 10000)
             window.setFrame(NSScreen.main?.frame ?? .zero, display: true)
             
             if SizingGuide.getCommonSettings().enableScreenshots {
@@ -92,33 +92,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("=== Starting Image Loading ===")
         initializeCache()
         
-        //NSApp.setActivationPolicy(.regular)
-        //NSApp.activate(ignoringOtherApps: true)
-
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard self != nil else { return event }
-            
-            // Handle mouse visibility
-            if event.keyCode == kVK_Escape {
-                UIVisibilityState.shared.mouseVisible.toggle()
-                if UIVisibilityState.shared.mouseVisible {
-                    SystemActions.sendAppleEvent(kAEActivate)
-                    NSCursor.unhide()
-                } else {
-                    NSCursor.hide()
-                    SystemActions.sendAppleEvent(kAEActivate)
-                }
-                //return nil
-            }
-            
-            // if event.keyCode == kVK_Escape { 
-            //     NotificationCenter.default.post(name: .escKeyPressed, object: nil)
-            //     return nil
-            // }
-            
-            return event
-        }
-
         if UIVisibilityState.shared.mouseVisible {
             NSCursor.unhide()
         } else {
@@ -126,8 +99,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         for index in 0..<3 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index)) {
-               
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index)) { 
                 SystemActions.sendAppleEvent(kAEActivate)
             }
         }
@@ -183,13 +155,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationDidBecomeActive(_ notification: Notification) {
-        // if UIVisibilityState.shared.mouseVisible {
-        //     NSCursor.unhide()
-        // } else {
-        //     NSCursor.hide()
-        // }
         NSApp.hideOtherApplications(nil)
-        
+        SystemActions.sendAppleEvent(kAEActivate)
+
         // Just trigger the fade in
         UIVisibilityState.shared.isVisible = true
     }
@@ -281,14 +249,19 @@ enum Action: String, Codable {
                         UIVisibilityState.shared.isVisible = false
                     }
                     
-                    if fileManager.isExecutableFile(atPath: pathToOpen) {
-                        launchApplication(at: pathToOpen)
-                                            
-                        if let appName, fullscreen == true {
-                            //DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                setFullScreen(for: appName)
+                        if fileManager.isExecutableFile(atPath: pathToOpen) {
+                            launchApplication(at: pathToOpen)
+                            
+                            // Add fade back in
+                            UIVisibilityState.shared.isVisible = true
+                                                
+                            if let appName, fullscreen == true {
+                                //DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                    setFullScreen(for: appName)
+                                //}
                             }
                         }
+
                     } else {
                         print("Path exists but is not executable: \(pathToOpen)")
                         UIVisibilityState.shared.isVisible = true
@@ -323,8 +296,8 @@ func launchApplication(at path: String, completion: ((Bool) -> Void)? = nil) {
 }
 
 // Handles fullscreen for applications using Accessibility API
-func setFullScreen(for appName: String) {  
-    sleep(1)
+func setFullScreen(for appName: String) {
+    sleep(1)  
     guard let app = NSWorkspace.shared.runningApplications.first(where: { $0.localizedName == appName }) else {
         print("Could not find application: \(appName)")
         return
@@ -449,7 +422,6 @@ struct GameChangerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var windowSizeMonitor = WindowSizeMonitor.shared
     @StateObject private var uiVisibility = UIVisibilityState.shared
-    @State private var showingGrid = false  // Changed back to false to hide grid
     
     var body: some Scene {
         WindowGroup {
@@ -458,7 +430,7 @@ struct GameChangerApp: App {
                 Group {
                     LogoView()
                     ClockView()
-                    if showingGrid {
+                    if uiVisibility.isGridVisible {
                         GameGridView()
                     } else {
                         ContentView()
@@ -474,15 +446,6 @@ struct GameChangerApp: App {
             .frame(width: .infinity, height: .infinity)
             .environmentObject(windowSizeMonitor)
             // Add keyboard shortcut to toggle views
-            .onAppear {
-                NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-                    if event.keyCode == kVK_ANSI_G && event.modifierFlags.contains(.command) {
-                        showingGrid.toggle()
-                        return nil
-                    }
-                    return event
-                }
-            }
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.automatic)
@@ -947,6 +910,21 @@ struct ContentView: View {
     
             // Then handle other keys
             switch Int(event.keyCode) {
+                  // Handle mouse visibility
+            case kVK_ANSI_G:
+                UIVisibilityState.shared.isGridVisible.toggle()
+            case kVK_ANSI_Q:
+                NSApplication.shared.terminate(nil)
+                return nil
+            case kVK_Escape:
+                UIVisibilityState.shared.mouseVisible.toggle()
+                if UIVisibilityState.shared.mouseVisible {
+                    SystemActions.sendAppleEvent(kAEActivate)
+                    NSCursor.unhide()
+                } else {
+                    NSCursor.hide()
+                    SystemActions.sendAppleEvent(kAEActivate)
+                }
             case kVK_UpArrow:
                 resetMouseState()
                 back()
@@ -967,7 +945,7 @@ struct ContentView: View {
                 handleSelection()
             default: break
             }
-            return event
+            return nil
         }
     }
     
@@ -1145,9 +1123,9 @@ struct ContentView: View {
             }
         }
         .onDisappear {
-            if let monitor = keyMonitor {
-                NSEvent.removeMonitor(monitor)
-            }
+            // if let monitor = keyMonitor {
+            //     NSEvent.removeMonitor(monitor)
+            // }
             NotificationCenter.default.removeObserver(self)
             NSCursor.unhide()  // Make sure cursor is visible when view disappears
         }

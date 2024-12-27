@@ -129,6 +129,13 @@
             "action": ""
         },
         {
+            "name": "BigPEmu",
+            "systemIcon": "BigPEmu",
+            "parent": "Game Changer",
+            "action": "terminal",
+            "path": "/Applications/BigPEmu.app"
+        },
+        {
             "name": "PlayStation 2",
             "systemIcon": "ps2",
             "parent": "Game Changer",

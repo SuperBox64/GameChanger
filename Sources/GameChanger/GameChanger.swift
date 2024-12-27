@@ -6,6 +6,7 @@
 import SwiftUI
 import GameController
 import Carbon.HIToolbox
+import AVFoundation
 
 class UIVisibilityState: ObservableObject {
     static let shared = UIVisibilityState()
@@ -88,22 +89,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        //DispatchQueue.main.async {
-        if let window = NSApp.windows.first {
-            window.styleMask = [.borderless]
-            window.makeKeyAndOrderFront(nil)
-            window.setFrame(NSScreen.main?.frame ?? .zero, display: true)
-            
-            if SizingGuide.getCommonSettings().enableScreenshots {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    self.takeScreenshot()
-                }
-            }
-        }
-
         let presOptions: NSApplication.PresentationOptions = [.hideDock, .hideMenuBar]
         NSApp.presentationOptions = presOptions
 
+        if let window = NSApp.windows.first {
+            window.styleMask = [.borderless, .fullSizeContentView]
+            window.makeKeyAndOrderFront(nil)
+            window.setFrame(NSScreen.main?.frame ?? .zero, display: true)
+            window.alphaValue = 0.0
+  
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.5
+                context.timingFunction = CAMediaTimingFunction(name: .linear)
+                window.animator().alphaValue = 1.0
+            }      
+        }
+        
         print("=== Starting Image Loading ===")
         initializeCache()
         
@@ -143,8 +144,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             keyEquivalent: "q"
         )
         appMenu.addItem(quitMenuItem)
-        playSound("Pop")
-      
+
+        if SizingGuide.getCommonSettings().enableScreenshots {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                self.takeScreenshot()
+            }
+        }
+        
     }
     
     func applicationWillTerminate(_ notification: Notification) {
@@ -449,25 +455,35 @@ struct GameChangerApp: App {
         WindowGroup {
             ZStack {
                 BackgroundView()
+                .onAppear {
+                    SoundPlayer.shared.preloadStartupSound()
+                }
+                
                 Group {
-                LogoView()
-                ClockView()
+                    LogoView()
+                    ClockView()
                     if uiVisibility.isGridVisible {
                         GameGridView()
                     } else {
-                ContentView()
+                        ContentView()
                     }
-                MouseIndicatorView()
-                NavigationOverlayView()
-                ShortcutHintView()
+                    MouseIndicatorView()
+                    NavigationOverlayView()
+                    ShortcutHintView()
                 }
-                    .opacity(uiVisibility.isVisible ? 1 : 0)
-                .animation(.easeOut(duration: 1.875), value: uiVisibility.isVisible)
+                .opacity(uiVisibility.isVisible ? 1 : 0)
+                .animation(
+                    .spring(
+                        response: 1.2,
+                        dampingFraction: 0.8,
+                        blendDuration: 1.0
+                    ),
+                    value: uiVisibility.isVisible
+                )
             }
             .background(Color.black)
             .frame(width: .infinity, height: .infinity)
             .environmentObject(windowSizeMonitor)
-            // Add keyboard shortcut to toggle views
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.automatic)
@@ -2233,13 +2249,32 @@ extension Array {
     }
 }
 
-func playSound(_ name: String) {
-    DispatchQueue.main.async {
-        if let sound = NSSound(named: name) {
-            sound.play()
+class SoundPlayer {
+    static let shared = SoundPlayer()
+    private var audioPlayer: AVAudioPlayer?
+    
+    func preloadStartupSound() {
+        guard let soundURL = Bundle.main.url(
+            forResource: "StartupTwentiethAnniversaryMac", 
+            withExtension: "wav") else {
+                print("Could not find sound file")
+                return
+        }
+        
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: soundURL)
+            audioPlayer?.prepareToPlay()
+            audioPlayer?.volume = 0.75
+            audioPlayer?.play()
+            
+            print("Playing sound...")
+        } catch {
+            print("Failed to load sound: \(error)")
         }
     }
 }
+
+
 
 func showErrorModal(
     title: String, 
@@ -2253,7 +2288,11 @@ func showErrorModal(
         return
     }
     
-    playSound("Funk")
+    // Play system sound for error
+    if let sound = NSSound(named: "Funk") {
+        sound.play()
+    }
+    
     NSCursor.unhide()  // Keep this - it's important!
     
     let alert = NSAlert()

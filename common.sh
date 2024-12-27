@@ -77,6 +77,7 @@ copy_resources() {
     cp -r Sources/GameChanger/images/logo/* GameChanger.app/Contents/Resources/images/logo/
     cp Sources/GameChanger/Resources/app_items.json GameChanger.app/Contents/Resources/
     cp Sources/GameChanger/Resources/gamechanger-ui.json GameChanger.app/Contents/Resources/
+    cp Sources/GameChanger/Resources/StartupTwentiethAnniversaryMac.wav GameChanger.app/Contents/Resources/
 }
 
 # Sign the app

@@ -19,7 +19,8 @@ let package = Package(
                 .process("images/logo"),
                 .process("images/svg"),
                 .process("images/jpg"),
-                .process("images/png")
+                .process("images/png"),
+                .process("Resources/StartupTwentiethAnniversaryMac.wav")
             ]
         )
     ]

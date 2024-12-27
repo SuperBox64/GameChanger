@@ -10,5 +10,7 @@
     <true/>
     <key>com.apple.security.accessibility</key>
     <true/>
+    <key>com.apple.security.get-task-allow</key>
+    <true/>
 </dict>
 </plist> 

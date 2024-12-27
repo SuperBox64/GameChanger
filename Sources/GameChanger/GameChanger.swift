@@ -193,7 +193,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-
 // Types needed for items
 struct Section: RawRepresentable, Codable {
     let rawValue: String
@@ -1641,7 +1640,7 @@ struct AppIconView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .bounceItems)) { _ in
             if SizingGuide.getCommonSettings().animations.bounceEnabled {
-                let randomDelay = Double.random(in: 0...0.05)
+                let randomDelay = Double.random(in: 0.1...0.2)
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + randomDelay) {
                     let randomBounce = Double.random(in: -75 ... -25)
@@ -2309,4 +2308,5 @@ func showErrorModal(
     
     completion?(clickedButton)
 }
+
 

@@ -128,30 +128,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             keyEquivalent: "q"
         )
         appMenu.addItem(quitMenuItem)
-        
-        playPianoChord()
-        //}
-
-        // Add observer for system dialogs
-        // NSWorkspace.shared.notificationCenter.addObserver(
-        //     self,
-        //     selector: #selector(systemDialogDidAppear),
-        //     name: NSWorkspace.didActivateApplicationNotification,
-        //     object: nil
-        // )
-
+        playSound("Pop")
       
     }
-    
-    // @objc private func systemDialogDidAppear(_ notification: Notification) {
-    //     if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
-    //        app.bundleIdentifier == "com.apple.systempreferences" || 
-    //        app.bundleIdentifier == "com.apple.SecurityAgent" {
-    //         // Show mouse cursor when system dialog appears
-    //         UIVisibilityState.shared.mouseVisible = true
-    //         NSCursor.unhide()
-    //     }
-    // }
     
     func applicationWillTerminate(_ notification: Notification) {
         //cursorHideTimer?.invalidate()
@@ -220,6 +199,121 @@ enum Action: String, Codable {
     case activate = "activate"
     case process = "process"
 
+    private func executeProcess(_ command: String) {
+        guard !UIVisibilityState.shared.isExecutingPath else { return }
+        UIVisibilityState.shared.isExecutingPath = true
+        
+        // Hide UI elements first with shorter fade duration
+        withAnimation(.easeOut(duration: 0.375)) {
+            UIVisibilityState.shared.isVisible = false
+        }
+        
+        // Launch the process
+        DispatchQueue.global(qos: .userInitiated).async {
+            let parts = command.split(separator: " ", maxSplits: 1).map(String.init)
+            guard let executable = parts.first else {
+                DispatchQueue.main.async {
+                    print("Invalid command: \(command)")
+                    UIVisibilityState.shared.isVisible = true
+                    UIVisibilityState.shared.isExecutingPath = false
+                }
+                return
+            }
+            
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: executable)
+            
+            // Set up pipes for output
+            let outputPipe = Pipe()
+            let errorPipe = Pipe()
+            process.standardOutput = outputPipe
+            process.standardError = errorPipe
+            
+            // If there are arguments after the executable
+            if parts.count > 1 {
+                process.arguments = [parts[1]]
+            }
+            
+            do {
+                try process.run()
+            } catch {
+                print("Failed to execute process: \(error)")
+                
+                // Ensure UI updates happen on main thread
+                DispatchQueue.main.async {
+                    
+                    showErrorModal(
+                        title: "Failed to Execute App",
+                        message: "Could not run: \(command)\nError: \(error.localizedDescription)",
+                        buttons: ["OK"],
+                        defaultButton: "OK"
+                    ) { button in
+                        switch button {
+                        case "OK":
+                            UIVisibilityState.shared.isVisible = true
+                            UIVisibilityState.shared.isExecutingPath = false
+                        default:
+                            break
+                        }
+
+                        if UIVisibilityState.shared.mouseVisible {
+                            NSCursor.unhide()
+                        } else {
+                            NSCursor.hide()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private func executePath(_ pathToOpen: String, appName: String?, fullscreen: Bool?) {
+        guard !UIVisibilityState.shared.isExecutingPath else { return }
+        UIVisibilityState.shared.isExecutingPath = true
+        
+        let fileManager = FileManager.default
+        var isDirectory: ObjCBool = false
+        
+        // Check if path exists and is executable
+        if fileManager.fileExists(atPath: pathToOpen, isDirectory: &isDirectory) {
+            if fileManager.isExecutableFile(atPath: pathToOpen) {
+                // Clear selection and reset content state
+                ContentState.shared.selectedIndex = -1
+                ContentState.shared.currentSection = "Game Changer"
+                
+                // Hide UI elements first
+                withAnimation(.easeOut(duration: 0.375)) {
+                    UIVisibilityState.shared.isVisible = false
+                }
+                
+                launchApplication(at: pathToOpen)
+                
+                // Add fade back in
+                UIVisibilityState.shared.isVisible = true
+                
+                if let appName, fullscreen == true {
+                    setFullScreen(for: appName)
+                }
+                
+         
+            } else {
+                showErrorModal(
+                    title: "App Not Executable",
+                    message: "Path exists but is not executable: \(pathToOpen)"
+                ) { button in
+                    UIVisibilityState.shared.mouseVisible = false
+                    NSCursor.hide()
+                }
+            }
+        } else {
+            showErrorModal(
+                title: "App Not Found",
+                message: "Path does not exist: \(pathToOpen)"
+            )
+        }
+        UIVisibilityState.shared.isExecutingPath = false
+    }
+    
     func execute(with path: String? = nil, appName: String? = nil, fullscreen: Bool? = nil) {
         print("Executing action: \(self)")
         switch self {
@@ -237,95 +331,15 @@ enum Action: String, Codable {
             NSApplication.shared.terminate(nil)
         case .process:
             if let command = path {
-                // Guard against multiple executions
-                guard !UIVisibilityState.shared.isExecutingPath else { return }
-                UIVisibilityState.shared.isExecutingPath = true
-                
-                // Hide UI elements first with shorter fade duration
-                withAnimation(.easeOut(duration: 0.375)) {
-                    UIVisibilityState.shared.isVisible = false
-                }
-                
-                // Launch the process
-                DispatchQueue.global(qos: .userInitiated).async {
-                    let parts = command.split(separator: " ", maxSplits: 1).map(String.init)
-                    guard let executable = parts.first else { return }
-                    
-                    let process = Process()
-                    process.executableURL = URL(fileURLWithPath: executable)
-                    
-                    // Set up pipes for output (makes process.run() non-blocking)
-                    let outputPipe = Pipe()
-                    let errorPipe = Pipe()
-                    process.standardOutput = outputPipe
-                    process.standardError = errorPipe
-                    
-                    // If there are arguments after the executable
-                    if parts.count > 1 {
-                        process.arguments = [parts[1]]
-                    }
-                    
-                    do {
-                        try process.run()
-                        // Immediately show UI again since we're not blocking
-                        DispatchQueue.main.async {
-                            UIVisibilityState.shared.isVisible = true
-                            UIVisibilityState.shared.isExecutingPath = false
-                        }
-                    } catch {
-                        print("Failed to execute process: \(error)")
-                        DispatchQueue.main.async {
-                            UIVisibilityState.shared.isVisible = true
-                            UIVisibilityState.shared.isExecutingPath = false
-                        }
-                    }
-                }
+                executeProcess(command)
             }
         case .path:
             if let pathToOpen = path {
-                // Guard against multiple executions
-                guard !UIVisibilityState.shared.isExecutingPath else { return }
-                UIVisibilityState.shared.isExecutingPath = true
-                
-                let fileManager = FileManager.default
-                var isDirectory: ObjCBool = false
-                
-                // Check if path exists and is executable
-                if fileManager.fileExists(atPath: pathToOpen, isDirectory: &isDirectory) {
-                    // Clear selection and reset content state
-                    ContentState.shared.selectedIndex = -1
-                    ContentState.shared.currentSection = "Game Changer"  // Add this property to ContentState
-                    
-                    // Hide UI elements first with shorter fade duration
-                    withAnimation(.easeOut(duration: 0.375)) {
-                        UIVisibilityState.shared.isVisible = false
-                    }
-                    
-                        if fileManager.isExecutableFile(atPath: pathToOpen) {
-                            launchApplication(at: pathToOpen)
-                            
-                            // Add fade back in
-                            UIVisibilityState.shared.isVisible = true
-                                                
-                            if let appName, fullscreen == true {
-                                //DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                    setFullScreen(for: appName)
-                                //}
-                            }
-                        }
-
-                    } else {
-                        print("Path exists but is not executable: \(pathToOpen)")
-                        UIVisibilityState.shared.isVisible = true
-                    }
-                    UIVisibilityState.shared.isExecutingPath = false
-                } else {
-                    UIVisibilityState.shared.isExecutingPath = false
-                }
+                executePath(pathToOpen, appName: appName, fullscreen: fullscreen)
             }
         }
     }
-
+}
 
 func launchApplication(at path: String, completion: ((Bool) -> Void)? = nil) {
     DispatchQueue.global(qos: .userInitiated).async {
@@ -340,7 +354,10 @@ func launchApplication(at path: String, completion: ((Bool) -> Void)? = nil) {
             }
         } catch {
             print("Failed to launch application: \(error)")
-            DispatchQueue.main.async {
+            showErrorModal(
+                title: "Failed to Launch Application", 
+                message: "Could not open: \(path)\nError: \(error.localizedDescription)"
+            ) { button in
                 completion?(false)
             }
         }
@@ -2263,11 +2280,55 @@ extension Array {
     }
 }
 
-func playPianoChord() {
-    DispatchQueue.main.async {
-        if let glass = NSSound(named: "Pop") {
-            glass.play()
+func playSound(_ name: String) {
+    if let glass = NSSound(named: name) {
+        glass.play()
+    }
+}
+
+func showErrorModal(
+    title: String, 
+    message: String,
+    buttons: [String] = ["OK"],
+    defaultButton: String = "OK",
+    completion: ((String) -> Void)? = nil
+) {
+
+    UIVisibilityState.shared.isVisible = false
+
+    // Ensure we're on the main thread for all UI operations
+    if !Thread.isMainThread {
+        DispatchQueue.main.async {
+            showErrorModal(title: title, 
+                         message: message, 
+                         buttons: buttons,
+                         defaultButton: defaultButton, 
+                         completion: completion)
+        }
+        return
+    }
+    
+    playSound("Funk")
+
+    NSCursor.unhide()
+
+    let alert = NSAlert()
+    alert.messageText = title
+    alert.informativeText = message
+    alert.alertStyle = .warning
+    
+    // Add buttons
+    for buttonTitle in buttons {
+        let button = alert.addButton(withTitle: buttonTitle)
+        if buttonTitle == defaultButton {
+            button.keyEquivalent = "\r"
         }
     }
+    
+    let response = alert.runModal()
+    let buttonIndex = response.rawValue - NSApplication.ModalResponse.alertFirstButtonReturn.rawValue
+    let clickedButton = buttons[Int(buttonIndex)]
+    
+    completion?(clickedButton)
 }
 

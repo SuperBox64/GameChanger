@@ -218,6 +218,7 @@ enum Action: String, Codable {
     case quit = "quit"
     case path = "path"
     case activate = "activate"
+    case process = "process"
 
     func execute(with path: String? = nil, appName: String? = nil, fullscreen: Bool? = nil) {
         print("Executing action: \(self)")
@@ -234,6 +235,52 @@ enum Action: String, Codable {
             SystemActions.sendAppleEvent(kAEShutDown)
         case .quit:
             NSApplication.shared.terminate(nil)
+        case .process:
+            if let command = path {
+                // Guard against multiple executions
+                guard !UIVisibilityState.shared.isExecutingPath else { return }
+                UIVisibilityState.shared.isExecutingPath = true
+                
+                // Hide UI elements first with shorter fade duration
+                withAnimation(.easeOut(duration: 0.375)) {
+                    UIVisibilityState.shared.isVisible = false
+                }
+                
+                // Launch the process
+                DispatchQueue.global(qos: .userInitiated).async {
+                    let parts = command.split(separator: " ", maxSplits: 1).map(String.init)
+                    guard let executable = parts.first else { return }
+                    
+                    let process = Process()
+                    process.executableURL = URL(fileURLWithPath: executable)
+                    
+                    // Set up pipes for output (makes process.run() non-blocking)
+                    let outputPipe = Pipe()
+                    let errorPipe = Pipe()
+                    process.standardOutput = outputPipe
+                    process.standardError = errorPipe
+                    
+                    // If there are arguments after the executable
+                    if parts.count > 1 {
+                        process.arguments = [parts[1]]
+                    }
+                    
+                    do {
+                        try process.run()
+                        // Immediately show UI again since we're not blocking
+                        DispatchQueue.main.async {
+                            UIVisibilityState.shared.isVisible = true
+                            UIVisibilityState.shared.isExecutingPath = false
+                        }
+                    } catch {
+                        print("Failed to execute process: \(error)")
+                        DispatchQueue.main.async {
+                            UIVisibilityState.shared.isVisible = true
+                            UIVisibilityState.shared.isExecutingPath = false
+                        }
+                    }
+                }
+            }
         case .path:
             if let pathToOpen = path {
                 // Guard against multiple executions

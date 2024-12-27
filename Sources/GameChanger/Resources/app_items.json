@@ -132,8 +132,8 @@
             "name": "BigPEmu",
             "systemIcon": "BigPEmu",
             "parent": "Game Changer",
-            "action": "terminal",
-            "path": "/Applications/BigPEmu.app"
+            "action": "process",
+            "path": "/opt/homebrew/bin/wine64 /Applications/BigPEmu_v117/BigPEmu.exe"
         },
         {
             "name": "PlayStation 2",

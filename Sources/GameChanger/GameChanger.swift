@@ -2122,10 +2122,10 @@ struct ShortcutHintView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("Hide The Pointer")
+            Text(uiVisibility.mouseVisible ? "Hide Mouse" : "Show Mouse")
                 .foregroundColor(.white)
                 .font(.system(size: SizingGuide.getCurrentSettings().layout.shortcut.titleSize))
-            Text("Press the Escape Key")
+            Text("Press esc key")
                 .foregroundColor(.gray)
                 .font(.system(size: SizingGuide.getCurrentSettings().layout.shortcut.subtitleSize))
         }
@@ -2133,7 +2133,6 @@ struct ShortcutHintView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         .padding(.leading, SizingGuide.getCurrentSettings().layout.shortcut.leadingPadding)
         .padding(.bottom, SizingGuide.getCurrentSettings().layout.shortcut.bottomPadding)
-        .opacity(uiVisibility.mouseVisible ? 1 : 0) // Hide hint when mouse is visible
     }
 }
 

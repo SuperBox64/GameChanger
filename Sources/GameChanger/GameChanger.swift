@@ -2234,8 +2234,10 @@ extension Array {
 }
 
 func playSound(_ name: String) {
-    if let glass = NSSound(named: name) {
-        glass.play()
+    DispatchQueue.main.async {
+        if let sound = NSSound(named: name) {
+            sound.play()
+        }
     }
 }
 

@@ -37,7 +37,7 @@
             "systemIcon": "webkit",
             "parent": "Game Changer",
             "action": "path",
-            "path": "/Applications/Safari.app",
+            "path": "/usr/bin/open /Applications/Safari.app",
             "fullscreen": true
         }
     ],

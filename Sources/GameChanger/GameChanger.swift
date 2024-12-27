@@ -9,10 +9,25 @@ import Carbon.HIToolbox
 
 class UIVisibilityState: ObservableObject {
     static let shared = UIVisibilityState()
-    @Published var isVisible = false
+    
+    @Published var isVisible = false {
+        didSet {
+            print("DEBUG: isVisible changed from \(oldValue) to \(isVisible)")
+        }
+    }
+    
     @Published var isGridVisible = false
     @Published var mouseVisible = false
-    @Published var isExecutingPath: Bool = false
+    @Published var isExecutingPath: Bool = false {
+        didSet {
+            print("DEBUG: isExecutingPath changed from \(oldValue) to \(isExecutingPath)")
+        }
+    }
+    @Published var isShowingModal = false {
+        didSet {
+            print("DEBUG: isShowingModal changed from \(oldValue) to \(isShowingModal)")
+        }
+    }
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -199,7 +214,7 @@ enum Action: String, Codable {
     case activate = "activate"
     case process = "process"
 
-    private func executeProcess(_ command: String) {
+    private func executeProcess(_ command: String, appName: String? = nil, setFullscreen: Bool = false) {
         guard !UIVisibilityState.shared.isExecutingPath else { return }
         UIVisibilityState.shared.isExecutingPath = true
         
@@ -236,6 +251,13 @@ enum Action: String, Codable {
             
             do {
                 try process.run()
+                if setFullscreen {
+                    setFullScreen(for: appName ?? "")
+                }
+                // Reset executing state after successful launch
+                DispatchQueue.main.async {
+                    UIVisibilityState.shared.isExecutingPath = false
+                }
             } catch {
                 print("Failed to execute process: \(error)")
                 
@@ -267,53 +289,7 @@ enum Action: String, Codable {
         }
     }
     
-    private func executePath(_ pathToOpen: String, appName: String?, fullscreen: Bool?) {
-        guard !UIVisibilityState.shared.isExecutingPath else { return }
-        UIVisibilityState.shared.isExecutingPath = true
-        
-        let fileManager = FileManager.default
-        var isDirectory: ObjCBool = false
-        
-        // Check if path exists and is executable
-        if fileManager.fileExists(atPath: pathToOpen, isDirectory: &isDirectory) {
-            if fileManager.isExecutableFile(atPath: pathToOpen) {
-                // Clear selection and reset content state
-                ContentState.shared.selectedIndex = -1
-                ContentState.shared.currentSection = "Game Changer"
-                
-                // Hide UI elements first
-                withAnimation(.easeOut(duration: 0.375)) {
-                    UIVisibilityState.shared.isVisible = false
-                }
-                
-                launchApplication(at: pathToOpen)
-                
-                // Add fade back in
-                UIVisibilityState.shared.isVisible = true
-                
-                if let appName, fullscreen == true {
-                    setFullScreen(for: appName)
-                }
-                
-         
-            } else {
-                showErrorModal(
-                    title: "App Not Executable",
-                    message: "Path exists but is not executable: \(pathToOpen)"
-                ) { button in
-                    UIVisibilityState.shared.mouseVisible = false
-                    NSCursor.hide()
-                }
-            }
-        } else {
-            showErrorModal(
-                title: "App Not Found",
-                message: "Path does not exist: \(pathToOpen)"
-            )
-        }
-        UIVisibilityState.shared.isExecutingPath = false
-    }
-    
+   
     func execute(with path: String? = nil, appName: String? = nil, fullscreen: Bool? = nil) {
         print("Executing action: \(self)")
         switch self {
@@ -334,31 +310,8 @@ enum Action: String, Codable {
                 executeProcess(command)
             }
         case .path:
-            if let pathToOpen = path {
-                executePath(pathToOpen, appName: appName, fullscreen: fullscreen)
-            }
-        }
-    }
-}
-
-func launchApplication(at path: String, completion: ((Bool) -> Void)? = nil) {
-    DispatchQueue.global(qos: .userInitiated).async {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        process.arguments = [path]
-        
-        do {
-            try process.run()
-            DispatchQueue.main.async {
-                completion?(true)
-            }
-        } catch {
-            print("Failed to launch application: \(error)")
-            showErrorModal(
-                title: "Failed to Launch Application", 
-                message: "Could not open: \(path)\nError: \(error.localizedDescription)"
-            ) { button in
-                completion?(false)
+            if let command = path {
+                executeProcess(command, appName: appName ?? "", setFullscreen: fullscreen ?? false)
             }
         }
     }
@@ -366,7 +319,7 @@ func launchApplication(at path: String, completion: ((Bool) -> Void)? = nil) {
 
 // Handles fullscreen for applications using Accessibility API
 func setFullScreen(for appName: String) {
-    sleep(1)  
+    sleep(1)
     guard let app = NSWorkspace.shared.runningApplications.first(where: { $0.localizedName == appName }) else {
         print("Could not find application: \(appName)")
         return
@@ -497,18 +450,18 @@ struct GameChangerApp: App {
             ZStack {
                 BackgroundView()
                 Group {
-                    LogoView()
-                    ClockView()
+                LogoView()
+                ClockView()
                     if uiVisibility.isGridVisible {
                         GameGridView()
                     } else {
-                        ContentView()
+                ContentView()
                     }
-                    MouseIndicatorView()
-                    NavigationOverlayView()
-                    ShortcutHintView()
+                MouseIndicatorView()
+                NavigationOverlayView()
+                ShortcutHintView()
                 }
-                .opacity(uiVisibility.isVisible ? 1 : 0)
+                    .opacity(uiVisibility.isVisible ? 1 : 0)
                 .animation(.easeOut(duration: 1.875), value: uiVisibility.isVisible)
             }
             .background(Color.black)
@@ -978,7 +931,7 @@ struct ContentView: View {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
     
             // Then handle other keys
-            switch Int(event.keyCode) {
+                    switch Int(event.keyCode) {
                   // Handle mouse visibility
             case kVK_ANSI_G:
                 UIVisibilityState.shared.isGridVisible.toggle()
@@ -1006,16 +959,16 @@ struct ContentView: View {
             case kVK_RightArrow:
                 resetMouseState()
                 moveRight()
-            case kVK_Return:
-                resetMouseState()
-                handleSelection()
+                    case kVK_Return:
+                        resetMouseState()
+                        handleSelection()
             case kVK_Space:
-                resetMouseState()
+                        resetMouseState()
                 handleSelection()
             default: break
-            }
+                    }
             return nil
-        }
+            }
     }
     
     private var titleFontSize: CGFloat {
@@ -1173,9 +1126,9 @@ struct ContentView: View {
                 queue: .main) { notification in
                     if let page = notification.userInfo?["page"] as? Int {
                         //First fade out current items
-                        currentPage = page
-                        selectedIndex = 0
-                        
+                            currentPage = page
+                            selectedIndex = 0
+                            
                         // Only trigger bounce if enabled
                         if SizingGuide.getCommonSettings().animations.bounceEnabled {
                             opacity = 0
@@ -1213,7 +1166,7 @@ struct ContentView: View {
                 
                 // Make sure selectedIndex is valid for current page
                 if startIndex + selectedIndex < endIndex {
-                    resetMouseState()
+                resetMouseState()
                     // Don't call handleSelection() - just reset state
                     ContentState.shared.selectedIndex = selectedIndex
                     ContentState.shared.currentSection = "Game Changer"
@@ -1660,9 +1613,9 @@ struct AppIconView: View {
         .onHover { hovering in
             isHighlighted = hovering  // Always update highlight state
             if hovering && UIVisibilityState.shared.mouseVisible {  // Only trigger highlight action in mouse mode
-                onHighlight()
+                    onHighlight()
+                }
             }
-        }
         .onChange(of: UIVisibilityState.shared.mouseVisible) { newValue in
             if !newValue {
                 isHighlighted = false
@@ -1681,15 +1634,15 @@ struct AppIconView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + baseDelay + randomDelay) {
                     let randomBounce = Double.random(in: (-45)...(-35))
                     bounceOffset = randomBounce
-                    
-                    withAnimation(
-                        .spring(
+                
+                withAnimation(
+                    .spring(
                             response: 1.0,
                             dampingFraction: 0.55,
-                            blendDuration: 0
-                        )
-                    ) {
-                        bounceOffset = 0
+                        blendDuration: 0
+                    )
+                ) {
+                    bounceOffset = 0
                     }
                 }
             }
@@ -1877,13 +1830,13 @@ class MouseIndicatorState: ObservableObject {
 struct MouseIndicatorView: View {
     @StateObject private var mouseState = MouseIndicatorState.shared
     @StateObject private var uiVisibilityState = UIVisibilityState.shared
-
+    
     var body: some View {
         ZStack {
-            MouseProgressView(
-                progress: mouseState.mouseProgress,
-                direction: mouseState.mouseDirection
-            )
+                MouseProgressView(
+                    progress: mouseState.mouseProgress,
+                    direction: mouseState.mouseDirection
+                )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .opacity(mouseState.showingProgress && !uiVisibilityState.mouseVisible ? 1 : 0)
@@ -2293,31 +2246,19 @@ func showErrorModal(
     defaultButton: String = "OK",
     completion: ((String) -> Void)? = nil
 ) {
-
-    UIVisibilityState.shared.isVisible = false
-
-    // Ensure we're on the main thread for all UI operations
     if !Thread.isMainThread {
-        DispatchQueue.main.async {
-            showErrorModal(title: title, 
-                         message: message, 
-                         buttons: buttons,
-                         defaultButton: defaultButton, 
-                         completion: completion)
-        }
+        print("Not on main thread")
         return
     }
     
     playSound("Funk")
-
-    NSCursor.unhide()
-
+    NSCursor.unhide()  // Keep this - it's important!
+    
     let alert = NSAlert()
     alert.messageText = title
     alert.informativeText = message
     alert.alertStyle = .warning
     
-    // Add buttons
     for buttonTitle in buttons {
         let button = alert.addButton(withTitle: buttonTitle)
         if buttonTitle == defaultButton {

@@ -797,6 +797,33 @@ struct CarouselView: View {
     let onSwipeLeft: () -> Void
     let onSwipeRight: () -> Void
     
+    private func checkMouseHover() {
+        if let window = NSApp.windows.first {
+            let mouseLocation = window.mouseLocationOutsideOfEventStream  // Remove optional binding
+            // Get the grid layout
+            let gridWidth = sizing.iconSize + sizing.gridSpacing
+            let gridHeight = sizing.iconSize + sizing.gridSpacing
+            
+            // Check each visible item
+            for index in 0..<visibleItems.count {
+                let row = index / 4
+                let col = index % 4
+                
+                let itemX = CGFloat(col) * gridWidth + sizing.gridSpacing
+                let itemY = CGFloat(row) * gridHeight + sizing.gridSpacing
+                
+                let itemFrame = CGRect(x: itemX, y: itemY, 
+                                     width: sizing.iconSize, 
+                                     height: sizing.iconSize)
+                
+                if itemFrame.contains(mouseLocation) {
+                    onHighlight(index)
+                    break
+                }
+            }
+        }
+    }
+    
     var body: some View {
         ZStack {
             LazyVGrid(columns: [
@@ -831,7 +858,12 @@ struct CarouselView: View {
                             isSelected: false,
                             onHighlight: { },
                             onSelect: { },
-                            onBack: { },
+                            onBack: { 
+                                onBack(index)
+                                DispatchQueue.main.async {
+                                    checkMouseHover()
+                                }
+                            },
                             itemIndex: index
                         )
                     }

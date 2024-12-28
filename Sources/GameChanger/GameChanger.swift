@@ -1861,7 +1861,12 @@ struct MouseProgressView: View {
 }
 
 class NavigationDotsNSView: NSView {
-    var currentPage: Int = 0
+    var currentPage: Int = 0 {
+        didSet {
+            needsDisplay = true
+            animatePageChange(from: oldValue, to: currentPage)
+        }
+    }
     var totalPages: Int = 0
     var onPageSelect: ((Int) -> Void)?
     
@@ -1878,7 +1883,7 @@ class NavigationDotsNSView: NSView {
         super.draw(dirtyRect)
         
         let dotSize: CGFloat = 16
-        let spacing: CGFloat = 26  // 16px dot + 10px space between dots
+        let spacing: CGFloat = 26
         let bottomPadding: CGFloat = 30
         
         let maxDotsPerRow = 12
@@ -1910,7 +1915,7 @@ class NavigationDotsNSView: NSView {
     override func mouseDown(with event: NSEvent) {
         let point = convert(event.locationInWindow, from: nil)
         let dotSize: CGFloat = 16
-        let spacing: CGFloat = 26  // 16px dot + 10px space between dots
+        let spacing: CGFloat = 26
         let bottomPadding: CGFloat = 30
         let maxDotsPerRow = 12
         let rows = (totalPages + maxDotsPerRow - 1) / maxDotsPerRow
@@ -1931,6 +1936,57 @@ class NavigationDotsNSView: NSView {
                 }
             }
         }
+    }
+    
+    private func animatePageChange(from: Int, to: Int) {
+        let dotSize: CGFloat = 16
+        let spacing: CGFloat = 26
+        let bottomPadding: CGFloat = 30
+        
+        let oldDotRect = getDotRect(for: from, dotSize: dotSize, spacing: spacing, bottomPadding: bottomPadding)
+        let newDotRect = getDotRect(for: to, dotSize: dotSize, spacing: spacing, bottomPadding: bottomPadding)
+        
+        // Animate the moving dot
+        let animLayer = CALayer()
+        animLayer.frame = oldDotRect
+        animLayer.backgroundColor = NSColor.white.cgColor
+        animLayer.cornerRadius = dotSize / 2
+        layer?.addSublayer(animLayer)
+        
+        let anim = CABasicAnimation(keyPath: "position")
+        anim.fromValue = NSValue(point: NSPoint(x: oldDotRect.midX, y: oldDotRect.midY))
+        anim.toValue = NSValue(point: NSPoint(x: newDotRect.midX, y: newDotRect.midY))
+        anim.duration = 0.2
+        
+        let fadeAnim = CABasicAnimation(keyPath: "opacity")
+        fadeAnim.fromValue = 1.0
+        fadeAnim.toValue = 0.3
+        fadeAnim.duration = 0.2
+        fadeAnim.beginTime = 0.0
+        
+        let group = CAAnimationGroup()
+        group.animations = [anim, fadeAnim]
+        group.duration = 0.2
+        group.fillMode = .forwards
+        group.isRemovedOnCompletion = false
+        
+        animLayer.add(group, forKey: "transition")
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            animLayer.removeFromSuperlayer()
+        }
+    }
+    
+    private func getDotRect(for index: Int, dotSize: CGFloat, spacing: CGFloat, bottomPadding: CGFloat) -> NSRect {
+        let maxDotsPerRow = 12
+        let row = index / maxDotsPerRow
+        let col = index % maxDotsPerRow
+        let dotsInThisRow = min(maxDotsPerRow, totalPages - (row * maxDotsPerRow))
+        let totalWidth = CGFloat(dotsInThisRow) * (dotSize + spacing) - spacing
+        let startX = (bounds.width - totalWidth) / 2
+        let y = bounds.height - bottomPadding - CGFloat(row) * (dotSize + spacing) - dotSize
+        let x = startX + CGFloat(col) * (dotSize + spacing)
+        return NSRect(x: x, y: y, width: dotSize, height: dotSize)
     }
 }
 

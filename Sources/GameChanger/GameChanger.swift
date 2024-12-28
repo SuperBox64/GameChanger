@@ -89,8 +89,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.hideOtherApplications(nil)
+
         let presOptions: NSApplication.PresentationOptions = [.hideDock, .hideMenuBar]
         NSApp.presentationOptions = presOptions
+
 
         if let window = NSApp.windows.first {
             window.styleMask = [.borderless, .fullSizeContentView]
@@ -130,7 +133,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
       
-        NSApp.hideOtherApplications(nil)
 
         // Set up menu bar
         let mainMenu = NSMenu()

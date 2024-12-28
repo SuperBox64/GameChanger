@@ -1804,61 +1804,61 @@ struct ClockView: View {
     }
 }
 
-// Update MouseProgressView to use settings
-struct MouseProgressView: View {
-    @EnvironmentObject private var windowSizeMonitor: WindowSizeMonitor
-    let progress: CGFloat
-    let direction: Int
+// // Update MouseProgressView to use settings
+// struct MouseProgressView: View {
+//     @EnvironmentObject private var windowSizeMonitor: WindowSizeMonitor
+//     let progress: CGFloat
+//     let direction: Int
     
-    private var settings: MouseIndicatorSettings {
-        let resolution = windowSizeMonitor.currentResolution
-        return SizingGuide.getSettings(for: resolution).mouseIndicator
-    }
+//     private var settings: MouseIndicatorSettings {
+//         let resolution = windowSizeMonitor.currentResolution
+//         return SizingGuide.getSettings(for: resolution).mouseIndicator
+//     }
     
-    var body: some View {
-        let commonSettings = SizingGuide.getCommonSettings()
+//     var body: some View {
+//         let commonSettings = SizingGuide.getCommonSettings()
         
-        ZStack {
-            Group {
-                Circle()
-                .stroke(
-                    commonSettings.colors.mouseIndicator.backgroundUI,
-                    style: StrokeStyle(
-                        lineWidth: settings.strokeWidth,
-                        lineCap: .round
-                    )
-                )
-                .frame(width: settings.size, height: settings.size)
+//         ZStack {
+//             Group {
+//                 Circle()
+//                 .stroke(
+//                     commonSettings.colors.mouseIndicator.backgroundUI,
+//                     style: StrokeStyle(
+//                         lineWidth: settings.strokeWidth,
+//                         lineCap: .round
+//                     )
+//                 )
+//                 .frame(width: settings.size, height: settings.size)
             
-                Circle()
-                .trim(from: 0, to: progress)
-                .stroke(
-                    commonSettings.colors.mouseIndicator.progressUI,
-                    style: StrokeStyle(
-                        lineWidth: settings.strokeWidth,
-                        lineCap: .round
-                    )
-                )
-                .rotationEffect(
-                    direction == -1 ?
-                        .degrees(Double(-90) - (Double(progress) * 360)) :
-                        .degrees(-90)
-                )
-            }
+//                 Circle()
+//                 .trim(from: 0, to: progress)
+//                 .stroke(
+//                     commonSettings.colors.mouseIndicator.progressUI,
+//                     style: StrokeStyle(
+//                         lineWidth: settings.strokeWidth,
+//                         lineCap: .round
+//                     )
+//                 )
+//                 .rotationEffect(
+//                     direction == -1 ?
+//                         .degrees(Double(-90) - (Double(progress) * 360)) :
+//                         .degrees(-90)
+//                 )
+//             }
 
-            Image(systemName: direction == -1 ? "chevron.left" :
-                            direction == 1 ? "chevron.right" : "")
-                .font(.system(
-                    size: settings.size * SizingGuide.getCommonSettings().multipliers.mouseIndicatorIconSize,
-                    weight: .semibold
-                ))
-                .foregroundColor(SizingGuide.getCommonSettings().colors.mouseIndicator.progressUI)
-        }
-        .padding(.bottom, SizingGuide.getCurrentSettings().layout.mouseIndicator.bottomPadding)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+//             Image(systemName: direction == -1 ? "chevron.left" :
+//                             direction == 1 ? "chevron.right" : "")
+//                 .font(.system(
+//                     size: settings.size * SizingGuide.getCommonSettings().multipliers.mouseIndicatorIconSize,
+//                     weight: .semibold
+//                 ))
+//                 .foregroundColor(SizingGuide.getCommonSettings().colors.mouseIndicator.progressUI)
+//         }
+//         .padding(.bottom, SizingGuide.getCurrentSettings().layout.mouseIndicator.bottomPadding)
+//         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         
-    }
-}
+//     }
+// }
 
 class NavigationDotsNSView: NSView {
     var currentPage: Int = 0 {
@@ -2076,9 +2076,8 @@ class MouseIndicatorNSView: NSView {
 
             // 2) Then apply another configuration for point size, weight, and scale.
             let finalConfig = baseConfig.applying(
-                NSImage.SymbolConfiguration(pointSize: settings.size * commonSettings.multipliers.mouseIndicatorIconSize, weight: .regular)
+                NSImage.SymbolConfiguration(pointSize: settings.size * commonSettings.multipliers.mouseIndicatorIconSize, weight: .bold)
             )       
-
 
             if let image = NSImage(systemSymbolName: chevron, accessibilityDescription: nil)?
                 .withSymbolConfiguration(finalConfig) {

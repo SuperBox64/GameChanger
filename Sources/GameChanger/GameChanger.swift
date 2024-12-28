@@ -474,14 +474,18 @@ struct GameChangerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var windowSizeMonitor = WindowSizeMonitor.shared
     @StateObject private var uiVisibility = UIVisibilityState.shared
-    
+    @State var startupSound = false
     var body: some Scene {
         WindowGroup {
             ZStack {
                 BackgroundView()
                 .onAppear {
-                    SoundPlayer.shared.preloadStartupSound()
+                    if !startupSound {
+                        startupSound.toggle()
+                    SoundPlayer.shared.playStartupSound()
+                    }
                 }
+               
                 
                 Group {
                     LogoView()
@@ -2553,7 +2557,7 @@ class SoundPlayer {
     static let shared = SoundPlayer()
     private var audioPlayer: AVAudioPlayer?
     
-    func preloadStartupSound() {
+    func playStartupSound() {
         guard let soundURL = Bundle.main.url(
             forResource: "StartupTwentiethAnniversaryMac", 
             withExtension: "wav") else {

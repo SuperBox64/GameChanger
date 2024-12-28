@@ -2063,7 +2063,7 @@ class MouseIndicatorNSView: NSView {
 
         let startAngle: CGFloat = 93    
    
-        let endAngle = startAngle + (360 * progress)
+        let endAngle = startAngle + (358.5 * progress)
         
         path.appendArc(withCenter: center, radius: radius, 
                       startAngle: startAngle, endAngle: endAngle)

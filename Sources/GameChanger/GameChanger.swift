@@ -609,7 +609,6 @@ struct CommonSettings: Codable {
     let fonts: FontSettings
     let colors: ColorSettings
     let mouseIndicator: MouseIndicatorCommonSettings
-    let navigation: NavigationCommonSettings
     let animations: AnimationSettings
     let opacities: OpacitySettings
     let fontWeights: FontWeightSettings
@@ -626,10 +625,6 @@ struct CommonLayoutSettings: Codable {
 struct MouseIndicatorCommonSettings: Codable {
     let inactivityTimeout: Double
     let distanceFromDots: CGFloat  // Distance between navigation dots and mouse indicator
-}
-
-struct NavigationCommonSettings: Codable {
-    let opacity: Double
 }
 
 struct ColorSettings: Codable {

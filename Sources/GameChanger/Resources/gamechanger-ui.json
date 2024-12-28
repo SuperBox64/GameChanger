@@ -31,9 +31,6 @@
                 "inactivityTimeout": 5.0,
                 "distanceFromDots": 60.0
             },
-            "navigation": {
-                "opacity": 0.3
-            },
             "animations": {
                 "slideEnabled": true,
                 "fadeEnabled": true,

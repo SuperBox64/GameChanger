@@ -615,6 +615,7 @@ struct CommonSettings: Codable {
     let fontWeights: FontWeightSettings
     let multipliers: MultiplierSettings
     let layout: CommonLayoutSettings
+    let navigationDots: NavigationDotsCommonSettings
 }
 
 struct CommonLayoutSettings: Codable {
@@ -690,7 +691,6 @@ struct InterfaceSizing: Codable {
     let title: TitleSettings
     let label: LabelSettings
     let clock: ClockSettings
-    let navigationDots: NavigationSettings
     let layout: LayoutSettings
 }
 
@@ -1884,11 +1884,10 @@ class NavigationDotsNSView: NSView {
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         
-        let dotSize: CGFloat = 16
-        let spacing: CGFloat = 26
-        let settings = SizingGuide.getCurrentSettings().navigationDots
-        let bottomPadding = settings.bottomPadding
-        
+        let settings = SizingGuide.getCommonSettings().navigationDots
+        let dotSize: CGFloat = settings.size
+        let spacing: CGFloat = settings.spacing
+        let bottomPadding: CGFloat = settings.bottomPadding
         let maxDotsPerRow = 12
         let rows = (totalPages + maxDotsPerRow - 1) / maxDotsPerRow
         let dotsInLastRow = totalPages % maxDotsPerRow == 0 ? maxDotsPerRow : totalPages % maxDotsPerRow
@@ -1897,7 +1896,7 @@ class NavigationDotsNSView: NSView {
             let dotsInThisRow = row == rows - 1 ? dotsInLastRow : maxDotsPerRow
             let totalWidth = CGFloat(dotsInThisRow) * (dotSize + spacing) - spacing
             let startX = (bounds.width - totalWidth) / 2
-            let y = bounds.height - bottomPadding - CGFloat(row) * (dotSize + spacing) - dotSize
+            let y = bottomPadding 
             
             for col in 0..<dotsInThisRow {
                 let index = row * maxDotsPerRow + col
@@ -1917,9 +1916,9 @@ class NavigationDotsNSView: NSView {
     
     override func mouseDown(with event: NSEvent) {
         let point = convert(event.locationInWindow, from: nil)
-        let dotSize: CGFloat = 16
-        let spacing: CGFloat = 26
-        let settings = SizingGuide.getCurrentSettings().navigationDots
+        let settings = SizingGuide.getCommonSettings().navigationDots
+        let dotSize: CGFloat = settings.size
+        let spacing: CGFloat = settings.spacing
         let bottomPadding = settings.bottomPadding
         let maxDotsPerRow = 12
         let rows = (totalPages + maxDotsPerRow - 1) / maxDotsPerRow
@@ -1943,9 +1942,9 @@ class NavigationDotsNSView: NSView {
     }
     
     private func animatePageChange(from: Int, to: Int) {
-        let dotSize: CGFloat = 16
-        let spacing: CGFloat = 26
-        let settings = SizingGuide.getCurrentSettings().navigationDots
+        let settings = SizingGuide.getCommonSettings().navigationDots
+        let dotSize: CGFloat = settings.size
+        let spacing: CGFloat = settings.spacing
         let bottomPadding = settings.bottomPadding
         
         let oldDotRect = getDotRect(for: from, dotSize: dotSize, spacing: spacing, bottomPadding: bottomPadding)
@@ -2002,7 +2001,7 @@ class NavigationDotsNSView: NSView {
         let dotsInThisRow = min(maxDotsPerRow, totalPages - (row * maxDotsPerRow))
         let totalWidth = CGFloat(dotsInThisRow) * (dotSize + spacing) - spacing
         let startX = (bounds.width - totalWidth) / 2
-        let y = bounds.height - bottomPadding - CGFloat(row) * (dotSize + spacing) - dotSize
+        let y = bottomPadding 
         let x = startX + CGFloat(col) * (dotSize + spacing)
         return NSRect(x: x, y: y, width: dotSize, height: dotSize)
     }
@@ -2101,9 +2100,6 @@ class MouseIndicatorNSView: NSView {
     }
 }
 
-
-// Usage example:
-
 struct MouseIndicatorNSViewRepresentable: NSViewRepresentable {
     let progress: CGFloat
     let direction: Int
@@ -2181,11 +2177,7 @@ struct FadeAnimation: Codable {
     let duration: Double
 }
 
-private let defaultNavigationSettings = NavigationSettings(
-    size: 12.0,
-    spacing: 24.0,
-    bottomPadding: 40.0
-) 
+
 
 // Add LayoutSettings struct
 struct LayoutSettings: Codable {
@@ -2257,19 +2249,6 @@ struct ClockSettings: Codable {
 struct MouseIndicatorSettings: Codable {
     let size: CGFloat
     let strokeWidth: CGFloat
-}
-
-struct NavigationSettings: Codable {
-    let size: CGFloat
-    let spacing: CGFloat
-    let bottomPadding: CGFloat
-}
-
-struct ShortcutLayout: Codable {
-    let leadingPadding: CGFloat
-    let bottomPadding: CGFloat
-    let titleSize: CGFloat
-    let subtitleSize: CGFloat
 }
 
 class WindowSizeMonitor: ObservableObject {
@@ -2607,6 +2586,19 @@ func showErrorModal(
     let clickedButton = buttons[Int(buttonIndex)]
     
     completion?(clickedButton)
+}
+
+struct NavigationDotsCommonSettings: Codable {
+    let size: CGFloat
+    let spacing: CGFloat
+    let bottomPadding: CGFloat
+}
+
+struct ShortcutLayout: Codable {
+    let leadingPadding: CGFloat
+    let bottomPadding: CGFloat
+    let titleSize: CGFloat
+    let subtitleSize: CGFloat
 }
 
 

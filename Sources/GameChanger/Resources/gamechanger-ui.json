@@ -79,6 +79,11 @@
                     "titleSize": 14,
                     "subtitleSize": 12
                 }
+            },
+            "navigationDots": {
+                "size": 14.0,
+                "spacing": 28.0,
+                "bottomPadding": 40
             }
         },
         "resolutions": {
@@ -106,11 +111,6 @@
                 "mouseIndicator": {
                     "size": 256.0,
                     "strokeWidth": 12.0
-                },
-                "navigationDots": {
-                    "size": 32.0,
-                    "spacing": 64.0,
-                    "bottomPadding": 50
                 },
                 "layout": {
                     "title": {
@@ -156,11 +156,6 @@
                     "size": 160.0,
                     "strokeWidth": 8.0
                 },
-                "navigationDots": {
-                    "size": 24.0,
-                    "spacing": 48.0,
-                    "bottomPadding": 50
-                },
                 "layout": {
                     "title": {
                         "topPadding": 384
@@ -204,11 +199,6 @@
                 "mouseIndicator": {
                     "size": 128.0,
                     "strokeWidth": 6.0
-                },
-                "navigationDots": {
-                    "size": 16.0,
-                    "spacing": 32.0,
-                    "bottomPadding": 50
                 },
                 "layout": {
                     "title": {
@@ -254,11 +244,6 @@
                     "size": 96.0,
                     "strokeWidth": 4.5
                 },
-                "navigationDots": {
-                    "size": 12.0,
-                    "spacing": 24.0,
-                    "bottomPadding": 50
-                },
                 "layout": {
                     "title": {
                         "topPadding": 200
@@ -302,11 +287,6 @@
                 "mouseIndicator": {
                     "size": 96.0,
                     "strokeWidth": 4.5
-                },
-                "navigationDots": {
-                    "size": 12.0,
-                    "spacing": 24.0,
-                    "bottomPadding": 50
                 },
                 "layout": {
                     "title": {
@@ -352,11 +332,6 @@
                     "size": 80.0,
                     "strokeWidth": 3.7
                 },
-                "navigationDots": {
-                    "size": 10.0,
-                    "spacing": 20.0,
-                    "bottomPadding": 50
-                },
                 "layout": {
                     "title": {
                         "topPadding": 166
@@ -401,11 +376,6 @@
                     "size": 72.0,
                     "strokeWidth": 3.4
                 },
-                "navigationDots": {
-                    "size": 9.0,
-                    "spacing": 18.0,
-                    "bottomPadding": 50
-                },
                 "layout": {
                     "title": {
                         "topPadding": 150
@@ -449,11 +419,6 @@
                 "mouseIndicator": {
                     "size": 64.0,
                     "strokeWidth": 3.0
-                },
-                "navigationDots": {
-                    "size": 8.0,
-                    "spacing": 16.0,
-                    "bottomPadding": 50
                 },
                 "layout": {
                     "title": {

@@ -2597,17 +2597,4 @@ struct LogoLayout: Codable {
     let leadingPadding: CGFloat
 }
 
-// 2. Add the missing NavigationSettings struct
-struct NavigationSettings: Codable {
-    let size: CGFloat
-    let spacing: CGFloat
-    let bottomPadding: CGFloat
-}
-
-private let defaultNavigationSettings = NavigationSettings(
-    size: 12.0,
-    spacing: 24.0,
-    bottomPadding: 30.0
-)
-
 

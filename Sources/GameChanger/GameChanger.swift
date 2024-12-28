@@ -2527,8 +2527,6 @@ class SoundPlayer {
     }
 }
 
-
-
 func showErrorModal(
     title: String,
     message: String,
@@ -2536,12 +2534,14 @@ func showErrorModal(
     defaultButton: String = "OK",
     completion: ((String) -> Void)? = nil
 ) {
+
+    // Play system alert sound
+    NSSound.beep()
+
     if !Thread.isMainThread {
         print("Not on main thread")
         return
     }
-    
-    print("Before alert - MouseIndicator showing: \(MouseIndicatorState.shared.showingProgress)")
     
     NSCursor.unhide()  // Show cursor before creating alert
     

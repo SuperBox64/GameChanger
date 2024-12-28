@@ -275,7 +275,8 @@ enum Action: String, Codable {
                 
                 // Ensure UI updates happen on main thread
                 DispatchQueue.main.async {
-                    
+                    UIVisibilityState.shared.isVisible = false
+
                     showErrorModal(
                         title: "Failed to Execute App",
                         message: "Could not run: \(command)\nError: \(error.localizedDescription)",
@@ -287,7 +288,7 @@ enum Action: String, Codable {
                             UIVisibilityState.shared.isVisible = true
                             UIVisibilityState.shared.isExecutingPath = false
                         default:
-                            break
+                      x      break
                         }
 
                         if UIVisibilityState.shared.mouseVisible {
@@ -2582,7 +2583,9 @@ func showErrorModal(
 ) {
 
     // Play system alert sound
-    NSSound.beep()
+    DispatchQueue.main.async {
+        NSSound.beep()
+    }
 
     if !Thread.isMainThread {
         print("Not on main thread")

@@ -1857,22 +1857,53 @@ struct ClockView: View {
 // }
 
 class NavigationDotsNSView: NSView {
-    var currentPage: Int = 0 {
-        didSet {
-            needsDisplay = true
-            animatePageChange(from: oldValue, to: currentPage)
-        }
-    }
-    var totalPages: Int = 0
-    var onPageSelect: ((Int) -> Void)?
+    override var acceptsFirstResponder: Bool { true }
     
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         wantsLayer = true
+        
+        // Enable mouse tracking
+        let trackingArea = NSTrackingArea(
+            rect: bounds,
+            options: [.mouseEnteredAndExited, .activeAlways, .mouseMoved, .inVisibleRect],
+            owner: self,
+            userInfo: nil
+        )
+        addTrackingArea(trackingArea)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func mouseDown(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
+        let settings = SizingGuide.getCommonSettings().navigationDots
+        let dotSize: CGFloat = settings.size
+        let spacing: CGFloat = settings.spacing
+        let maxDotsPerRow = 12
+        
+        for row in 0..<((totalPages + maxDotsPerRow - 1) / maxDotsPerRow) {
+            let dotsInThisRow = row == (totalPages + maxDotsPerRow - 1) / maxDotsPerRow - 1 ? 
+                               totalPages % maxDotsPerRow == 0 ? maxDotsPerRow : totalPages % maxDotsPerRow : 
+                               maxDotsPerRow
+            
+            let totalWidth = CGFloat(dotsInThisRow) * (dotSize + spacing) - spacing
+            let startX = (bounds.width - totalWidth) / 2
+            
+            for col in 0..<dotsInThisRow {
+                let index = row * maxDotsPerRow + col
+                let x = startX + CGFloat(col) * (dotSize + spacing)
+                let y = bounds.height - settings.bottomPadding - dotSize
+                let dotRect = NSRect(x: x, y: y, width: dotSize, height: dotSize)
+                
+                if dotRect.contains(point) {
+                    onPageSelect?(index)
+                    return
+                }
+            }
+        }
     }
     
     override func draw(_ dirtyRect: NSRect) {
@@ -1881,7 +1912,6 @@ class NavigationDotsNSView: NSView {
         let settings = SizingGuide.getCommonSettings().navigationDots
         let dotSize: CGFloat = settings.size
         let spacing: CGFloat = settings.spacing
-        let bottomPadding: CGFloat = settings.bottomPadding
         let maxDotsPerRow = 12
         let rows = (totalPages + maxDotsPerRow - 1) / maxDotsPerRow
         let dotsInLastRow = totalPages % maxDotsPerRow == 0 ? maxDotsPerRow : totalPages % maxDotsPerRow
@@ -1890,11 +1920,11 @@ class NavigationDotsNSView: NSView {
             let dotsInThisRow = row == rows - 1 ? dotsInLastRow : maxDotsPerRow
             let totalWidth = CGFloat(dotsInThisRow) * (dotSize + spacing) - spacing
             let startX = (bounds.width - totalWidth) / 2
-            let y = bottomPadding 
             
             for col in 0..<dotsInThisRow {
                 let index = row * maxDotsPerRow + col
                 let x = startX + CGFloat(col) * (dotSize + spacing)
+                let y = bounds.height - settings.bottomPadding - dotSize
                 let dotRect = NSRect(x: x, y: y, width: dotSize, height: dotSize)
                 let path = NSBezierPath(ovalIn: dotRect)
                 
@@ -1908,41 +1938,22 @@ class NavigationDotsNSView: NSView {
         }
     }
     
-    override func mouseDown(with event: NSEvent) {
-        let point = convert(event.locationInWindow, from: nil)
-        let settings = SizingGuide.getCommonSettings().navigationDots
-        let dotSize: CGFloat = settings.size
-        let spacing: CGFloat = settings.spacing
-        let bottomPadding = settings.bottomPadding
-        let maxDotsPerRow = 12
-        let rows = (totalPages + maxDotsPerRow - 1) / maxDotsPerRow
-        
-        for row in 0..<rows {
-            let dotsInThisRow = row == rows - 1 ? (totalPages % maxDotsPerRow == 0 ? maxDotsPerRow : totalPages % maxDotsPerRow) : maxDotsPerRow
-            let totalWidth = CGFloat(dotsInThisRow) * (dotSize + spacing) - spacing
-            let startX = (bounds.width - totalWidth) / 2
-            let y = bounds.height - bottomPadding - CGFloat(row) * (dotSize + spacing) - dotSize
-            
-            for col in 0..<dotsInThisRow {
-                let index = row * maxDotsPerRow + col
-                let x = startX + CGFloat(col) * (dotSize + spacing)
-                let dotRect = NSRect(x: x, y: y, width: dotSize, height: dotSize)
-                if dotRect.contains(point) {
-                    onPageSelect?(index)
-                    break
-                }
-            }
+    var currentPage: Int = 0 {
+        didSet {
+            needsDisplay = true
+            animatePageChange(from: oldValue, to: currentPage)
         }
     }
+    var totalPages: Int = 0
+    var onPageSelect: ((Int) -> Void)?
     
     private func animatePageChange(from: Int, to: Int) {
         let settings = SizingGuide.getCommonSettings().navigationDots
         let dotSize: CGFloat = settings.size
         let spacing: CGFloat = settings.spacing
-        let bottomPadding = settings.bottomPadding
         
-        let oldDotRect = getDotRect(for: from, dotSize: dotSize, spacing: spacing, bottomPadding: bottomPadding)
-        let newDotRect = getDotRect(for: to, dotSize: dotSize, spacing: spacing, bottomPadding: bottomPadding)
+        let oldDotRect = getDotRect(for: from, dotSize: dotSize, spacing: spacing)
+        let newDotRect = getDotRect(for: to, dotSize: dotSize, spacing: spacing)
         
         // Animate the moving dot
         let animLayer = CALayer()
@@ -1988,14 +1999,15 @@ class NavigationDotsNSView: NSView {
         }
     }
     
-    private func getDotRect(for index: Int, dotSize: CGFloat, spacing: CGFloat, bottomPadding: CGFloat) -> NSRect {
+    private func getDotRect(for index: Int, dotSize: CGFloat, spacing: CGFloat) -> NSRect {
         let maxDotsPerRow = 12
         let row = index / maxDotsPerRow
         let col = index % maxDotsPerRow
         let dotsInThisRow = min(maxDotsPerRow, totalPages - (row * maxDotsPerRow))
         let totalWidth = CGFloat(dotsInThisRow) * (dotSize + spacing) - spacing
         let startX = (bounds.width - totalWidth) / 2
-        let y = bottomPadding 
+        let settings = SizingGuide.getCommonSettings().navigationDots  // Add this line
+        let y = bounds.height - settings.bottomPadding - dotSize
         let x = startX + CGFloat(col) * (dotSize + spacing)
         return NSRect(x: x, y: y, width: dotSize, height: dotSize)
     }

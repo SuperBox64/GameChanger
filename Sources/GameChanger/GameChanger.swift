@@ -2568,6 +2568,14 @@ func showErrorModal(
     }
     
     alert.window.level = .floating  // Make alert float above main window
+    
+    // Move cursor to center of screen, adjusted up and right
+    if let screen = NSScreen.main {
+        let centerX = screen.frame.origin.x + screen.frame.width / 2 + 57.5  // 115/2 pixels right
+        let centerY = screen.frame.origin.y + screen.frame.height / 2 - 115   // 115 pixels up (subtract to move up)
+        CGWarpMouseCursorPosition(CGPoint(x: centerX, y: centerY))
+    }
+    
     let response = alert.runModal()
     
     print("After alert - MouseIndicator showing: \(MouseIndicatorState.shared.showingProgress)")

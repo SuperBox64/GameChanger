@@ -2612,23 +2612,3 @@ func showErrorModal(
     completion?(clickedButton)
 }
 
-struct NavigationDotsCommonSettings: Codable {
-    let size: CGFloat
-    let spacing: CGFloat
-    let bottomPadding: CGFloat
-}
-
-struct ShortcutLayout: Codable {
-    let leadingPadding: CGFloat
-    let bottomPadding: CGFloat
-    let titleSize: CGFloat
-    let subtitleSize: CGFloat
-}
-
-// 1. First add back LogoLayout since it's needed by LogoView
-struct LogoLayout: Codable {
-    let topPadding: CGFloat
-    let leadingPadding: CGFloat
-}
-
-

@@ -25,4 +25,22 @@ struct AppItem: Codable {
         print("Converted to enum: \(String(describing: actionEnum))")
         return actionEnum ?? .none
     }
+}
+
+struct NavigationDotsCommonSettings: Codable {
+    public let size: CGFloat
+    public let spacing: CGFloat
+    public let bottomPadding: CGFloat
+}
+
+public struct ShortcutLayout: Codable {
+    public let leadingPadding: CGFloat
+    public let bottomPadding: CGFloat
+    public let titleSize: CGFloat
+    public let subtitleSize: CGFloat
+}
+
+public struct LogoLayout: Codable {
+    public let topPadding: CGFloat
+    public let leadingPadding: CGFloat
 } 

@@ -1953,9 +1953,22 @@ class NavigationDotsNSView: NSView {
         animLayer.cornerRadius = dotSize / 2
         layer?.addSublayer(animLayer)
         
-        let anim = CABasicAnimation(keyPath: "position")
-        anim.fromValue = NSValue(point: NSPoint(x: oldDotRect.midX, y: oldDotRect.midY))
-        anim.toValue = NSValue(point: NSPoint(x: newDotRect.midX, y: newDotRect.midY))
+        // Create path for arc movement
+        let path = CGMutablePath()
+        path.move(to: CGPoint(x: oldDotRect.midX, y: oldDotRect.midY))
+        
+        // Calculate control point for arc (higher for longer distances)
+        let distance = abs(newDotRect.midX - oldDotRect.midX)
+        let arcHeight = min(distance * 1.0, 100)  // Increased height by 50%
+        let midX = (oldDotRect.midX + newDotRect.midX) / 2
+        let controlPoint = CGPoint(x: midX, y: oldDotRect.midY + arcHeight)
+        
+        path.addQuadCurve(to: CGPoint(x: newDotRect.midX, y: newDotRect.midY),
+                         control: controlPoint)
+        
+        let anim = CAKeyframeAnimation(keyPath: "position")
+        anim.path = path
+        anim.timingFunction = CAMediaTimingFunction(name: .easeOut)
         anim.duration = 0.2
         
         let fadeAnim = CABasicAnimation(keyPath: "opacity")

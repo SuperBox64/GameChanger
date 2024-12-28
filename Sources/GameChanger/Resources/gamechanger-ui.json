@@ -110,7 +110,7 @@
                 "navigationDots": {
                     "size": 32.0,
                     "spacing": 64.0,
-                    "bottomPadding": 107.0
+                    "bottomPadding": 50
                 },
                 "layout": {
                     "title": {
@@ -159,7 +159,7 @@
                 "navigationDots": {
                     "size": 24.0,
                     "spacing": 48.0,
-                    "bottomPadding": 72.0
+                    "bottomPadding": 50
                 },
                 "layout": {
                     "title": {
@@ -208,7 +208,7 @@
                 "navigationDots": {
                     "size": 16.0,
                     "spacing": 32.0,
-                    "bottomPadding": 53.0
+                    "bottomPadding": 50
                 },
                 "layout": {
                     "title": {
@@ -257,7 +257,7 @@
                 "navigationDots": {
                     "size": 12.0,
                     "spacing": 24.0,
-                    "bottomPadding": 40.0
+                    "bottomPadding": 50
                 },
                 "layout": {
                     "title": {
@@ -306,7 +306,7 @@
                 "navigationDots": {
                     "size": 12.0,
                     "spacing": 24.0,
-                    "bottomPadding": 40.0
+                    "bottomPadding": 50
                 },
                 "layout": {
                     "title": {
@@ -355,7 +355,7 @@
                 "navigationDots": {
                     "size": 10.0,
                     "spacing": 20.0,
-                    "bottomPadding": 33.0
+                    "bottomPadding": 50
                 },
                 "layout": {
                     "title": {
@@ -404,7 +404,7 @@
                 "navigationDots": {
                     "size": 9.0,
                     "spacing": 18.0,
-                    "bottomPadding": 30.0
+                    "bottomPadding": 50
                 },
                 "layout": {
                     "title": {
@@ -453,7 +453,7 @@
                 "navigationDots": {
                     "size": 8.0,
                     "spacing": 16.0,
-                    "bottomPadding": 27.0
+                    "bottomPadding": 50
                 },
                 "layout": {
                     "title": {

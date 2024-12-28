@@ -1886,7 +1886,8 @@ class NavigationDotsNSView: NSView {
         
         let dotSize: CGFloat = 16
         let spacing: CGFloat = 26
-        let bottomPadding: CGFloat = 30
+        let settings = SizingGuide.getCurrentSettings().navigationDots
+        let bottomPadding = settings.bottomPadding
         
         let maxDotsPerRow = 12
         let rows = (totalPages + maxDotsPerRow - 1) / maxDotsPerRow
@@ -1918,7 +1919,8 @@ class NavigationDotsNSView: NSView {
         let point = convert(event.locationInWindow, from: nil)
         let dotSize: CGFloat = 16
         let spacing: CGFloat = 26
-        let bottomPadding: CGFloat = 30
+        let settings = SizingGuide.getCurrentSettings().navigationDots
+        let bottomPadding = settings.bottomPadding
         let maxDotsPerRow = 12
         let rows = (totalPages + maxDotsPerRow - 1) / maxDotsPerRow
         
@@ -1943,7 +1945,8 @@ class NavigationDotsNSView: NSView {
     private func animatePageChange(from: Int, to: Int) {
         let dotSize: CGFloat = 16
         let spacing: CGFloat = 26
-        let bottomPadding: CGFloat = 30
+        let settings = SizingGuide.getCurrentSettings().navigationDots
+        let bottomPadding = settings.bottomPadding
         
         let oldDotRect = getDotRect(for: from, dotSize: dotSize, spacing: spacing, bottomPadding: bottomPadding)
         let newDotRect = getDotRect(for: to, dotSize: dotSize, spacing: spacing, bottomPadding: bottomPadding)
@@ -2065,7 +2068,7 @@ class MouseIndicatorNSView: NSView {
 
         let startAngle: CGFloat = 93    
    
-        let endAngle = startAngle + (358.5 * progress)
+        let endAngle = startAngle + (359.5 * progress)
         
         path.appendArc(withCenter: center, radius: radius, 
                       startAngle: startAngle, endAngle: endAngle)
@@ -2074,28 +2077,26 @@ class MouseIndicatorNSView: NSView {
         path.stroke()
         
         // Chevron
-        if direction != 0 {
-            let chevron = "chevron.left" 
-            let baseConfig = NSImage.SymbolConfiguration(paletteColors: [
-                NSColor(commonSettings.colors.mouseIndicator.progressUI)
-            ])
+        let chevron = "chevron.left" 
+        let baseConfig = NSImage.SymbolConfiguration(paletteColors: [
+            NSColor(commonSettings.colors.mouseIndicator.progressUI)
+        ])
 
-            // 2) Then apply another configuration for point size, weight, and scale.
-            let finalConfig = baseConfig.applying(
-                NSImage.SymbolConfiguration(pointSize: settings.size * commonSettings.multipliers.mouseIndicatorIconSize, weight: .bold)
-            )       
+        // 2) Then apply another configuration for point size, weight, and scale.
+        let finalConfig = baseConfig.applying(
+            NSImage.SymbolConfiguration(pointSize: settings.size * commonSettings.multipliers.mouseIndicatorIconSize, weight: .bold)
+        )       
 
-            if let image = NSImage(systemSymbolName: chevron, accessibilityDescription: nil)?
-                .withSymbolConfiguration(finalConfig) {
-                image.isTemplate = true
-                let imageSize: NSSize = image.size
-                image.draw(in: NSRect(
-                    x: center.x - imageSize.width / 2,
-                    y: center.y - imageSize.height / 2,
-                    width: imageSize.width,
-                    height: imageSize.height
-                ), from: .zero, operation: .sourceOver, fraction: 1.0)
-            }
+        if let image = NSImage(systemSymbolName: chevron, accessibilityDescription: nil)?
+            .withSymbolConfiguration(finalConfig) {
+            image.isTemplate = true
+            let imageSize: NSSize = image.size
+            image.draw(in: NSRect(
+                x: center.x - imageSize.width / 2,
+                y: center.y - imageSize.height / 2,
+                width: imageSize.width,
+                height: imageSize.height
+            ), from: .zero, operation: .sourceOver, fraction: 1.0)
         }
     }
 }

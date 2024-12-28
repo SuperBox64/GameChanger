@@ -107,7 +107,8 @@
                 },
                 "mouseIndicator": {
                     "size": 256.0,
-                    "strokeWidth": 12.0
+                    "strokeWidth": 12.0,
+                    "bottomPadding": 474
                 },
                 "layout": {
                     "title": {
@@ -116,9 +117,6 @@
                     "clock": {
                         "topPadding": 53,
                         "trailingPadding": 80
-                    },
-                    "mouseIndicator": {
-                        "bottomPadding": 474
                     },
                     "shortcut": {
                         "leadingPadding": 30,
@@ -151,7 +149,8 @@
                 },
                 "mouseIndicator": {
                     "size": 160.0,
-                    "strokeWidth": 8.0
+                    "strokeWidth": 8.0,
+                    "bottomPadding": 324
                 },
                 "layout": {
                     "title": {
@@ -195,7 +194,8 @@
                 },
                 "mouseIndicator": {
                     "size": 128.0,
-                    "strokeWidth": 6.0
+                    "strokeWidth": 6.0,
+                    "bottomPadding": 246
                 },
                 "layout": {
                     "title": {
@@ -239,7 +239,8 @@
                 },
                 "mouseIndicator": {
                     "size": 96.0,
-                    "strokeWidth": 4.5
+                    "strokeWidth": 4.5,
+                    "bottomPadding": 190
                 },
                 "layout": {
                     "title": {
@@ -283,7 +284,8 @@
                 },
                 "mouseIndicator": {
                     "size": 96.0,
-                    "strokeWidth": 4.5
+                    "strokeWidth": 4.5,
+                    "bottomPadding": 190
                 },
                 "layout": {
                     "title": {
@@ -327,7 +329,8 @@
                 },
                 "mouseIndicator": {
                     "size": 80.0,
-                    "strokeWidth": 3.7
+                    "strokeWidth": 3.7,
+                    "bottomPadding": 161
                 },
                 "layout": {
                     "title": {
@@ -371,7 +374,8 @@
                 },
                 "mouseIndicator": {
                     "size": 72.0,
-                    "strokeWidth": 3.4
+                    "strokeWidth": 3.4,
+                    "bottomPadding": 148
                 },
                 "layout": {
                     "title": {
@@ -415,7 +419,8 @@
                 },
                 "mouseIndicator": {
                     "size": 64.0,
-                    "strokeWidth": 3.0
+                    "strokeWidth": 3.0,
+                    "bottomPadding": 134
                 },
                 "layout": {
                     "title": {

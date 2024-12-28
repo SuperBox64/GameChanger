@@ -618,7 +618,6 @@ struct CommonSettings: Codable {
 }
 
 struct CommonLayoutSettings: Codable {
-    let mouseIndicator: MouseIndicatorLayout
     let shortcut: ShortcutLayout
 }
 
@@ -2118,16 +2117,16 @@ struct MouseIndicatorView: View {
     @StateObject private var uiVisibilityState = UIVisibilityState.shared
     
     var body: some View {
-        let settings = SizingGuide.getCurrentSettings().layout.mouseIndicator
+        let settings = SizingGuide.getSettings(for: WindowSizeMonitor.shared.currentResolution).mouseIndicator
         VStack {
             Spacer()
             MouseIndicatorNSViewRepresentable(
                 progress: mouseState.mouseProgress,
                 direction: mouseState.mouseDirection
             )
-            .frame(width: SizingGuide.getSettings(for: WindowSizeMonitor.shared.currentResolution).mouseIndicator.size,
-                   height: SizingGuide.getSettings(for: WindowSizeMonitor.shared.currentResolution).mouseIndicator.size)
-            .padding(.bottom, settings.bottomPadding)
+            .frame(width: settings.size,
+                   height: settings.size)
+            .padding(.bottom, settings.bottomPadding)  // Get bottomPadding from mouseIndicator settings
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .opacity(mouseState.showingProgress && !uiVisibilityState.mouseVisible ? 1 : 0)
@@ -2178,8 +2177,7 @@ struct FadeAnimation: Codable {
 struct LayoutSettings: Codable {
     let title: TitleLayout
     let clock: ClockLayout
-    let logo: LogoLayout?
-    let mouseIndicator: MouseIndicatorLayout
+    let logo: LogoLayout?  // Add back the logo property
     let shortcut: ShortcutLayout
 }
 
@@ -2192,13 +2190,9 @@ struct ClockLayout: Codable {
     let trailingPadding: CGFloat
 }
 
-struct LogoLayout: Codable {
-    let topPadding: CGFloat
-    let leadingPadding: CGFloat
-}
-
 struct MouseIndicatorLayout: Codable {
-    let bottomPadding: CGFloat
+    // Remove this line since it's now in MouseIndicatorSettings
+    // let bottomPadding: CGFloat
 }
 
 struct MultiplierSettings: Codable {
@@ -2244,6 +2238,7 @@ struct ClockSettings: Codable {
 struct MouseIndicatorSettings: Codable {
     let size: CGFloat
     let strokeWidth: CGFloat
+    let bottomPadding: CGFloat
 }
 
 class WindowSizeMonitor: ObservableObject {
@@ -2595,5 +2590,24 @@ struct ShortcutLayout: Codable {
     let titleSize: CGFloat
     let subtitleSize: CGFloat
 }
+
+// 1. First add back LogoLayout since it's needed by LogoView
+struct LogoLayout: Codable {
+    let topPadding: CGFloat
+    let leadingPadding: CGFloat
+}
+
+// 2. Add the missing NavigationSettings struct
+struct NavigationSettings: Codable {
+    let size: CGFloat
+    let spacing: CGFloat
+    let bottomPadding: CGFloat
+}
+
+private let defaultNavigationSettings = NavigationSettings(
+    size: 12.0,
+    spacing: 24.0,
+    bottomPadding: 30.0
+)
 
 

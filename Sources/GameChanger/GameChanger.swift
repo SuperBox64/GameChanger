@@ -288,7 +288,7 @@ enum Action: String, Codable {
                             UIVisibilityState.shared.isVisible = true
                             UIVisibilityState.shared.isExecutingPath = false
                         default:
-                      x      break
+                            break
                         }
 
                         if UIVisibilityState.shared.mouseVisible {
@@ -2583,7 +2583,7 @@ func showErrorModal(
 ) {
 
     // Play system alert sound
-    DispatchQueue.main.async {
+    DispatchQueue.global(qos: .background).async {
         NSSound.beep()
     }
 

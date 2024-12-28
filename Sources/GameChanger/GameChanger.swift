@@ -2058,7 +2058,11 @@ class MouseIndicatorNSView: NSView {
         
         // Progress circle
         let path = NSBezierPath()
-        let startAngle: CGFloat = 90
+        path.lineJoinStyle = .round
+        path.lineCapStyle = .round
+
+        let startAngle: CGFloat = 93    
+   
         let endAngle = startAngle + (360 * progress)
         
         path.appendArc(withCenter: center, radius: radius, 

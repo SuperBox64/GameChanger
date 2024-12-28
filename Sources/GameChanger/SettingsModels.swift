@@ -43,4 +43,10 @@ public struct ShortcutLayout: Codable {
 public struct LogoLayout: Codable {
     public let topPadding: CGFloat
     public let leadingPadding: CGFloat
+}
+
+public struct Section: RawRepresentable, Codable, CaseIterable {
+    public let rawValue: String
+    public init(rawValue: String) { self.rawValue = rawValue }
+    public static var allCases: [Section] = { return AppDataManager.shared.sections }()
 } 

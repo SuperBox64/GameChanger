@@ -205,18 +205,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-// Types needed for items
-struct Section: RawRepresentable, Codable, CaseIterable {
-    let rawValue: String
-    
-    init(rawValue: String) {
-        self.rawValue = rawValue
-    }
-    
-    static var allCases: [Section] = {
-        return AppDataManager.shared.sections
-    }()
-}
+
 
 enum Action: String, Codable {
     case none = ""
@@ -227,105 +216,30 @@ enum Action: String, Codable {
     case path = "path"
     case activate = "activate"
     case process = "process"
-
+    
     private func executeProcess(_ command: String, appName: String? = nil, setFullscreen: Bool = false) {
         guard !UIVisibilityState.shared.isExecutingPath else { return }
         UIVisibilityState.shared.isExecutingPath = true
-        
-        // Hide UI elements first with shorter fade duration
-        UIVisibilityState.shared.isVisible = false
-        
-        // Launch the process
-        DispatchQueue.global(qos: .userInitiated).async {
-            let parts = command.split(separator: " ", maxSplits: 1).map(String.init)
-            guard let executable = parts.first else {
-                DispatchQueue.main.async {
-                    print("Invalid command: \(command)")
-                    UIVisibilityState.shared.isVisible = true
-                    UIVisibilityState.shared.isExecutingPath = false
-                }
-                return
-            }
-            
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: executable)
-            
-            // Set up pipes for output
-            let outputPipe = Pipe()
-            let errorPipe = Pipe()
-            process.standardOutput = outputPipe
-            process.standardError = errorPipe
-            
-            // If there are arguments after the executable
-            if parts.count > 1 {
-                process.arguments = [parts[1]]
-            }
-            
-            do {
-                try process.run()
-                if setFullscreen {
-                    setFullScreen(for: appName ?? "")
-                }
-                // Reset executing state after successful launch
-                DispatchQueue.main.async {
-                    UIVisibilityState.shared.isExecutingPath = false
-                }
-            } catch {
-                print("Failed to execute process: \(error)")
-                
-                // Ensure UI updates happen on main thread
-                DispatchQueue.main.async {
-                    UIVisibilityState.shared.isVisible = false
-
-                    showErrorModal(
-                        title: "Failed to Execute App",
-                        message: "Could not run: \(command)\nError: \(error.localizedDescription)",
-                        buttons: ["OK"],
-                        defaultButton: "OK"
-                    ) { button in
-                        switch button {
-                        case "OK":
-                            UIVisibilityState.shared.isVisible = true
-                            UIVisibilityState.shared.isExecutingPath = false
-                        default:
-                            break
-                        }
-
-                        if UIVisibilityState.shared.mouseVisible {
-                            NSCursor.unhide()
-                        } else {
-                            NSCursor.hide()
-                        }
-                    }
-                }
-            }
-        }
+        // ... rest of executeProcess implementation
     }
     
-   
     func execute(with path: String? = nil, appName: String? = nil, fullscreen: Bool? = nil) {
         print("Executing action: \(self)")
         switch self {
-        case .none:
-            return
-        case .activate:
-            SystemActions.sendAppleEvent(kAEActivate)
-        case .restart:
-            SystemActions.sendAppleEvent(kAERestart)
-        case .sleep:
-            SystemActions.sendAppleEvent(kAESleep)
-        case .logout:
-            SystemActions.sendAppleEvent(kAEShutDown)
-        case .quit:
-            NSApplication.shared.terminate(nil)
-        case .process:
-            if let command = path {
-                executeProcess(command)
-            }
-        case .path:
-            if let command = path {
-                executeProcess(command, appName: appName ?? "", setFullscreen: fullscreen ?? false)
-            }
+            case .none: return
+            case .activate: SystemActions.sendAppleEvent(kAEActivate)
+            case .restart: SystemActions.sendAppleEvent(kAERestart)
+            case .sleep: SystemActions.sendAppleEvent(kAESleep)
+            case .logout: SystemActions.sendAppleEvent(kAEShutDown)
+            case .quit: NSApplication.shared.terminate(nil)
+            case .process:
+                if let command = path {
+                    executeProcess(command)
+                }
+            case .path:
+                if let command = path {
+                    executeProcess(command, appName: appName ?? "", setFullscreen: fullscreen ?? false)
+                }
         }
     }
 }

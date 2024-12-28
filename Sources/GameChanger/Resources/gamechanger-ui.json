@@ -72,6 +72,12 @@
                 "mouseIndicator": {
                     "bottomPadding": 30,
                     "spacingFromCarousel": 60
+                },
+                "shortcut": {
+                    "leadingPadding": 30,
+                    "bottomPadding": 30,
+                    "titleSize": 14,
+                    "subtitleSize": 12
                 }
             }
         },

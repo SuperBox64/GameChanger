@@ -90,7 +90,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.hideOtherApplications(nil)
-
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+    
         let presOptions: NSApplication.PresentationOptions = [.hideDock, .hideMenuBar]
         NSApp.presentationOptions = presOptions
 

@@ -2052,6 +2052,7 @@ struct MouseIndicatorView: View {
     @StateObject private var uiVisibilityState = UIVisibilityState.shared
     
     var body: some View {
+        let settings = SizingGuide.getCurrentSettings().layout.mouseIndicator
         VStack {
             Spacer()
             MouseIndicatorNSViewRepresentable(
@@ -2060,7 +2061,7 @@ struct MouseIndicatorView: View {
             )
             .frame(width: SizingGuide.getSettings(for: WindowSizeMonitor.shared.currentResolution).mouseIndicator.size,
                    height: SizingGuide.getSettings(for: WindowSizeMonitor.shared.currentResolution).mouseIndicator.size)
-            .padding(.bottom, 100)
+            .padding(.bottom, settings.bottomPadding)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .opacity(mouseState.showingProgress && !uiVisibilityState.mouseVisible ? 1 : 0)
@@ -2496,6 +2497,8 @@ func showErrorModal(
         return
     }
     
+    print("Before alert - MouseIndicator showing: \(MouseIndicatorState.shared.showingProgress)")
+    
     NSCursor.unhide()  // Show cursor before creating alert
     
     // Create a hidden window for alerts
@@ -2522,6 +2525,9 @@ func showErrorModal(
     
     alert.window.level = .floating  // Make alert float above main window
     let response = alert.runModal()
+    
+    print("After alert - MouseIndicator showing: \(MouseIndicatorState.shared.showingProgress)")
+    
     let buttonIndex = response.rawValue - NSApplication.ModalResponse.alertFirstButtonReturn.rawValue
     let clickedButton = buttons[Int(buttonIndex)]
     

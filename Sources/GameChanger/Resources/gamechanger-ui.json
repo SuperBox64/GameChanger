@@ -121,7 +121,7 @@
                         "trailingPadding": 80
                     },
                     "mouseIndicator": {
-                        "bottomPadding": 454
+                        "bottomPadding": 474
                     },
                     "shortcut": {
                         "leadingPadding": 30,
@@ -170,7 +170,7 @@
                         "trailingPadding": 60
                     },
                     "mouseIndicator": {
-                        "bottomPadding": 304
+                        "bottomPadding": 324
                     },
                     "shortcut": {
                         "leadingPadding": 30,
@@ -219,7 +219,7 @@
                         "trailingPadding": 40
                     },
                     "mouseIndicator": {
-                        "bottomPadding": 226
+                        "bottomPadding": 246
                     },
                     "shortcut": {
                         "leadingPadding": 30,
@@ -268,7 +268,7 @@
                         "trailingPadding": 30
                     },
                     "mouseIndicator": {
-                        "bottomPadding": 170
+                        "bottomPadding": 190
                     },
                     "shortcut": {
                         "leadingPadding": 30,
@@ -317,7 +317,7 @@
                         "trailingPadding": 30
                     },
                     "mouseIndicator": {
-                        "bottomPadding": 170
+                        "bottomPadding": 190
                     },
                     "shortcut": {
                         "leadingPadding": 30,
@@ -366,7 +366,7 @@
                         "trailingPadding": 25
                     },
                     "mouseIndicator": {
-                        "bottomPadding": 141
+                        "bottomPadding": 161
                     },
                     "shortcut": {
                         "leadingPadding": 30,
@@ -415,7 +415,7 @@
                         "trailingPadding": 23
                     },
                     "mouseIndicator": {
-                        "bottomPadding": 128
+                        "bottomPadding": 148
                     },
                     "shortcut": {
                         "leadingPadding": 30,
@@ -464,7 +464,7 @@
                         "trailingPadding": 20
                     },
                     "mouseIndicator": {
-                        "bottomPadding": 114
+                        "bottomPadding": 134
                     },
                     "shortcut": {
                         "leadingPadding": 30,

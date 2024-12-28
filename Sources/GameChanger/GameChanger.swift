@@ -601,21 +601,28 @@ struct GameChangerUISettings: Codable {
 }
 
 struct CommonSettings: Codable {
-    let multipliers: MultiplierSettings
-    let opacities: OpacitySettings
-    let fontWeights: FontWeightSettings
+    let mouseSensitivity: Double
+    let enableScreenshots: Bool
+    let bounceEnabled: Bool
     let fonts: FontSettings
-    let animations: AnimationSettings
     let colors: ColorSettings
     let mouseIndicator: MouseIndicatorCommonSettings
     let navigation: NavigationCommonSettings
-    let enableScreenshots: Bool
-    let mouseSensitivity: Double
-    let bounceEnabled: Bool
+    let animations: AnimationSettings
+    let opacities: OpacitySettings
+    let fontWeights: FontWeightSettings
+    let multipliers: MultiplierSettings
+    let layout: CommonLayoutSettings
+}
+
+struct CommonLayoutSettings: Codable {
+    let mouseIndicator: MouseIndicatorLayout
+    let shortcut: ShortcutLayout
 }
 
 struct MouseIndicatorCommonSettings: Codable {
     let inactivityTimeout: Double
+    let distanceFromDots: CGFloat  // Distance between navigation dots and mouse indicator
 }
 
 struct NavigationCommonSettings: Codable {
@@ -2045,12 +2052,17 @@ struct MouseIndicatorView: View {
     @StateObject private var uiVisibilityState = UIVisibilityState.shared
     
     var body: some View {
-        MouseIndicatorNSViewRepresentable(
-            progress: mouseState.mouseProgress,
-            direction: mouseState.mouseDirection
-        )
-        .frame(width: SizingGuide.getSettings(for: WindowSizeMonitor.shared.currentResolution).mouseIndicator.size,
-               height: SizingGuide.getSettings(for: WindowSizeMonitor.shared.currentResolution).mouseIndicator.size)
+        VStack {
+            Spacer()
+            MouseIndicatorNSViewRepresentable(
+                progress: mouseState.mouseProgress,
+                direction: mouseState.mouseDirection
+            )
+            .frame(width: SizingGuide.getSettings(for: WindowSizeMonitor.shared.currentResolution).mouseIndicator.size,
+                   height: SizingGuide.getSettings(for: WindowSizeMonitor.shared.currentResolution).mouseIndicator.size)
+            .padding(.bottom, 100)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .opacity(mouseState.showingProgress && !uiVisibilityState.mouseVisible ? 1 : 0)
     }
 }

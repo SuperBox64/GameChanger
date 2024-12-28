@@ -28,7 +28,8 @@
                 "svg_white": "#ffffff"
             },
             "mouseIndicator": {
-                "inactivityTimeout": 5.0
+                "inactivityTimeout": 5.0,
+                "distanceFromDots": 60.0
             },
             "navigation": {
                 "opacity": 0.3
@@ -69,7 +70,8 @@
                     "trailingPadding": 20
                 },
                 "mouseIndicator": {
-                    "bottomPadding": 114
+                    "bottomPadding": 30,
+                    "spacingFromCarousel": 60
                 }
             }
         },

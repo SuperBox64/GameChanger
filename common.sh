@@ -51,6 +51,10 @@ create_info_plist() {
     </array>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
+    <key>NSCameraUsageDescription</key>
+    <string>GameChanger needs camera access for recording with camera overlay.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>GameChanger needs microphone access to record audio during screen recording.</string>
     <key>NSAppleEventsUsageDescription</key>
     <string>SuperBox64 GameChanger needs to control window state of launched applications.</string>
     <key>NSAccessibilityUsageDescription</key>

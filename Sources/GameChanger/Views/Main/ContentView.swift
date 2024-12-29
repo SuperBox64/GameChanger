@@ -33,6 +33,7 @@ struct ContentView: View {
     @State private var nextOffset: CGFloat = 0
     @State private var isAnimating = false
     @State private var showingNextItems = false
+    @StateObject private var screenRecorder = ScreenRecorder()
     
     private var visibleItems: [AppItem] {
         let sourceItems = getSourceItems()
@@ -115,10 +116,35 @@ struct ContentView: View {
     
     private func setupKeyMonitor() {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-    
+            // Handle screen recording shortcuts
+            if event.modifierFlags.contains(.command) {
+                switch Int(event.keyCode) {
+                case kVK_ANSI_R: // Cmd + R for recording
+                    Task {
+                        do {
+                            if screenRecorder.isRecording {
+                                try await screenRecorder.stopRecording()
+                            } else {
+                                try await screenRecorder.startRecording()
+                            }
+                        } catch {
+                            print("Recording error: \(error.localizedDescription)")
+                        }
+                    }
+                    return nil
+                case kVK_ANSI_C: // Cmd + C for camera toggle
+                    screenRecorder.toggleCamera()
+                    return nil
+                case kVK_ANSI_M: // Cmd + M for microphone toggle
+                    screenRecorder.toggleMicrophone()
+                    return nil
+                default:
+                    break
+                }
+            }
+
             // Then handle other keys
-                    switch Int(event.keyCode) {
-                  // Handle mouse visibility
+            switch Int(event.keyCode) {
             case kVK_ANSI_G:
                 UIVisibilityState.shared.isGridVisible.toggle()
             case kVK_ANSI_Q:
@@ -145,16 +171,16 @@ struct ContentView: View {
             case kVK_RightArrow:
                 resetMouseState()
                 moveRight()
-                    case kVK_Return:
-                        resetMouseState()
-                        handleSelection()
+            case kVK_Return:
+                resetMouseState()
+                handleSelection()
             case kVK_Space:
-                        resetMouseState()
+                resetMouseState()
                 handleSelection()
             default: break
-                    }
-            return nil
             }
+            return nil
+        }
     }
     
     private var titleFontSize: CGFloat {

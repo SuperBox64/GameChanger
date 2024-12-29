@@ -9,7 +9,7 @@ import SwiftUI
 
 @main
 struct GameChangerApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var windowSizeMonitor = WindowSizeMonitor.shared
     @StateObject private var uiVisibility = UIVisibilityState.shared
     @State var startupSound = false

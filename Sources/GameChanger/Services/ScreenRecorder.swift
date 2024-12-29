@@ -11,6 +11,7 @@ class ScreenRecorder: NSObject, ObservableObject, RPPreviewViewControllerDelegat
     
     private let recorder = RPScreenRecorder.shared()
     private var previewWindow: NSWindow?
+    private var cameraView: NSView?
     
     override init() {
         super.init()
@@ -35,6 +36,10 @@ class ScreenRecorder: NSObject, ObservableObject, RPPreviewViewControllerDelegat
                     continuation.resume(throwing: error)
                 } else {
                     self?.isRecording = true
+                    // Set up camera view after recording starts
+                    DispatchQueue.main.async {
+                        self?.setupCameraView()
+                    }
                     continuation.resume(returning: ())
                 }
             }
@@ -50,6 +55,8 @@ class ScreenRecorder: NSObject, ObservableObject, RPPreviewViewControllerDelegat
                     continuation.resume(throwing: error)
                 } else {
                     self?.isRecording = false
+                    // Remove camera view when recording stops
+                    self?.removeCameraPreview()
                     if let previewController = previewController {
                         self?.presentPreview(previewController)
                     }
@@ -62,13 +69,18 @@ class ScreenRecorder: NSObject, ObservableObject, RPPreviewViewControllerDelegat
     // MARK: - Camera and Microphone Controls
     
     func toggleCamera() {
-        recorder.isCameraEnabled.toggle()
-        isCameraEnabled = recorder.isCameraEnabled
-        
-        if isCameraEnabled, let cameraView = recorder.cameraPreviewView {
-            setupCameraPreview(cameraView)
-        } else {
+        // First toggle camera state
+        if isCameraEnabled {
+            recorder.isCameraEnabled = false
+            isCameraEnabled = false
             removeCameraPreview()
+        } else {
+            recorder.isCameraEnabled = true
+            isCameraEnabled = true
+            // Set up camera view after enabling
+            DispatchQueue.main.async { [weak self] in
+                self?.setupCameraView()
+            }
         }
     }
     
@@ -79,19 +91,43 @@ class ScreenRecorder: NSObject, ObservableObject, RPPreviewViewControllerDelegat
     
     // MARK: - Camera Preview Setup
     
-    private func setupCameraPreview(_ cameraView: NSView) {
-        guard let window = NSApp.windows.first else { return }
-        
-        // Configure camera preview
-        cameraView.frame = NSRect(x: 0, y: window.frame.height - 150,
-                                width: 200, height: 150)
-        cameraView.wantsLayer = true
-        
-        window.contentView?.addSubview(cameraView)
+    private func setupCameraView() {
+        // Validate that the camera preview view and camera are in enabled state
+        if (recorder.cameraPreviewView != nil) && recorder.isCameraEnabled {
+            guard let cameraView = recorder.cameraPreviewView else {
+                print("Unable to retrieve cameraPreviewView. Returning.")
+                return
+            }
+            guard let window = NSApp.windows.first else { return }
+            
+            // Camera dimensions - half of 640x480
+            let width: CGFloat = 320
+            let height: CGFloat = 240
+            let padding: CGFloat = 20
+            
+            // Position in BOTTOM right corner - using contentView coordinates
+            if let contentView = window.contentView {
+                let frame = NSRect(
+                    x: contentView.bounds.width - width - (padding * 4),
+                    y: contentView.bounds.height - height - padding,  // FIXED: This will place it at the bottom
+                    width: width,
+                    height: height
+                )
+                
+                cameraView.frame = frame
+                cameraView.wantsLayer = true
+                contentView.addSubview(cameraView)
+                self.cameraView = cameraView
+            }
+        }
     }
     
     private func removeCameraPreview() {
-        recorder.cameraPreviewView?.removeFromSuperview()
+        DispatchQueue.main.async { [weak self] in
+            // Remove the camera view from the main view when tearing down the camera
+            self?.cameraView?.removeFromSuperview()
+            self?.cameraView = nil
+        }
     }
     
     // MARK: - Preview Handling

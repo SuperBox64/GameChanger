@@ -117,9 +117,10 @@ struct ContentView: View {
     private func setupKeyMonitor() {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             // Handle screen recording shortcuts
-            if event.modifierFlags.contains(.command) {
-                switch Int(event.keyCode) {
-                case kVK_ANSI_R: // Cmd + R for recording
+          
+            // Then handle other keys
+            switch Int(event.keyCode) {
+                 case kVK_ANSI_R: // Cmd + R for recording
                     Task {
                         do {
                             if screenRecorder.isRecording {
@@ -138,13 +139,6 @@ struct ContentView: View {
                 case kVK_ANSI_M: // Cmd + M for microphone toggle
                     screenRecorder.toggleMicrophone()
                     return nil
-                default:
-                    break
-                }
-            }
-
-            // Then handle other keys
-            switch Int(event.keyCode) {
             case kVK_ANSI_G:
                 UIVisibilityState.shared.isGridVisible.toggle()
             case kVK_ANSI_Q:

@@ -51,6 +51,8 @@ create_info_plist() {
     </array>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Generate screen recordings and save to photos</string>
     <key>NSCameraUsageDescription</key>
     <string>GameChanger needs camera access for recording with camera overlay.</string>
     <key>NSMicrophoneUsageDescription</key>

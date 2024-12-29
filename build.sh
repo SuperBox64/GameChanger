@@ -132,9 +132,16 @@ else
     echo "Building release version..."
     # Build Universal Binary
     echo "Building for Apple Silicon..."
-    swift build -c release --arch arm64 --jobs $(sysctl -n hw.ncpu) -Xswiftc -O -Xswiftc -whole-module-optimization
+    swift build -c release \
+        --arch arm64 \
+        --jobs $(sysctl -n hw.ncpu) \
+        -Xswiftc -O
+
     echo "Building for Intel..."
-    swift build -c release --arch x86_64 --jobs $(sysctl -n hw.ncpu) -Xswiftc -O -Xswiftc -whole-module-optimization
+    swift build -c release \
+        --arch x86_64 \
+        --jobs $(sysctl -n hw.ncpu) \
+        -Xswiftc -O
 
     # Create Universal Binary
     lipo -create \

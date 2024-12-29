@@ -1,7 +1,5 @@
 import SwiftUI
-import ScreenCaptureKit
 
-@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     var cursorHideTimer: Timer?
     var screenshotTimer: Timer?

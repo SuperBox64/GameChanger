@@ -115,10 +115,10 @@ struct ContentView: View {
     
     private func setupKeyMonitor() {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            switch Int(event.keyCode) {
-            case kVK_ANSI_8:
-                print("8 key pressed - attempting to toggle recording")
-                RecordingService.shared.toggleRecording()
+    
+            // Then handle other keys
+                    switch Int(event.keyCode) {
+                  // Handle mouse visibility
             case kVK_ANSI_G:
                 UIVisibilityState.shared.isGridVisible.toggle()
             case kVK_ANSI_Q:

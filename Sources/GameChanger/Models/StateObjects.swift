@@ -74,7 +74,6 @@ class UIVisibilityState: ObservableObject {
     @Published var isShowingModal = false {
         didSet { print("DEBUG: isShowingModal changed from \(oldValue) to \(isShowingModal)") }
     }
-    @Published var isRecording = false
 }
 
 class SizingManager: ObservableObject {

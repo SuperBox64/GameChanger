@@ -55,10 +55,6 @@ create_info_plist() {
     <string>SuperBox64 GameChanger needs to control window state of launched applications.</string>
     <key>NSAccessibilityUsageDescription</key>
     <string>SuperBox64 GameChanger needs accessibility access to control application windows.</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>GameChanger needs microphone access to record audio during screen recording.</string>
-    <key>NSScreenCaptureUsageDescription</key>
-    <string>GameChanger needs screen recording permission to capture gameplay footage.</string>
 </dict>
 </plist>
 EOF

@@ -8,33 +8,10 @@ import GameController
 import Carbon.HIToolbox
 import AVFoundation
 
-class UIVisibilityState: ObservableObject {
-    static let shared = UIVisibilityState()
-    
-    @Published var isVisible = false {
-        didSet {
-            print("DEBUG: isVisible changed from \(oldValue) to \(isVisible)")
-        }
-    }
-    
-    @Published var isGridVisible = false
-    @Published var mouseVisible = false
-    @Published var isExecutingPath: Bool = false {
-        didSet {
-            print("DEBUG: isExecutingPath changed from \(oldValue) to \(isExecutingPath)")
-        }
-    }
-    @Published var isShowingModal = false {
-        didSet {
-            print("DEBUG: isShowingModal changed from \(oldValue) to \(isShowingModal)")
-        }
-    }
-}
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var cursorHideTimer: Timer?
     var screenshotTimer: Timer?
-    @StateObject private var appState = AppState.shared
     
     private func initializeCache() {
         var loadedImages = 0
@@ -206,158 +183,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 
-
-enum Action: String, Codable {
-    case none = ""
-    case restart = "restart"
-    case sleep = "sleep"
-    case logout = "logout"
-    case quit = "quit"
-    case path = "path"
-    case activate = "activate"
-    case process = "process"
-    
-    private func executeProcess(_ command: String, appName: String? = nil, setFullscreen: Bool = false) {
-        guard !UIVisibilityState.shared.isExecutingPath else { return }
-        UIVisibilityState.shared.isExecutingPath = true
-        
-        // Hide UI elements first with shorter fade duration
-        UIVisibilityState.shared.isVisible = false
-        
-        // Launch the process
-        DispatchQueue.global(qos: .userInitiated).async {
-            let parts = command.split(separator: " ", maxSplits: 1).map(String.init)
-            guard let executable = parts.first else {
-                DispatchQueue.main.async {
-                    print("Invalid command: \(command)")
-                    UIVisibilityState.shared.isVisible = true
-                    UIVisibilityState.shared.isExecutingPath = false
-                }
-                return
-            }
-            
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: executable)
-            
-            // Set up pipes for output
-            let outputPipe = Pipe()
-            let errorPipe = Pipe()
-            process.standardOutput = outputPipe
-            process.standardError = errorPipe
-            
-            // If there are arguments after the executable
-            if parts.count > 1 {
-                process.arguments = [parts[1]]
-            }
-            
-            do {
-                try process.run()
-                if setFullscreen {
-                    setFullScreen(for: appName ?? "")
-                }
-                // Reset executing state after successful launch
-                DispatchQueue.main.async {
-                    UIVisibilityState.shared.isExecutingPath = false
-                }
-            } catch {
-                print("Failed to execute process: \(error)")
-                
-                // Ensure UI updates happen on main thread
-                DispatchQueue.main.async {
-                    UIVisibilityState.shared.isVisible = false
-
-                    showErrorModal(
-                        title: "Failed to Execute App",
-                        message: "Could not run: \(command)\nError: \(error.localizedDescription)",
-                        buttons: ["OK"],
-                        defaultButton: "OK"
-                    ) { button in
-                        switch button {
-                        case "OK":
-                            UIVisibilityState.shared.isVisible = true
-                            UIVisibilityState.shared.isExecutingPath = false
-                        default:
-                            break
-                        }
-
-                        if UIVisibilityState.shared.mouseVisible {
-                            NSCursor.unhide()
-                        } else {
-                            NSCursor.hide()
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    func execute(with path: String? = nil, appName: String? = nil, fullscreen: Bool? = nil) {
-        print("Executing action: \(self)")
-        switch self {
-            case .none: return
-            case .activate: SystemActions.sendAppleEvent(kAEActivate)
-            case .restart: SystemActions.sendAppleEvent(kAERestart)
-            case .sleep: SystemActions.sendAppleEvent(kAESleep)
-            case .logout: SystemActions.sendAppleEvent(kAEShutDown)
-            case .quit: NSApplication.shared.terminate(nil)
-            case .process:
-                if let command = path {
-                    executeProcess(command)
-                }
-            case .path:
-                if let command = path {
-                    executeProcess(command, appName: appName ?? "", setFullscreen: fullscreen ?? false)
-                }
-        }
-    }
-    
-    private func setFullScreen(for appName: String) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            guard let app = NSWorkspace.shared.runningApplications.first(where: { $0.localizedName == appName }) else {
-                print("Could not find application: \(appName)")
-                return
-            }
-            
-            let appElement = AXUIElementCreateApplication(app.processIdentifier)
-            
-            var windowRef: CFTypeRef?
-            let result = AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowRef)
-            
-            if result == .success,
-               let windows = windowRef as? [AXUIElement],
-               let window = windows.first {
-                AXUIElementSetAttributeValue(window, "AXFullScreen" as CFString, true as CFBoolean)
-            } else {
-                print("Failed to get window or set fullscreen for: \(appName)")
-            }
-        }
-    }
-}
-
-private struct SystemActions  {
-    static func sendAppleEvent(_ eventID: UInt32) {
-        var psn = ProcessSerialNumber(highLongOfPSN: 0, lowLongOfPSN: UInt32(kSystemProcess))
-        let target = NSAppleEventDescriptor(
-            descriptorType: typeProcessSerialNumber,
-            bytes: &psn,
-            length: MemoryLayout.size(ofValue: psn)
-        )
-        
-        let event = NSAppleEventDescriptor(
-            eventClass: kCoreEventClass,
-            eventID: eventID,
-            targetDescriptor: target,
-            returnID: AEReturnID(kAutoGenerateReturnID),
-            transactionID: AETransactionID(kAnyTransactionID)
-        )
-        
-        _ = try? event.sendEvent(
-            options: [.noReply],
-            timeout: TimeInterval(kAEDefaultTimeout)
-        )
-    }
-}
-
 extension Notification.Name {
     static let escKeyPressed = Notification.Name("escKeyPressed")
     static let swipeLeft = Notification.Name("swipeLeft")
@@ -365,13 +190,6 @@ extension Notification.Name {
     static let jumpToPage = Notification.Name("jumpToPage")
     static let bounceItems = Notification.Name("bounceItems")
     static let startupBounce = Notification.Name("startupBounce")
-}
-
-class NavigationState: ObservableObject {
-    static let shared = NavigationState()
-    @Published var currentPage = 0
-    @Published var numberOfPages = 1
-    @Published var opacity: Double = 1.0
 }
 
 struct NavigationOverlayView: View {
@@ -410,19 +228,7 @@ struct SizePreservingView<Content: View>: View {
     }
 }
 
-class ContentState: ObservableObject {
-    static let shared = ContentState()
-    @Published var selectedIndex = -1
-    @Published var currentSection = "Game Changer"  // Add this
-    
-    func jumpToPage(_ page: Int) {
-        NotificationCenter.default.post(
-            name: .jumpToPage,
-            object: nil,
-            userInfo: ["page": page]
-        )
-    }
-}
+
 
 @main
 struct GameChangerApp: App {
@@ -536,119 +342,7 @@ struct MainWindowView: View {
     }
 }
 
-// Add at top level
-class AppState: ObservableObject {
-    static let shared = AppState()
-    @Published var isLoaded = false
-}
 
-
-struct GUISettings: Codable {
-    let GameChangerUI: GameChangerUISettings
-}
-
-struct GameChangerUISettings: Codable {
-    let common: CommonSettings
-    private let resolutions: [String: InterfaceSizing]
-    
-    private enum CodingKeys: String, CodingKey {
-        case common
-        case resolutions
-    }
-    
-    func getResolution(_ key: String) -> InterfaceSizing {
-        guard let settings = resolutions[key] else {
-            fatalError("Missing settings for resolution: \(key)")
-        }
-        return settings
-    }
-}
-
-struct CommonSettings: Codable {
-    let mouseSensitivity: Double
-    let enableScreenshots: Bool
-    let bounceEnabled: Bool
-    let fonts: FontSettings
-    let colors: ColorSettings
-    let mouseIndicator: MouseIndicatorCommonSettings
-    let animations: AnimationSettings
-    let opacities: OpacitySettings
-    let fontWeights: FontWeightSettings
-    let multipliers: MultiplierSettings
-    let layout: CommonLayoutSettings
-    let navigationDots: NavigationDotsCommonSettings
-}
-
-struct CommonLayoutSettings: Codable {
-    let shortcut: ShortcutLayout
-}
-
-struct MouseIndicatorCommonSettings: Codable {
-    let inactivityTimeout: Double
-    let distanceFromDots: CGFloat  // Distance between navigation dots and mouse indicator
-}
-
-struct ColorSettings: Codable {
-    let mouseIndicator: MouseIndicatorColors
-    let text: TextColors
-}
-
-struct TextColors: Codable {
-    let selected: [Double]
-    let unselected: [Double]
-    
-    var selectedUI: Color {
-        Color(.sRGB, 
-              red: selected[0],
-              green: selected[1], 
-              blue: selected[2], 
-              opacity: selected[3])
-    }
-    
-    var unselectedUI: Color {
-        Color(.sRGB, 
-              red: unselected[0],
-              green: unselected[1], 
-              blue: unselected[2], 
-              opacity: unselected[3])
-    }
-}
-
-struct MouseIndicatorColors: Codable {
-    let background: [Double]  // [R, G, B, A]
-    let progress: [Double]    // [R, G, B, A]
-    
-    var backgroundUI: Color {
-        Color(.sRGB, 
-              red: background[0],
-              green: background[1], 
-              blue: background[2], 
-              opacity: background[3])
-    }
-    
-    var progressUI: Color {
-        Color(.sRGB, 
-              red: progress[0], 
-              green: progress[1], 
-              blue: progress[2], 
-              opacity: progress[3])
-    }
-}
-
-struct FontSettings: Codable {
-    let title: String
-    let label: String
-    let clock: String
-}
-
-struct InterfaceSizing: Codable {
-    let carousel: CarouselSizing
-    let mouseIndicator: MouseIndicatorSettings
-    let title: TitleSettings
-    let label: LabelSettings
-    let clock: ClockSettings
-    let layout: LayoutSettings
-}
 
 struct SizingGuide {
     static private var settings: GUISettings = {
@@ -2028,12 +1722,6 @@ struct NavigationDotsNSViewRepresentable: NSViewRepresentable {
     }
 }
 
-class MouseIndicatorState: ObservableObject {
-    static let shared = MouseIndicatorState()
-    @Published var showingProgress = false
-    @Published var mouseProgress: CGFloat = 0
-    @Published var mouseDirection: Int = 0
-}
 
 class MouseIndicatorNSView: NSView {
     var progress: CGFloat = 0
@@ -2152,138 +1840,6 @@ extension Animation {
     }
 }
 
-// Add new animation settings structs
-struct AnimationSettings: Codable {
-    let slideEnabled: Bool
-    let fadeEnabled: Bool
-    let bounceEnabled: Bool
-    let slide: SlideAnimation
-    let fade: FadeAnimation
-}
-
-struct SlideAnimation: Codable {
-    let duration: Double
-    let curve: CubicCurve
-}
-
-struct CubicCurve: Codable {
-    let x1: Double
-    let y1: Double
-    let x2: Double
-    let y2: Double
-}
-
-struct FadeAnimation: Codable {
-    let duration: Double
-}
-
-
-
-// Add LayoutSettings struct
-struct LayoutSettings: Codable {
-    let title: TitleLayout
-    let clock: ClockLayout
-    let logo: LogoLayout?  // Add back the logo property
-    let shortcut: ShortcutLayout
-}
-
-struct TitleLayout: Codable {
-    let topPadding: CGFloat
-}
-
-struct ClockLayout: Codable {
-    let topPadding: CGFloat
-    let trailingPadding: CGFloat
-}
-
-struct MouseIndicatorLayout: Codable {
-    // Remove this line since it's now in MouseIndicatorSettings
-    // let bottomPadding: CGFloat
-}
-
-struct MultiplierSettings: Codable {
-    let iconSize: Double
-    let cornerRadius: Double
-    let gridSpacing: Double
-    let mouseIndicatorIconSize: Double
-}
-
-struct OpacitySettings: Codable {
-    let selectionHighlight: Double
-    let clockDateText: Double
-}
-
-struct FontWeightSettings: Codable {
-    let mouseIndicatorIcon: String
-}
-
-struct CarouselSizing: Codable {
-    let iconSize: CGFloat
-    let iconPadding: CGFloat
-    let cornerRadius: CGFloat
-    let gridSpacing: CGFloat
-    let titleSize: CGFloat
-    let labelSize: CGFloat
-    let selectionPadding: CGFloat
-}
-
-struct TitleSettings: Codable {
-    let size: CGFloat
-}
-
-struct LabelSettings: Codable {
-    let size: CGFloat
-}
-
-struct ClockSettings: Codable {
-    let timeSize: CGFloat
-    let dateSize: CGFloat
-    let spacing: CGFloat
-}
-
-struct MouseIndicatorSettings: Codable {
-    let size: CGFloat
-    let strokeWidth: CGFloat
-    let bottomPadding: CGFloat
-}
-
-class WindowSizeMonitor: ObservableObject {
-    static let shared = WindowSizeMonitor()
-    @Published var currentResolution: String
-    private var observers: [NSObjectProtocol] = []
-    
-    init() {
-        // Set default resolution based on main screen
-        if let screen = NSScreen.main {
-            self.currentResolution = SizingGuide.getResolutionKey(for: screen.frame.size)
-        } else {
-            self.currentResolution = "1920x1080"  // Safe default
-        }
-        
-        // Observe window resize notifications
-        observers.append(NotificationCenter.default.addObserver(
-            forName: NSWindow.didResizeNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            guard let window = notification.object as? NSWindow else { return }
-            self?.updateResolution(for: window.frame.size)
-        })
-    }
-    
-    private func updateResolution(for size: CGSize) {
-        let newResolution = SizingGuide.getResolutionKey(for: size)
-        if newResolution != currentResolution {
-            currentResolution = newResolution
-            objectWillChange.send()
-        }
-    }
-    
-    deinit {
-        observers.forEach { NotificationCenter.default.removeObserver($0) }
-    }
-} 
-
 // Add this class near the top of the file
 class AppDataManager {
     static let shared = AppDataManager()
@@ -2335,32 +1891,6 @@ class AppDataManager {
     }
 }
 
-// Add this class at the top level of the file
-class SizingManager: ObservableObject {
-    @Published private(set) var sizing: CarouselSizing
-    
-    static let shared = SizingManager()
-    
-    private init() {
-        // Initialize with safe default values first
-        let defaultSize = CGSize(width: 1920, height: 1080)
-        self.sizing = SizingGuide.getSizing(for: defaultSize)
-        
-        // Then update with actual screen size if available
-        if let screen = NSScreen.main {
-            self.updateSizing(for: screen.frame.size)
-        }
-    }
-    
-    func updateSizing(for size: CGSize) {
-        // Ensure we're not trying to access settings during initialization
-        DispatchQueue.main.async {
-            self.sizing = SizingGuide.getSizing(for: size)
-        }
-    }
-}
-
-// First create the new view
 struct ShortcutHintView: View {
     @StateObject private var sizingManager = SizingManager.shared
     @StateObject private var uiVisibility = UIVisibilityState.shared

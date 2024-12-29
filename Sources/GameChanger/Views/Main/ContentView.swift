@@ -254,6 +254,8 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
+            BackgroundView(onBack: back)  // Pass ContentView's back() function
+            
             // Title at the top
             VStack {
                 Text(currentSection)

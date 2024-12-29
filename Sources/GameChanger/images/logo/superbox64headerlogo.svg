@@ -8,7 +8,7 @@
       }
 
       .st1 {
-        fill: #ed1c24;
+        fill: #D41920;
       }
 
       .st2 {
@@ -16,7 +16,7 @@
       }
 
       .cls-3 {
-        fill: #ed1c24;
+        fill: #D41920;
       }
     </style>
   </defs>

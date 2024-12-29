@@ -16,22 +16,15 @@ struct GameChangerApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                BackgroundView()
-                .onAppear {
-                    if !startupSound {
-                        startupSound.toggle()
-                    SoundPlayer.shared.playStartupSound()
-                    }
-                }
-            
+                
                 Group {
-                    LogoView()
-                    ClockView()
                     if uiVisibility.isGridVisible {
                         GameGridView()
                     } else {
                         ContentView()
                     }
+                    LogoView()
+                    ClockView()
                     MouseIndicatorView()
                     NavigationOverlayView()
                     ShortcutHintView()
@@ -45,6 +38,12 @@ struct GameChangerApp: App {
                     ),
                     value: uiVisibility.isVisible
                 )
+                .onAppear {
+                    if !startupSound {
+                        startupSound.toggle()
+                        SoundPlayer.shared.playStartupSound()
+                    }
+                }
             }
             .background(Color.black)
             .frame(width: .infinity, height: .infinity)

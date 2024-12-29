@@ -2,6 +2,7 @@ import SwiftUI
 
 struct BackgroundView: View {
     @StateObject private var sizingManager = SizingManager.shared
+    let onBack: () -> Void
     
     var body: some View {
         ZStack {
@@ -31,6 +32,9 @@ struct BackgroundView: View {
                 )
             }
             .edgesIgnoringSafeArea(.all)
+            .onTapGesture(count: 2) {
+                onBack()
+            }
         }
     }
 }

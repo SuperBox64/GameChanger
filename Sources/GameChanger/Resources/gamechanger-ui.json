@@ -20,10 +20,10 @@
                 },
                 "logo": {
                     "blue": [0.0, 0.62, 1.0, 1.0],
-                    "red": [1.0, 0.0, 0.05, 1.0]
+                    "red": [0.831, 0.098, 0.125, 1.0]
                 },
                 "svg_blue": "#0088ef",
-                "svg_red": "#ed1c24",
+                "svg_red": "#D41920",
                 "svg_black": "#000000",
                 "svg_white": "#ffffff"
             },
@@ -81,6 +81,27 @@
                 "size": 14.0,
                 "spacing": 28.0,
                 "bottomPadding": 40
+            },
+            "pencilSupport": {
+                "enabled": true,
+                "offCarouselClickBehavior": "back",
+                "backGestureEnabled": true,
+                "minimumTapArea": 44.0
+            },
+            "interactions": {
+                "nonInteractiveAreaBehavior": "back",
+                "backEnabled": true,
+                "requiresConfirmation": false,
+                "ignoreAreas": ["carousel", "navigationDots", "clock"]
+            },
+            "gestures": {
+                "background": {
+                    "doubleTap": {
+                        "enabled": true,
+                        "action": "back",
+                        "interval": 0.3
+                    }
+                }
             }
         },
         "resolutions": {

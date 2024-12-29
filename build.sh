@@ -1,11 +1,15 @@
 #!/bin/bash
 source ./common.sh
 
+# Add start time tracking at the beginning
+BUILD_START_TIME=$(date +%s)
+
 # Default values
 BUILD_TYPE="release"
 SHOULD_OPEN=false
 ONLY_OPEN=false
 SHOULD_CLEAN=false
+DIRECT_RUN=false
 
 # Function definitions first
 show_debug_help() {
@@ -24,10 +28,13 @@ show_debug_help() {
 }
 
 clean_build() {
-    echo "Cleaning build directory..."
-    rm -rf .build
+    echo "Cleaning build..."
+    # Only remove the architecture-specific build products, keep the cache
+    rm -rf .build/arm64-apple-macosx
+    rm -rf .build/x86_64-apple-macosx
+    rm -rf .build/debug
+    rm -rf .build/release
     rm -rf GameChanger.app
-    echo "Clean complete"
 }
 
 sign_app() {
@@ -78,6 +85,7 @@ show_help() {
     echo "  -r    Build release version (default)"
     echo "  -o    Open app after building, or just open if no other flags"
     echo "  -c    Clean build directory before building"
+    echo "  -a    Run binary directly (useful for debugging output)"
     echo "  -h    Show this help message"
     echo ""
     echo "Examples:"
@@ -91,7 +99,7 @@ show_help() {
 }
 
 # Parse command line arguments
-while getopts "droch" opt; do
+while getopts "drocha" opt; do
     case $opt in
         d) BUILD_TYPE="debug" ;;
         r) BUILD_TYPE="release" ;;
@@ -103,6 +111,7 @@ while getopts "droch" opt; do
             fi
             ;;
         c) SHOULD_CLEAN=true ;;
+        a) DIRECT_RUN=true ;;
         h) show_help ;;
         \?) echo "Invalid option -$OPTARG" >&2; exit 1 ;;
     esac
@@ -135,7 +144,7 @@ else
     swift build -c release \
         --arch arm64 \
         --jobs $(sysctl -n hw.ncpu) \
-        -Xswiftc -O
+        -Xswiftc -O -Xswiftc -whole-module-optimization
 
     echo "Building for Intel..."
     swift build -c release \
@@ -162,17 +171,23 @@ if [ "$BUILD_TYPE" = "debug" ]; then
 fi
 
 echo "App bundle created at GameChanger.app"
-if [ "$SHOULD_OPEN" = true ]; then
-    if [ "$BUILD_TYPE" = "debug" ]; then
+
+# Calculate and display build time
+BUILD_END_TIME=$(date +%s)
+BUILD_DURATION=$((BUILD_END_TIME - BUILD_START_TIME))
+MINUTES=$((BUILD_DURATION / 60))
+SECONDS=$((BUILD_DURATION % 60))
+echo "Total build time: ${MINUTES}m ${SECONDS}s"
+
+# Handle opening the app if requested
+if [ "$SHOULD_OPEN" = true ] || [ "$ONLY_OPEN" = true ] || [ "$DIRECT_RUN" = true ]; then
+    if [ "$DIRECT_RUN" = true ]; then
+        echo "Running binary directly..."
+        ./GameChanger.app/Contents/MacOS/GameChanger
+    elif [ "$BUILD_TYPE" = "debug" ]; then
         check_debug_permissions
         show_debug_help
         echo "Launching in debug mode with lldb..."
-        echo "Type 'run' to start the app"
-        echo "Type 'bt' for backtrace if it crashes"
-        echo "Type 'quit' to exit debugger"
-        echo "-----------------------------------"
-        
-        # Try launching with different flags
         lldb -o "run" \
              -f GameChanger.app/Contents/MacOS/GameChanger \
              --wait-for

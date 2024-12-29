@@ -12,7 +12,6 @@ struct GameChangerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var windowSizeMonitor = WindowSizeMonitor.shared
     @StateObject private var uiVisibility = UIVisibilityState.shared
-    @StateObject private var screenRecorder = ScreenRecorder()
     @State var startupSound = false
     var body: some Scene {
         WindowGroup {
@@ -36,7 +35,6 @@ struct GameChangerApp: App {
                     MouseIndicatorView()
                     NavigationOverlayView()
                     ShortcutHintView()
-                    RecordingIndicatorView(screenRecorder: screenRecorder)
                 }
                 .opacity(uiVisibility.isVisible ? 1 : 0)
                 .animation(

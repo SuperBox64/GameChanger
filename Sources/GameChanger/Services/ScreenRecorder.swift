@@ -4,19 +4,24 @@ import AVFoundation
 import AppKit
 
 @MainActor
-class ScreenRecorder: NSObject, ObservableObject {
+class ScreenRecorder: NSObject, ObservableObject, RPPreviewViewControllerDelegate {
     @Published private(set) var isRecording = false
     @Published private(set) var isCameraEnabled = false
     @Published private(set) var isMicrophoneEnabled = false
     
     private let recorder = RPScreenRecorder.shared()
+    private var previewWindow: NSWindow?
     
     override init() {
         super.init()
         recorder.delegate = self
+        
+        // Initialize default settings
         recorder.isCameraEnabled = false
         recorder.isMicrophoneEnabled = false
     }
+    
+    // MARK: - Recording Controls
     
     func startRecording() async throws {
         guard !isRecording else { return }
@@ -45,45 +50,111 @@ class ScreenRecorder: NSObject, ObservableObject {
                     continuation.resume(throwing: error)
                 } else {
                     self?.isRecording = false
-                    
-                    // Show save panel
-                    DispatchQueue.main.async {
-                        let savePanel = NSSavePanel()
-                        let dateFormatter = DateFormatter()
-                        dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-                        let timestamp = dateFormatter.string(from: Date())
-                        
-                        savePanel.nameFieldStringValue = "GameChanger_Recording_\(timestamp).mov"
-                        savePanel.directoryURL = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask)[0]
-                        savePanel.allowedContentTypes = [.mpeg4Movie]
-                        savePanel.begin { response in
-                            if response == .OK, let url = savePanel.url {
-                                print("Recording will be saved to: \(url.path)")
-                            }
-                        }
+                    if let previewController = previewController {
+                        self?.presentPreview(previewController)
                     }
-                    
                     continuation.resume(returning: ())
                 }
             }
         }
     }
-}
-
-// MARK: - RPScreenRecorderDelegate
-extension ScreenRecorder: RPScreenRecorderDelegate {
-    @objc nonisolated func screenRecorderDidChangeAvailability(_ screenRecorder: RPScreenRecorder) {
-        Task { @MainActor in
-            print("Screen recorder availability changed: \(screenRecorder.isAvailable)")
+    
+    // MARK: - Camera and Microphone Controls
+    
+    func toggleCamera() {
+        recorder.isCameraEnabled.toggle()
+        isCameraEnabled = recorder.isCameraEnabled
+        
+        if isCameraEnabled, let cameraView = recorder.cameraPreviewView {
+            setupCameraPreview(cameraView)
+        } else {
+            removeCameraPreview()
         }
     }
     
-    @objc nonisolated func screenRecorder(_ screenRecorder: RPScreenRecorder, didStopRecordingWith previewController: RPPreviewViewController?, error: Error?) {
+    func toggleMicrophone() {
+        recorder.isMicrophoneEnabled.toggle()
+        isMicrophoneEnabled = recorder.isMicrophoneEnabled
+    }
+    
+    // MARK: - Camera Preview Setup
+    
+    private func setupCameraPreview(_ cameraView: NSView) {
+        guard let window = NSApp.windows.first else { return }
+        
+        // Configure camera preview
+        cameraView.frame = NSRect(x: 0, y: window.frame.height - 150,
+                                width: 200, height: 150)
+        cameraView.wantsLayer = true
+        
+        window.contentView?.addSubview(cameraView)
+    }
+    
+    private func removeCameraPreview() {
+        recorder.cameraPreviewView?.removeFromSuperview()
+    }
+    
+    // MARK: - Preview Handling
+    
+    private func presentPreview(_ previewController: RPPreviewViewController) {
+        guard let window = NSApp.windows.first else { return }
+        
+        // Show mouse cursor when presenting preview
+        UIVisibilityState.shared.mouseVisible = true
+        NSCursor.unhide()
+        
+        previewController.previewControllerDelegate = self
+        
+        // Create and configure preview window
+        let previewWindow = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 800, height: 600),
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        previewWindow.contentViewController = previewController
+        
+        previewWindow.title = "Recording Preview"
+        previewWindow.center()
+        
+        self.previewWindow = previewWindow
+        
+        // Present as sheet
+        window.beginSheet(previewWindow)
+    }
+    
+    // MARK: - RPPreviewViewControllerDelegate
+    
+    @objc nonisolated func previewControllerDidFinish(_ previewController: RPPreviewViewController) {
+        Task { @MainActor in
+            guard let window = NSApp.windows.first,
+                  let previewWindow = self.previewWindow else { return }
+            
+            window.endSheet(previewWindow)
+            self.previewWindow = nil
+        }
+    }
+}
+
+// MARK: - RPScreenRecorderDelegate
+@MainActor
+extension ScreenRecorder: RPScreenRecorderDelegate {
+    @objc func screenRecorderDidChangeAvailability(_ screenRecorder: RPScreenRecorder) {
+        // Update UI if recorder availability changes
+        print("Screen recorder availability changed: \(screenRecorder.isAvailable)")
+    }
+    
+    @objc func screenRecorder(_ screenRecorder: RPScreenRecorder, didStopRecordingWith previewController: RPPreviewViewController?, error: Error?) {
         Task { @MainActor in
             isRecording = false
             
             if let error = error {
                 print("Recording stopped with error: \(error.localizedDescription)")
+                return
+            }
+            
+            if let previewController = previewController {
+                presentPreview(previewController)
             }
         }
     }

@@ -131,12 +131,13 @@ struct ContentView: View {
                             print("Recording error: \(error.localizedDescription)")
                         }
                     }
-                //case kVK_ANSI_C: // Cmd + C for camera toggle
-                    //screenRecorder.toggleCamera()
-                   // return
-                //case kVK_ANSI_M: // Cmd + M for microphone toggle
-                    //screenRecorder.toggleMicrophone()
-                    //return nil
+                    return nil
+                case kVK_ANSI_C: // Cmd + C for camera toggle
+                    screenRecorder.toggleCamera()
+                    return nil
+                case kVK_ANSI_M: // Cmd + M for microphone toggle
+                    screenRecorder.toggleMicrophone()
+                    return nil
                 default:
                     break
                 }

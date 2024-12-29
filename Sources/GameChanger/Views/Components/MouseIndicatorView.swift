@@ -7,7 +7,7 @@ class MouseIndicatorNSView: NSView {
     private let commonSettings = SizingGuide.getCommonSettings()
     
     override func draw(_ dirtyRect: NSRect) {
-        let center = NSPoint(x: bounds.midX, y: bounds.midY)
+        let center = NSPoint(x: bounds.midX, y: bounds.midY + settings.bottomPadding * 1.5)
         let radius = settings.size / 2
         
         // If moving right, flip the context
@@ -89,7 +89,7 @@ struct MouseIndicatorView: View {
     
     var body: some View {
         let settings = SizingGuide.getSettings(for: WindowSizeMonitor.shared.currentResolution).mouseIndicator
-        VStack {
+        ZStack {
             Spacer()
             MouseIndicatorNSViewRepresentable(
                 progress: mouseState.mouseProgress,
@@ -97,9 +97,7 @@ struct MouseIndicatorView: View {
             )
             .frame(width: settings.size,
                    height: settings.size)
-            .padding(.bottom, settings.bottomPadding)  // Get bottomPadding from mouseIndicator settings
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .opacity(mouseState.showingProgress && !uiVisibilityState.mouseVisible ? 1 : 0)
     }
 }

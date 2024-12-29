@@ -22,5 +22,19 @@
     <true/>
     <key>com.apple.security.files.applications.read-write</key>
     <true/>
+    <key>com.apple.security.screen-recording</key>
+    <true/>
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
+    <key>com.apple.security.device.microphone</key>
+    <true/>
+    <key>com.apple.security.files.movies.read-write</key>
+    <true/>
+    <key>com.apple.security.temporary-exception.apple-events</key>
+    <true/>
+    <key>com.apple.security.temporary-exception.screen-capture</key>
+    <true/>
 </dict>
 </plist> 
+
+

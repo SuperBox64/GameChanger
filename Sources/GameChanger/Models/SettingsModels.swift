@@ -41,8 +41,8 @@ public struct ShortcutLayout: Codable {
 }
 
 public struct LogoLayout: Codable {
-    public let topPadding: CGFloat
     public let leadingPadding: CGFloat
+    public let topPadding: CGFloat
 }
 
 public struct Section: RawRepresentable, Codable, CaseIterable {
@@ -155,7 +155,8 @@ struct InterfaceSizing: Codable {
     let mouseIndicator: MouseIndicatorSettings
     let title: TitleSettings
     let clock: ClockSettings
-    let layout: LayoutSettings
+    let shortcut: ShortcutLayout
+    let logo: LogoLayout?
 }
 
 
@@ -184,23 +185,18 @@ struct FadeAnimation: Codable {
     let duration: Double
 }
 
-
-
-// Add LayoutSettings struct
-struct LayoutSettings: Codable {
-    let clock: ClockLayout
-    let logo: LogoLayout?
-    let shortcut: ShortcutLayout
-}
-
-struct ClockLayout: Codable {
+struct ClockSettings: Codable {
+    let timeSize: CGFloat
+    let dateSize: CGFloat
+    let spacing: CGFloat
     let topPadding: CGFloat
     let trailingPadding: CGFloat
 }
 
-struct MouseIndicatorLayout: Codable {
-    // Remove this line since it's now in MouseIndicatorSettings
-    // let bottomPadding: CGFloat
+struct MouseIndicatorSettings: Codable {
+    let size: CGFloat
+    let strokeWidth: CGFloat
+    let bottomPadding: CGFloat
 }
 
 struct MultiplierSettings: Codable {
@@ -232,16 +228,4 @@ struct CarouselSizing: Codable {
 struct TitleSettings: Codable {
     let size: CGFloat
     let topPadding: CGFloat
-}
-
-struct ClockSettings: Codable {
-    let timeSize: CGFloat
-    let dateSize: CGFloat
-    let spacing: CGFloat
-}
-
-struct MouseIndicatorSettings: Codable {
-    let size: CGFloat
-    let strokeWidth: CGFloat
-    let bottomPadding: CGFloat
 }

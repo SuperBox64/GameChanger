@@ -46,8 +46,8 @@ struct ClockView: View {
                 .foregroundColor(.white.opacity(SizingGuide.getCommonSettings().opacities.clockDateText))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-        .padding(.trailing, SizingGuide.getCurrentSettings().layout.clock.trailingPadding)
-        .padding(.top, SizingGuide.getCurrentSettings().layout.clock.topPadding)
+        .padding(.trailing, SizingGuide.getCurrentSettings().clock.trailingPadding)
+        .padding(.top, SizingGuide.getCurrentSettings().clock.topPadding)
         .onReceive(timer) { input in
             currentTime = input
         }

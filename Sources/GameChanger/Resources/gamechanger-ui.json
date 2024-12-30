@@ -122,24 +122,20 @@
                 "clock": {
                     "timeSize": 112.0,
                     "dateSize": 48.0,
-                    "spacing": -13
+                    "spacing": -13,
+                    "topPadding": 53,
+                    "trailingPadding": 80
                 },
                 "mouseIndicator": {
                     "size": 256.0,
                     "strokeWidth": 12.0,
                     "bottomPadding": 474
                 },
-                "layout": {
-                    "clock": {
-                        "topPadding": 53,
-                        "trailingPadding": 80
-                    },
-                    "shortcut": {
-                        "leadingPadding": 30,
-                        "bottomPadding": 30,
-                        "titleSize": 16,
-                        "subtitleSize": 14
-                    }
+                "shortcut": {
+                    "leadingPadding": 30,
+                    "bottomPadding": 30,
+                    "titleSize": 16,
+                    "subtitleSize": 14
                 }
             },
             "2880x1620": {
@@ -159,27 +155,20 @@
                 "clock": {
                     "timeSize": 78.0,
                     "dateSize": 30.0,
-                    "spacing": -10
+                    "spacing": -10,
+                    "topPadding": 38,
+                    "trailingPadding": 60
                 },
                 "mouseIndicator": {
                     "size": 160.0,
                     "strokeWidth": 8.0,
                     "bottomPadding": 324
                 },
-                "layout": {
-                    "clock": {
-                        "topPadding": 38,
-                        "trailingPadding": 60
-                    },
-                    "mouseIndicator": {
-                        "bottomPadding": 324
-                    },
-                    "shortcut": {
-                        "leadingPadding": 30,
-                        "bottomPadding": 30,
-                        "titleSize": 14,
-                        "subtitleSize": 12
-                    }
+                "shortcut": {
+                    "leadingPadding": 30,
+                    "bottomPadding": 30,
+                    "titleSize": 14,
+                    "subtitleSize": 12
                 }
             },
             "2560x1440": {
@@ -199,30 +188,20 @@
                 "clock": {
                     "timeSize": 56.0,
                     "dateSize": 24.0,
-                    "spacing": -7
+                    "spacing": -7,
+                    "topPadding": 27,
+                    "trailingPadding": 40
                 },
                 "mouseIndicator": {
                     "size": 128.0,
                     "strokeWidth": 6.0,
                     "bottomPadding": 246
                 },
-                "layout": {
-                    "title": {
-                        "topPadding": 266
-                    },
-                    "clock": {
-                        "topPadding": 27,
-                        "trailingPadding": 40
-                    },
-                    "mouseIndicator": {
-                        "bottomPadding": 246
-                    },
-                    "shortcut": {
-                        "leadingPadding": 30,
-                        "bottomPadding": 30,
-                        "titleSize": 13,
-                        "subtitleSize": 11
-                    }
+                "shortcut": {
+                    "leadingPadding": 30,
+                    "bottomPadding": 30,
+                    "titleSize": 13,
+                    "subtitleSize": 11
                 }
             },
             "2048x1152": {
@@ -242,27 +221,20 @@
                 "clock": {
                     "timeSize": 42.0,
                     "dateSize": 18.0,
-                    "spacing": -5
+                    "spacing": -5,
+                    "topPadding": 20,
+                    "trailingPadding": 30
                 },
                 "mouseIndicator": {
                     "size": 96.0,
                     "strokeWidth": 4.5,
                     "bottomPadding": 190
                 },
-                "layout": {
-                    "clock": {
-                        "topPadding": 20,
-                        "trailingPadding": 30
-                    },
-                    "mouseIndicator": {
-                        "bottomPadding": 190
-                    },
-                    "shortcut": {
-                        "leadingPadding": 30,
-                        "bottomPadding": 30,
-                        "titleSize": 12,
-                        "subtitleSize": 10
-                    }
+                "shortcut": {
+                    "leadingPadding": 30,
+                    "bottomPadding": 30,
+                    "titleSize": 12,
+                    "subtitleSize": 10
                 }
             },
             "1920x1080": {
@@ -279,27 +251,23 @@
                     "size": 54,
                     "topPadding": 200
                 },
+                "clock": {
+                    "timeSize": 42.0,
+                    "dateSize": 18.0,
+                    "spacing": -5,
+                    "topPadding": 20,
+                    "trailingPadding": 30
+                },
                 "mouseIndicator": {
                     "size": 96.0,
                     "strokeWidth": 4.5,
                     "bottomPadding": 190
                 },
-                "clock": {
-                    "timeSize": 42.0,
-                    "dateSize": 18.0,
-                    "spacing": -5
-                },
-                "layout": {
-                    "clock": {
-                        "topPadding": 20,
-                        "trailingPadding": 30
-                    },
-                    "shortcut": {
-                        "leadingPadding": 30,
-                        "bottomPadding": 30,
-                        "titleSize": 12,
-                        "subtitleSize": 10
-                    }
+                "shortcut": {
+                    "leadingPadding": 30,
+                    "bottomPadding": 30,
+                    "titleSize": 12,
+                    "subtitleSize": 10
                 }
             },
             "1600x900": {
@@ -319,30 +287,20 @@
                 "clock": {
                     "timeSize": 35.0,
                     "dateSize": 15.0,
-                    "spacing": -4
+                    "spacing": -4,
+                    "topPadding": 17,
+                    "trailingPadding": 25
                 },
                 "mouseIndicator": {
                     "size": 80.0,
                     "strokeWidth": 3.7,
                     "bottomPadding": 161
                 },
-                "layout": {
-                    "title": {
-                        "topPadding": 166
-                    },
-                    "clock": {
-                        "topPadding": 17,
-                        "trailingPadding": 25
-                    },
-                    "mouseIndicator": {
-                        "bottomPadding": 161
-                    },
-                    "shortcut": {
-                        "leadingPadding": 30,
-                        "bottomPadding": 30,
-                        "titleSize": 11,
-                        "subtitleSize": 9
-                    }
+                "shortcut": {
+                    "leadingPadding": 30,
+                    "bottomPadding": 30,
+                    "titleSize": 11,
+                    "subtitleSize": 9
                 }
             },
             "1440x810": {
@@ -362,30 +320,20 @@
                 "clock": {
                     "timeSize": 32.0,
                     "dateSize": 14.0,
-                    "spacing": -4
+                    "spacing": -4,
+                    "topPadding": 15,
+                    "trailingPadding": 23
                 },
                 "mouseIndicator": {
                     "size": 72.0,
                     "strokeWidth": 3.4,
                     "bottomPadding": 148
                 },
-                "layout": {
-                    "title": {
-                        "topPadding": 150
-                    },
-                    "clock": {
-                        "topPadding": 15,
-                        "trailingPadding": 23
-                    },
-                    "mouseIndicator": {
-                        "bottomPadding": 148
-                    },
-                    "shortcut": {
-                        "leadingPadding": 30,
-                        "bottomPadding": 30,
-                        "titleSize": 10,
-                        "subtitleSize": 8
-                    }
+                "shortcut": {
+                    "leadingPadding": 30,
+                    "bottomPadding": 30,
+                    "titleSize": 10,
+                    "subtitleSize": 8
                 }
             },
             "1366x1024": {
@@ -405,27 +353,20 @@
                 "clock": {
                     "timeSize": 40.0,
                     "dateSize": 20.0,
-                    "spacing": -2.5
+                    "spacing": -2.5,
+                    "topPadding": 14,
+                    "trailingPadding": 22
                 },
                 "mouseIndicator": {
                     "size": 100.0,
                     "strokeWidth": 5.0,
                     "bottomPadding": 175
                 },
-                "layout": {
-                    "title": {
-                        "topPadding": 160
-                    },
-                    "clock": {
-                        "topPadding": 14,
-                        "trailingPadding": 22
-                    },
-                    "shortcut": {
-                        "leadingPadding": 30,
-                        "bottomPadding": 30,
-                        "titleSize": 9.5,
-                        "subtitleSize": 7.5
-                    }
+                "shortcut": {
+                    "leadingPadding": 30,
+                    "bottomPadding": 30,
+                    "titleSize": 9.5,
+                    "subtitleSize": 7.5
                 }
             },
             "1280x720": {
@@ -445,30 +386,20 @@
                 "clock": {
                     "timeSize": 28.0,
                     "dateSize": 12.0,
-                    "spacing": -3
+                    "spacing": -3,
+                    "topPadding": 13,
+                    "trailingPadding": 20
                 },
                 "mouseIndicator": {
                     "size": 64.0,
                     "strokeWidth": 3.0,
                     "bottomPadding": 134
                 },
-                "layout": {
-                    "title": {
-                        "topPadding": 134
-                    },
-                    "clock": {
-                        "topPadding": 13,
-                        "trailingPadding": 20
-                    },
-                    "mouseIndicator": {
-                        "bottomPadding": 134
-                    },
-                    "shortcut": {
-                        "leadingPadding": 30,
-                        "bottomPadding": 30,
-                        "titleSize": 9,
-                        "subtitleSize": 7
-                    }
+                "shortcut": {
+                    "leadingPadding": 30,
+                    "bottomPadding": 30,
+                    "titleSize": 9,
+                    "subtitleSize": 7
                 }
             }
         }

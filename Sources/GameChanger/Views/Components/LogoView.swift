@@ -15,8 +15,8 @@ struct LogoView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: logoSize)
-                .padding(.leading, SizingGuide.getCurrentSettings().layout.logo?.leadingPadding ?? 30)
-                .padding(.top, SizingGuide.getCurrentSettings().layout.logo?.topPadding ?? 30)
+                .padding(.leading, SizingGuide.getCurrentSettings().logo?.leadingPadding ?? 30)
+                .padding(.top, SizingGuide.getCurrentSettings().logo?.topPadding ?? 30)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }

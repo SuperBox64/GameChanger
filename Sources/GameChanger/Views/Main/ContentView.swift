@@ -265,7 +265,7 @@ struct ContentView: View {
                     ))
                     .foregroundColor(.white)
                     .opacity(titleOpacity)
-                    .padding(.top, SizingGuide.getCurrentSettings().layout.title.topPadding)
+                    .padding(.top, SizingGuide.getCurrentSettings().title.topPadding)
                 Spacer()
             }
             

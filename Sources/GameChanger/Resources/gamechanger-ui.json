@@ -116,7 +116,8 @@
                     "selectionPadding": 107
                 },
                 "title": {
-                    "size": 144
+                    "size": 144,
+                    "topPadding": 534
                 },
                 "clock": {
                     "timeSize": 112.0,
@@ -129,9 +130,6 @@
                     "bottomPadding": 474
                 },
                 "layout": {
-                    "title": {
-                        "topPadding": 534
-                    },
                     "clock": {
                         "topPadding": 53,
                         "trailingPadding": 80
@@ -155,7 +153,8 @@
                     "selectionPadding": 72
                 },
                 "title": {
-                    "size": 90
+                    "size": 90,
+                    "topPadding": 384
                 },
                 "clock": {
                     "timeSize": 78.0,
@@ -168,9 +167,6 @@
                     "bottomPadding": 324
                 },
                 "layout": {
-                    "title": {
-                        "topPadding": 384
-                    },
                     "clock": {
                         "topPadding": 38,
                         "trailingPadding": 60
@@ -197,7 +193,8 @@
                     "selectionPadding": 53
                 },
                 "title": {
-                    "size": 72
+                    "size": 72,
+                    "topPadding": 300
                 },
                 "clock": {
                     "timeSize": 56.0,
@@ -239,7 +236,8 @@
                     "selectionPadding": 40
                 },
                 "title": {
-                    "size": 54
+                    "size": 54,
+                    "topPadding": 225
                 },
                 "clock": {
                     "timeSize": 42.0,
@@ -252,9 +250,6 @@
                     "bottomPadding": 190
                 },
                 "layout": {
-                    "title": {
-                        "topPadding": 200
-                    },
                     "clock": {
                         "topPadding": 20,
                         "trailingPadding": 30
@@ -281,28 +276,23 @@
                     "selectionPadding": 40
                 },
                 "title": {
-                    "size": 54
-                },
-                "clock": {
-                    "timeSize": 42.0,
-                    "dateSize": 18.0,
-                    "spacing": -5
+                    "size": 54,
+                    "topPadding": 200
                 },
                 "mouseIndicator": {
                     "size": 96.0,
                     "strokeWidth": 4.5,
                     "bottomPadding": 190
                 },
+                "clock": {
+                    "timeSize": 42.0,
+                    "dateSize": 18.0,
+                    "spacing": -5
+                },
                 "layout": {
-                    "title": {
-                        "topPadding": 200
-                    },
                     "clock": {
                         "topPadding": 20,
                         "trailingPadding": 30
-                    },
-                    "mouseIndicator": {
-                        "bottomPadding": 190
                     },
                     "shortcut": {
                         "leadingPadding": 30,
@@ -323,7 +313,8 @@
                     "selectionPadding": 33
                 },
                 "title": {
-                    "size": 45
+                    "size": 45,
+                    "topPadding": 167
                 },
                 "clock": {
                     "timeSize": 35.0,
@@ -365,7 +356,8 @@
                     "selectionPadding": 30
                 },
                 "title": {
-                    "size": 41
+                    "size": 41,
+                    "topPadding": 150
                 },
                 "clock": {
                     "timeSize": 32.0,
@@ -407,7 +399,8 @@
                     "selectionPadding": 29
                 },
                 "title": {
-                    "size": 55
+                    "size": 55,
+                    "topPadding": 160
                 },
                 "clock": {
                     "timeSize": 40.0,
@@ -421,7 +414,7 @@
                 },
                 "layout": {
                     "title": {
-                        "topPadding": 225
+                        "topPadding": 160
                     },
                     "clock": {
                         "topPadding": 14,
@@ -430,8 +423,8 @@
                     "shortcut": {
                         "leadingPadding": 30,
                         "bottomPadding": 30,
-                        "titleSize": 20,
-                        "subtitleSize": 15
+                        "titleSize": 9.5,
+                        "subtitleSize": 7.5
                     }
                 }
             },
@@ -446,7 +439,8 @@
                     "selectionPadding": 27
                 },
                 "title": {
-                    "size": 36
+                    "size": 36,
+                    "topPadding": 134
                 },
                 "clock": {
                     "timeSize": 28.0,

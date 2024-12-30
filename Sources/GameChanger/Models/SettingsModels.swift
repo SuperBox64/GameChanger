@@ -188,14 +188,9 @@ struct FadeAnimation: Codable {
 
 // Add LayoutSettings struct
 struct LayoutSettings: Codable {
-    let title: TitleLayout
     let clock: ClockLayout
-    let logo: LogoLayout?  // Add back the logo property
+    let logo: LogoLayout?
     let shortcut: ShortcutLayout
-}
-
-struct TitleLayout: Codable {
-    let topPadding: CGFloat
 }
 
 struct ClockLayout: Codable {
@@ -236,6 +231,7 @@ struct CarouselSizing: Codable {
 
 struct TitleSettings: Codable {
     let size: CGFloat
+    let topPadding: CGFloat
 }
 
 struct ClockSettings: Codable {

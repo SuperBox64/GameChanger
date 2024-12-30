@@ -3,6 +3,8 @@ import SwiftUI
 class AppDelegate: NSObject, NSApplicationDelegate {
     var cursorHideTimer: Timer?
     var screenshotTimer: Timer?
+    private var screenshotCount = 0
+    private let maxScreenshots = 12  // 2 minutes worth at 10-second intervals
     
     private func initializeCache() {
         var loadedImages = 0
@@ -123,8 +125,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         appMenu.addItem(quitMenuItem)
 
         if SizingGuide.getCommonSettings().enableScreenshots {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            screenshotTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+                guard let self = self else { return }
+                
                 self.takeScreenshot()
+                self.screenshotCount += 1
+                
+                if self.screenshotCount >= self.maxScreenshots {
+                    self.screenshotTimer?.invalidate()
+                    self.screenshotTimer = nil
+                }
             }
         }
         

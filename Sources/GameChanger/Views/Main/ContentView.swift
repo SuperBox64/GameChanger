@@ -22,7 +22,7 @@ struct ContentView: View {
     @State private var isTransitioning = false
     @State private var opacity: Double = 1.0
     @State private var titleOpacity: Double = 1
-    @State private var currentSection: String = Section.allCases.first?.rawValue ?? "Game Changer"
+    @State private var currentSection: String = AppDataManager.shared.sections[0].rawValue
     @State private var mouseProgress: CGFloat = 0
     @State private var mouseDirection: Int = 0
     @State private var showingProgress = false

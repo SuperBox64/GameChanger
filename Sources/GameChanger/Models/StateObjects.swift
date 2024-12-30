@@ -5,6 +5,7 @@ class NavigationState: ObservableObject {
     @Published var currentPage = 0
     @Published var numberOfPages = 1
     @Published var opacity: Double = 1.0
+    @Published var currentSection = AppDataManager.shared.sections[0].rawValue
 }
 
 class ContentState: ObservableObject {

@@ -1,225 +1,242 @@
 {
-    "Game Changer": [
+    "sections": [
         {
-            "name": "Arcade",
-            "systemIcon": "arcade",
-            "parent": "",
-            "action": ""
-        },
-        {
-            "name": "Console",
-            "systemIcon": "console",
-            "parent": "",
-            "action": ""
-        },
-        {
-            "name": "Computer",
-            "systemIcon": "computer",
-            "parent": "",
-            "action": ""
+            "name": "Game Changer",
+            "items": [
+                {
+                    "name": "Arcade",
+                    "systemIcon": "arcade",
+                    "parent": "",
+                    "action": ""
+                },
+                {
+                    "name": "Console",
+                    "systemIcon": "console",
+                    "parent": "",
+                    "action": ""
+                },
+                {
+                    "name": "Computer",
+                    "systemIcon": "computer",
+                    "parent": "",
+                    "action": ""
+                },
+                {
+                    "name": "Internet",
+                    "systemIcon": "webkit",
+                    "parent": "",
+                    "action": ""
+                },
+                {
+                    "name": "System",
+                    "systemIcon": "hello",
+                    "parent": "",
+                    "action": ""
+                }
+            ]
         },
         {
             "name": "Internet",
-            "systemIcon": "webkit",
-            "parent": "",
-            "action": ""
+            "items": [
+                {
+                    "name": "Safari",
+                    "systemIcon": "webkit",
+                    "parent": "Game Changer",
+                    "action": "path",
+                    "path": "/usr/bin/open /Applications/Safari.app",
+                    "fullscreen": true
+                }
+            ]
+        },
+        {
+            "name": "Arcade",
+            "items": [
+                {
+                    "name": "Atari",
+                    "systemIcon": "atari-arcade",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Capcom",
+                    "systemIcon": "capcom",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Data East",
+                    "systemIcon": "dataeast",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Namco Midway",
+                    "systemIcon": "namco",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Nintendo",
+                    "systemIcon": "nintendo",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Sega",
+                    "systemIcon": "sega",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Taito",
+                    "systemIcon": "taito",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Konami",
+                    "systemIcon": "konami",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Arcade64",
+                    "systemIcon": "mame",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Pac Man",
+                    "systemIcon": "pacman",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Ghost Man",
+                    "systemIcon": "ghostman",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Pinball",
+                    "systemIcon": "pinball",
+                    "parent": "Game Changer",
+                    "action": ""
+                }
+            ]
+        },
+        {
+            "name": "Console",
+            "items": [
+                {
+                    "name": "Nintendo 64",
+                    "systemIcon": "nintendo64",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "PlayStation",
+                    "systemIcon": "playstation",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "BigPEmu",
+                    "systemIcon": "BigPEmu",
+                    "parent": "Game Changer",
+                    "action": "process",
+                    "path": "/opt/homebrew/bin/wine64 /Applications/BigPEmu_v117/BigPEmu.exe"
+                },
+                {
+                    "name": "PlayStation 2",
+                    "systemIcon": "ps2",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "GameCube",
+                    "systemIcon": "gamecube",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Dreamcast",
+                    "systemIcon": "dreamcast",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Sega Genesis",
+                    "systemIcon": "segagenesis",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Sega CD",
+                    "systemIcon": "segacd",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Sega Saturn",
+                    "systemIcon": "segasaturn",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "NES",
+                    "systemIcon": "nes",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "SNES",
+                    "systemIcon": "snes",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Wii",
+                    "systemIcon": "wii",
+                    "parent": "Game Changer",
+                    "action": ""
+                },
+                {
+                    "name": "Xbox",
+                    "systemIcon": "xbox",
+                    "parent": "Game Changer",
+                    "action": ""
+                }
+            ]
         },
         {
             "name": "System",
-            "systemIcon": "hello",
-            "parent": "",
-            "action": ""
-        }
-    ],
-    "Internet": [
-        {
-            "name": "Safari",
-            "systemIcon": "webkit",
-            "parent": "Game Changer",
-            "action": "path",
-            "path": "/usr/bin/open /Applications/Safari.app",
-            "fullscreen": true
-        }
-    ],
-    "Arcade": [
-        {
-            "name": "Atari",
-            "systemIcon": "atari-arcade",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Capcom",
-            "systemIcon": "capcom",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Data East",
-            "systemIcon": "dataeast",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Namco Midway",
-            "systemIcon": "namco",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Nintendo",
-            "systemIcon": "nintendo",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Sega",
-            "systemIcon": "sega",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Taito",
-            "systemIcon": "taito",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Konami",
-            "systemIcon": "konami",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Arcade64",
-            "systemIcon": "mame",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Pac Man",
-            "systemIcon": "pacman",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Ghost Man",
-            "systemIcon": "ghostman",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Pinball",
-            "systemIcon": "pinball",
-            "parent": "Game Changer",
-            "action": ""
-        }
-    ],
-    "Console": [
-        {
-            "name": "Nintendo 64",
-            "systemIcon": "nintendo64",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "PlayStation",
-            "systemIcon": "playstation",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "BigPEmu",
-            "systemIcon": "BigPEmu",
-            "parent": "Game Changer",
-            "action": "process",
-            "path": "/opt/homebrew/bin/wine64 /Applications/BigPEmu_v117/BigPEmu.exe"
-        },
-        {
-            "name": "PlayStation 2",
-            "systemIcon": "ps2",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "GameCube",
-            "systemIcon": "gamecube",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Dreamcast",
-            "systemIcon": "dreamcast",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Sega Genesis",
-            "systemIcon": "segagenesis",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Sega CD",
-            "systemIcon": "segacd",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Sega Saturn",
-            "systemIcon": "segasaturn",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "NES",
-            "systemIcon": "nes",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "SNES",
-            "systemIcon": "snes",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Wii",
-            "systemIcon": "wii",
-            "parent": "Game Changer",
-            "action": ""
-        },
-        {
-            "name": "Xbox",
-            "systemIcon": "xbox",
-            "parent": "Game Changer",
-            "action": ""
-        }
-    ],
-    "System": [
-        {
-            "name": "Quit",
-            "systemIcon": "quit",
-            "parent": "Game Changer",
-            "action": "quit"
-        },
-        {
-            "name": "Sleep",
-            "systemIcon": "sleep",
-            "parent": "Game Changer",
-            "action": "sleep"
-        },
-        {
-            "name": "Restart",
-            "systemIcon": "restart",
-            "parent": "Game Changer",
-            "action": "restart"
-        },
-        {
-            "name": "Power",
-            "systemIcon": "power",
-            "parent": "Game Changer",
-            "action": "logout"
+            "items": [
+                {
+                    "name": "Quit",
+                    "systemIcon": "quit",
+                    "parent": "Game Changer",
+                    "action": "quit"
+                },
+                {
+                    "name": "Sleep",
+                    "systemIcon": "sleep",
+                    "parent": "Game Changer",
+                    "action": "sleep"
+                },
+                {
+                    "name": "Restart",
+                    "systemIcon": "restart",
+                    "parent": "Game Changer",
+                    "action": "restart"
+                },
+                {
+                    "name": "Power",
+                    "systemIcon": "power",
+                    "parent": "Game Changer",
+                    "action": "logout"
+                }
+            ]
         }
     ]
 } 

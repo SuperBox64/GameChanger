@@ -417,6 +417,48 @@
                     }
                 }
             },
+            "1366x1024": {
+                "carousel": {
+                    "iconSize": 89,
+                    "iconPadding": 45,
+                    "cornerRadius": 27,
+                    "gridSpacing": 29,
+                    "titleSize": 43,
+                    "labelSize": 30,
+                    "selectionPadding": 29
+                },
+                "title": {
+                    "size": 55
+                },
+                "label": {
+                    "size": 30.0
+                },
+                "clock": {
+                    "timeSize": 40.0,
+                    "dateSize": 20.0,
+                    "spacing": -2.5
+                },
+                "mouseIndicator": {
+                    "size": 100.0,
+                    "strokeWidth": 5.0,
+                    "bottomPadding": 175
+                },
+                "layout": {
+                    "title": {
+                        "topPadding": 225
+                    },
+                    "clock": {
+                        "topPadding": 14,
+                        "trailingPadding": 22
+                    },
+                    "shortcut": {
+                        "leadingPadding": 30,
+                        "bottomPadding": 30,
+                        "titleSize": 20,
+                        "subtitleSize": 15
+                    }
+                }
+            },
             "1280x720": {
                 "carousel": {
                     "iconSize": 84,

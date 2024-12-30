@@ -175,12 +175,14 @@ class ScreenRecorder: NSObject, ObservableObject, RPPreviewViewControllerDelegat
 // MARK: - RPScreenRecorderDelegate
 @MainActor
 extension ScreenRecorder: RPScreenRecorderDelegate {
-    @objc func screenRecorderDidChangeAvailability(_ screenRecorder: RPScreenRecorder) {
-        // Update UI if recorder availability changes
-        print("Screen recorder availability changed: \(screenRecorder.isAvailable)")
+    @objc nonisolated func screenRecorderDidChangeAvailability(_ screenRecorder: RPScreenRecorder) {
+        Task { @MainActor in
+            // Update UI if recorder availability changes
+            print("Screen recorder availability changed: \(screenRecorder.isAvailable)")
+        }
     }
     
-    @objc func screenRecorder(_ screenRecorder: RPScreenRecorder, didStopRecordingWith previewController: RPPreviewViewController?, error: Error?) {
+    @objc nonisolated func screenRecorder(_ screenRecorder: RPScreenRecorder, didStopRecordingWith previewController: RPPreviewViewController?, error: Error?) {
         Task { @MainActor in
             isRecording = false
             

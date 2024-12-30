@@ -49,6 +49,8 @@ struct SizingGuide {
             return "1600x900"
         } else if screenSize.width >= 1440 {
             return "1440x810"
+        } else if screenSize.width >= 1366 {
+            return "1366x1024"
         }
         return "1280x720"
     }

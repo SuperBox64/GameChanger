@@ -94,6 +94,8 @@ struct MouseIndicatorCommonSettings: Codable {
 struct ColorSettings: Codable {
     let mouseIndicator: MouseIndicatorColors
     let text: TextColors
+    let logo: LogoColors
+    let svg: SVGColors
 }
 
 struct TextColors: Codable {
@@ -222,4 +224,18 @@ struct CarouselSizing: Codable {
 struct TitleSettings: Codable {
     let size: CGFloat
     let topPadding: CGFloat
+}
+
+struct LogoColors: Codable {
+    let blue: [Double]
+    let red: [Double]
+    let white: [Double]
+    let black: [Double]
+}
+
+struct SVGColors: Codable {
+    let blue: String    // "#0088ef"
+    let red: String     // "#D41920"
+    let black: String   // "#000000"
+    let white: String   // "#ffffff"
 }

@@ -20,12 +20,16 @@
                 },
                 "logo": {
                     "blue": [0.0, 0.62, 1.0, 1.0],
-                    "red": [0.831, 0.098, 0.125, 1.0]
+                    "red": [0.831, 0.098, 0.125, 1.0],
+                    "white": [1.0, 1.0, 1.0, 1.0],
+                    "black": [0.0, 0.0, 0.0, 1.0]
                 },
-                "svg_blue": "#0088ef",
-                "svg_red": "#D41920",
-                "svg_black": "#000000",
-                "svg_white": "#ffffff"
+                "svg": {
+                    "blue": "#0088ef",
+                    "red": "#D41920",
+                    "black": "#000000",
+                    "white": "#ffffff"
+                }
             },
             "mouseIndicator": {
                 "inactivityTimeout": 5.0

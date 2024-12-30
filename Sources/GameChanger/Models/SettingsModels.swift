@@ -154,7 +154,6 @@ struct InterfaceSizing: Codable {
     let carousel: CarouselSizing
     let mouseIndicator: MouseIndicatorSettings
     let title: TitleSettings
-    let label: LabelSettings
     let clock: ClockSettings
     let layout: LayoutSettings
 }
@@ -236,10 +235,6 @@ struct CarouselSizing: Codable {
 }
 
 struct TitleSettings: Codable {
-    let size: CGFloat
-}
-
-struct LabelSettings: Codable {
     let size: CGFloat
 }
 

@@ -84,17 +84,11 @@ struct CommonSettings: Codable {
     let opacities: OpacitySettings
     let fontWeights: FontWeightSettings
     let multipliers: MultiplierSettings
-    let layout: CommonLayoutSettings
     let navigationDots: NavigationDotsCommonSettings
-}
-
-struct CommonLayoutSettings: Codable {
-    let shortcut: ShortcutLayout
 }
 
 struct MouseIndicatorCommonSettings: Codable {
     let inactivityTimeout: Double
-    let distanceFromDots: CGFloat  // Distance between navigation dots and mouse indicator
 }
 
 struct ColorSettings: Codable {

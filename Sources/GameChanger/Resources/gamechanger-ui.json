@@ -28,8 +28,7 @@
                 "svg_white": "#ffffff"
             },
             "mouseIndicator": {
-                "inactivityTimeout": 5.0,
-                "distanceFromDots": 60.0
+                "inactivityTimeout": 5.0
             },
             "animations": {
                 "slideEnabled": true,
@@ -61,47 +60,10 @@
                 "gridSpacing": 0.4,
                 "mouseIndicatorIconSize": 0.28
             },
-            "layout": {
-                "clock": {
-                    "topPadding": 13,
-                    "trailingPadding": 20
-                },
-                "mouseIndicator": {
-                    "bottomPadding": 30,
-                    "spacingFromCarousel": 60
-                },
-                "shortcut": {
-                    "leadingPadding": 30,
-                    "bottomPadding": 30,
-                    "titleSize": 14,
-                    "subtitleSize": 12
-                }
-            },
             "navigationDots": {
                 "size": 14.0,
                 "spacing": 28.0,
                 "bottomPadding": 40
-            },
-            "pencilSupport": {
-                "enabled": true,
-                "offCarouselClickBehavior": "back",
-                "backGestureEnabled": true,
-                "minimumTapArea": 44.0
-            },
-            "interactions": {
-                "nonInteractiveAreaBehavior": "back",
-                "backEnabled": true,
-                "requiresConfirmation": false,
-                "ignoreAreas": ["carousel", "navigationDots", "clock"]
-            },
-            "gestures": {
-                "background": {
-                    "doubleTap": {
-                        "enabled": true,
-                        "action": "back",
-                        "interval": 0.3
-                    }
-                }
             }
         },
         "resolutions": {

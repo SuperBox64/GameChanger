@@ -38,7 +38,7 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            BackgroundView(onBack: navigationModel.back)
+           
             
             VStack {
                 Text(navigationModel.currentSection)

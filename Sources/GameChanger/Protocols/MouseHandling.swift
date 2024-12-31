@@ -17,7 +17,6 @@ import AppKit
 class MouseHandler: MouseHandling {
     weak var mouseState: MouseIndicatorState?
     weak var uiVisibility: UIVisibilityState?
-    private let selectionHandler: SelectionHandling
     
     // Private state
     private var mouseMonitor: Any?
@@ -50,12 +49,9 @@ class MouseHandler: MouseHandling {
         }
     }
     
-    init(mouseState: MouseIndicatorState, 
-         uiVisibility: UIVisibilityState,
-         selectionHandler: SelectionHandling) {
+    init(mouseState: MouseIndicatorState, uiVisibility: UIVisibilityState) {
         self.mouseState = mouseState
         self.uiVisibility = uiVisibility
-        self.selectionHandler = selectionHandler
     }
     
     func setupMouseMonitor() async {
@@ -115,11 +111,11 @@ class MouseHandler: MouseHandling {
         mouseProgress = min(abs(accumulatedMouseX) / SizingGuide.getCommonSettings().mouseSensitivity, 1.0)
         
         if abs(accumulatedMouseX) > SizingGuide.getCommonSettings().mouseSensitivity {
-            Task {
-                if accumulatedMouseX < 0 {
-                    await selectionHandler.moveLeft()
+            executeCallback {
+                if self.accumulatedMouseX < 0 {
+                    self.onMoveLeft?()
                 } else {
-                    await selectionHandler.moveRight()
+                    self.onMoveRight?()
                 }
             }
             accumulatedMouseX = 0

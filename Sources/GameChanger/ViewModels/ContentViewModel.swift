@@ -16,12 +16,19 @@ class ContentViewModel: ObservableObject {
     
     // Mouse handling
     private lazy var mouseHandler: MouseHandler = {
-        let selectionHandler = SelectionHandler(viewModel: self)
-        let handler = MouseHandler(
-            mouseState: mouseState, 
-            uiVisibility: uiVisibility,
-            selectionHandler: selectionHandler
-        )
+        let handler = MouseHandler(mouseState: mouseState, uiVisibility: uiVisibility)
+        handler.setMoveLeftHandler { [weak self] in
+            Task { @MainActor in
+                await self?.resetMouseState()
+                self?.moveLeft()
+            }
+        }
+        handler.setMoveRightHandler { [weak self] in
+            Task { @MainActor in
+                await self?.resetMouseState()
+                self?.moveRight()
+            }
+        }
         return handler
     }()
     

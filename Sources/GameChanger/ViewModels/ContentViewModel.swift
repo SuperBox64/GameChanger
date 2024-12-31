@@ -16,7 +16,7 @@ class ContentViewModel: ObservableObject {
     
     // Mouse handling
     private lazy var mouseHandler: MouseHandler = {
-        let selectionHandler = SelectionHandler()
+        let selectionHandler = SelectionHandler(viewModel: self)
         let handler = MouseHandler(
             mouseState: mouseState, 
             uiVisibility: uiVisibility,

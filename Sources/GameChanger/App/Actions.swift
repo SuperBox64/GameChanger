@@ -128,7 +128,9 @@ enum Action: String, Codable {
                     print("Process exit code: \(process.terminationStatus)")
                 }
                 
-                if setFullscreen {
+                if process.currentDirectoryURL == URL(fileURLWithPath: "/Applications/mame") && setFullscreen {
+                    setFullScreen(for: "mame")
+                } else {
                     setFullScreen(for: appName)
                 }
                 

@@ -7,13 +7,33 @@ enum Action: String, Codable {
     case sleep = "sleep"
     case logout = "logout"
     case quit = "quit"
-    case path = "path"
+    case app = "app"
     case activate = "activate"
-    case process = "process"
+    case wine = "wine"
     
-    private func executeProcess(_ command: String, appName: String? = nil, setFullscreen: Bool = false) {
-        guard !UIVisibilityState.shared.isExecutingPath else { return }
-        UIVisibilityState.shared.isExecutingPath = true
+    func isWinePreloaderRunning(appName:String) -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/ps")
+        process.arguments = ["-ax"]
+        
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        
+        do {
+            try process.run()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            if let output = String(data: data, encoding: .utf8) {
+                return output.contains(appName)
+            }
+        } catch {
+            print("Error checking for wine64-preloader: \(error)")
+        }
+
+        return false
+    }
+
+    private func executeProcess(_ command: String, action: Action, appName: String, setFullscreen: Bool) {
+        guard UIVisibilityState.shared.isVisible else { return }
         
         // Hide UI elements first with shorter fade duration
         UIVisibilityState.shared.isVisible = false
@@ -24,8 +44,6 @@ enum Action: String, Codable {
             guard let executable = parts.first else {
                 DispatchQueue.main.async {
                     print("Invalid command: \(command)")
-                    UIVisibilityState.shared.isVisible = true
-                    UIVisibilityState.shared.isExecutingPath = false
                 }
                 return
             }
@@ -44,41 +62,40 @@ enum Action: String, Codable {
                 process.arguments = [parts[1]]
             }
             
+            let running = isWinePreloaderRunning(appName: appName)
+
+            if action == .wine && running {
+                if running {
+                    showRunningAppModal(
+                        title: "App Already Running",
+                        message: "\(appName) is already running. Please close it before launching another instance."
+                    ) {
+                        resetUIState()
+                    }
+                    return
+                }
+            }
+
+
             do {
                 try process.run()
                 if setFullscreen {
-                    setFullScreen(for: appName ?? "")
+                    setFullScreen(for: appName)
                 }
                 // Reset executing state after successful launch
-                DispatchQueue.main.async {
-                    UIVisibilityState.shared.isExecutingPath = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    UIVisibilityState.shared.isVisible = true
                 }
             } catch {
                 print("Failed to execute process: \(error)")
                 
                 // Ensure UI updates happen on main thread
                 DispatchQueue.main.async {
-                    UIVisibilityState.shared.isVisible = false
-
-                    showErrorModal(
+                    showRunningAppModal(
                         title: "Failed to Execute App",
-                        message: "Could not run: \(command)\nError: \(error.localizedDescription)",
-                        buttons: ["OK"],
-                        defaultButton: "OK"
-                    ) { button in
-                        switch button {
-                        case "OK":
-                            UIVisibilityState.shared.isVisible = true
-                            UIVisibilityState.shared.isExecutingPath = false
-                        default:
-                            break
-                        }
-
-                        if UIVisibilityState.shared.mouseVisible {
-                            NSCursor.unhide()
-                        } else {
-                            NSCursor.hide()
-                        }
+                        message: "Could not run: \(command)\nError: \(error.localizedDescription)"
+                    ) {
+                        resetUIState()
                     }
                 }
             }
@@ -94,19 +111,19 @@ enum Action: String, Codable {
             case .sleep: SystemActions.sendAppleEvent(kAESleep)
             case .logout: SystemActions.sendAppleEvent(kAEShutDown)
             case .quit: NSApplication.shared.terminate(nil)
-            case .process:
-                if let command = path {
-                    executeProcess(command)
+            case .wine:
+                if let command: String = path, let appName, let fullscreen {
+                    executeProcess(command, action: .wine, appName: appName, setFullscreen: fullscreen)
                 }
-            case .path:
-                if let command = path {
-                    executeProcess(command, appName: appName ?? "", setFullscreen: fullscreen ?? false)
+            case .app:
+                if let command: String = path, let appName, let fullscreen {
+                    executeProcess(command, action: .app, appName: appName, setFullscreen: fullscreen)
                 }
         }
     }
     
     private func setFullScreen(for appName: String) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             guard let app = NSWorkspace.shared.runningApplications.first(where: { $0.localizedName == appName }) else {
                 print("Could not find application: \(appName)")
                 return
@@ -124,6 +141,37 @@ enum Action: String, Codable {
             } else {
                 print("Failed to get window or set fullscreen for: \(appName)")
             }
+        }
+    }
+
+    private func activateRunningApp(pid: pid_t) {
+        if let app = NSWorkspace.shared.runningApplications.first(where: { $0.processIdentifier == pid }) {
+            app.activate(options: .activateIgnoringOtherApps)
+            UIVisibilityState.shared.isVisible = false
+            UIVisibilityState.shared.isExecutingPath = false
+        }
+    }
+
+    private func showRunningAppModal(title: String, message: String, completion: @escaping () -> Void) {
+        DispatchQueue.main.async {
+            showErrorModal(
+                title: title,
+                message: message,
+                buttons: ["OK"]
+            ) { _ in
+                completion()
+            }
+        }
+    }
+
+    private func resetUIState() {
+        UIVisibilityState.shared.isVisible = true
+        UIVisibilityState.shared.isExecutingPath = false
+        
+        if UIVisibilityState.shared.mouseVisible {
+            NSCursor.unhide()
+        } else {
+            NSCursor.hide()
         }
     }
 }

@@ -34,6 +34,7 @@ struct ContentView: View {
     @State private var isAnimating = false
     @State private var showingNextItems = false
     @StateObject private var screenRecorder = ScreenRecorder()
+    @StateObject private var uiVisibility = UIVisibilityState.shared
     
     private var visibleItems: [AppItem] {
         let sourceItems = getSourceItems()
@@ -64,7 +65,7 @@ struct ContentView: View {
         let selectedItem = sourceItems[actualIndex]
         
         if selectedItem.actionEnum != .none {
-            // Pass the required parameters for path action
+            selectedIndex = -1  // Deselect before executing action
             selectedItem.actionEnum.execute(
                 with: selectedItem.path,
                 appName: selectedItem.name,
@@ -268,7 +269,8 @@ struct ContentView: View {
                     .padding(.top, SizingGuide.getCurrentSettings().title.topPadding)
                 Spacer()
             }
-            
+            .opacity(uiVisibility.isVisible ? 1 : 0)
+
             // Carousel in center
             CarouselView(
                 visibleItems: visibleItems,

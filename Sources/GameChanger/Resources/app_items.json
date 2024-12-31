@@ -42,7 +42,7 @@
                     "name": "Safari",
                     "systemIcon": "webkit",
                     "parent": "Game Changer",
-                    "action": "path",
+                    "action": "app",
                     "path": "/usr/bin/open /Applications/Safari.app",
                     "fullscreen": true
                 }
@@ -144,8 +144,9 @@
                     "name": "BigPEmu",
                     "systemIcon": "BigPEmu",
                     "parent": "Game Changer",
-                    "action": "process",
-                    "path": "/opt/homebrew/bin/wine64 /Applications/BigPEmu_v117/BigPEmu.exe"
+                    "action": "wine",
+                    "path": "/opt/homebrew/bin/wine64 /Applications/BigPEmu_v117/BigPEmu.exe",
+                    "fullscreen": false
                 },
                 {
                     "name": "PlayStation 2",

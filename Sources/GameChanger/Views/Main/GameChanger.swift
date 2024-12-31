@@ -16,13 +16,13 @@ struct GameChangerApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                
+                if uiVisibility.isGridVisible {
+                    GameGridView()
+                } else {
+                    ContentView()
+                }
+
                 Group {
-                    if uiVisibility.isGridVisible {
-                        GameGridView()
-                    } else {
-                        ContentView()
-                    }
                     LogoView()
                     ClockView()
                     MouseIndicatorView()

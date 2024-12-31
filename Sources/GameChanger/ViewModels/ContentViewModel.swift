@@ -13,7 +13,6 @@ class ContentViewModel: ObservableObject {
     let mouseState = MouseIndicatorState.shared
     let screenRecorder = ScreenRecorder()
     let uiVisibility = UIVisibilityState.shared
-    private lazy var selectionHandler = SelectionHandler(viewModel: self)
     
     // Add missing state variables
     @Published var selectedIndex = 0
@@ -23,8 +22,6 @@ class ContentViewModel: ObservableObject {
     @Published var nextOffset: CGFloat = 0
     @Published var showingNextItems = false
     @Published var windowWidth: CGFloat = 0
-    @Published var opacity: Double = 1.0
-    @Published var titleOpacity: Double = 1.0
     
     // Moved from ContentView
     @Published var keyMonitor: Any?
@@ -240,9 +237,5 @@ class ContentViewModel: ObservableObject {
                 self?.moveRight()
             }
         }
-    }
-
-    func handleSelection() async {
-        await selectionHandler.handleSelection()
     }
 } 

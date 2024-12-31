@@ -10,7 +10,32 @@ enum Action: String, Codable {
     case app = "app"
     case activate = "activate"
     case wine = "wine"
-    
+    case game = "game"
+
+    func execute(with path: String? = nil, appName: String? = nil, fullscreen: Bool? = nil) {
+        print("Executing action: \(self)")
+        switch self {
+            case .none: return
+            case .activate: SystemActions.sendAppleEvent(kAEActivate)
+            case .restart: SystemActions.sendAppleEvent(kAERestart)
+            case .sleep: SystemActions.sendAppleEvent(kAESleep)
+            case .logout: SystemActions.sendAppleEvent(kAEShutDown)
+            case .quit: NSApplication.shared.terminate(nil)
+            case .wine:
+                if let command: String = path, let appName, let fullscreen {
+                    executeProcess(command, action: .wine, appName: appName, setFullscreen: fullscreen)
+            }   
+            case .app:
+                if let command: String = path, let appName, let fullscreen {
+                    executeProcess(command, action: .app, appName: appName, setFullscreen: fullscreen)
+            }
+            case .game:
+                if let command: String = path, let appName, let fullscreen {
+                    executeProcess(command, action: .game, appName: appName, setFullscreen: fullscreen)
+            }
+        }
+    }
+
     func isWinePreloaderRunning(appName:String) -> Bool {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/bin/ps")
@@ -33,7 +58,7 @@ enum Action: String, Codable {
     }
 
     private func executeProcess(_ command: String, action: Action, appName: String, setFullscreen: Bool) {
-        guard UIVisibilityState.shared.isVisible else { return }
+       // guard UIVisibilityState.shared.isVisible else { return }
         
         // Hide UI elements first with shorter fade duration
         UIVisibilityState.shared.isVisible = false
@@ -57,6 +82,11 @@ enum Action: String, Codable {
             process.standardOutput = outputPipe
             process.standardError = errorPipe
             
+            // Add handlers for output
+            if action == .game {
+                process.currentDirectoryURL = URL(fileURLWithPath: "/Applications/mame")
+            }
+            
             // If there are arguments after the executable
             if parts.count > 1 {
                 process.arguments = [parts[1]]
@@ -79,17 +109,48 @@ enum Action: String, Codable {
 
             do {
                 try process.run()
+                
+                // Run in background
+                Task.detached {
+                    // Wait for process to finish
+                    process.waitUntilExit()
+                    
+                    // Get output asynchronously
+                    for try await line in outputPipe.fileHandleForReading.bytes.lines {
+                        print("Process output: \(line)")
+                    }
+                    
+                    // Get errors asynchronously  
+                    for try await line in errorPipe.fileHandleForReading.bytes.lines {
+                        print("Process error: \(line)")
+                    }
+                    
+                    print("Process exit code: \(process.terminationStatus)")
+                }
+                
                 if setFullscreen {
                     setFullScreen(for: appName)
                 }
-                // Reset executing state after successful launch
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    UIVisibilityState.shared.isVisible = true
+                
+                // Activate the launched app
+                if action == .app {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        print("Attempting to activate: \(appName)")
+                        let script = NSAppleScript(source: "tell application \"\(appName)\" to activate")
+                        var error: NSDictionary?
+                        script?.executeAndReturnError(&error)
+                        if let error = error {
+                            print("Error activating app: \(error)")
+                        } else {
+                            print("Successfully activated: \(appName)")
+                        }
+                    }
                 }
+                // No UI reset after successful launch
             } catch {
                 print("Failed to execute process: \(error)")
                 
-                // Ensure UI updates happen on main thread
+                // Only show UI and cursor for errors
                 DispatchQueue.main.async {
                     showRunningAppModal(
                         title: "Failed to Execute App",
@@ -102,28 +163,10 @@ enum Action: String, Codable {
         }
     }
     
-    func execute(with path: String? = nil, appName: String? = nil, fullscreen: Bool? = nil) {
-        print("Executing action: \(self)")
-        switch self {
-            case .none: return
-            case .activate: SystemActions.sendAppleEvent(kAEActivate)
-            case .restart: SystemActions.sendAppleEvent(kAERestart)
-            case .sleep: SystemActions.sendAppleEvent(kAESleep)
-            case .logout: SystemActions.sendAppleEvent(kAEShutDown)
-            case .quit: NSApplication.shared.terminate(nil)
-            case .wine:
-                if let command: String = path, let appName, let fullscreen {
-                    executeProcess(command, action: .wine, appName: appName, setFullscreen: fullscreen)
-                }
-            case .app:
-                if let command: String = path, let appName, let fullscreen {
-                    executeProcess(command, action: .app, appName: appName, setFullscreen: fullscreen)
-                }
-        }
-    }
+    
     
     private func setFullScreen(for appName: String) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
             guard let app = NSWorkspace.shared.runningApplications.first(where: { $0.localizedName == appName }) else {
                 print("Could not find application: \(appName)")
                 return
@@ -168,6 +211,7 @@ enum Action: String, Codable {
         UIVisibilityState.shared.isVisible = true
         UIVisibilityState.shared.isExecutingPath = false
         
+        // Check mouse mode and set cursor visibility accordingly
         if UIVisibilityState.shared.mouseVisible {
             NSCursor.unhide()
         } else {

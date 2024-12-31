@@ -60,8 +60,23 @@ struct ContentView: View {
     
     private func handleSelection() {
         let sourceItems = getSourceItems()
+        
+        // Guard against empty source items
+        guard !sourceItems.isEmpty else { return }
+        
         let visibleStartIndex = currentPage * 4
+        
+        // Guard against invalid page
+        guard visibleStartIndex >= 0 else { return }
+        
+        // Guard against invalid selection
+        guard selectedIndex >= 0 else { return }
+        
         let actualIndex = visibleStartIndex + selectedIndex
+        
+        // Guard against out of bounds
+        guard actualIndex < sourceItems.count else { return }
+        
         let selectedItem = sourceItems[actualIndex]
         
         if selectedItem.actionEnum != .none {

@@ -109,7 +109,9 @@
                     "name": "Pac Man",
                     "systemIcon": "pacman",
                     "parent": "Game Changer",
-                    "action": ""
+                    "action": "game",
+                    "path": "/Applications/mame/mame puckman",
+                    "fullscreen": false
                 },
                 {
                     "name": "Ghost Man",

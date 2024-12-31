@@ -111,7 +111,7 @@
                     "parent": "Game Changer",
                     "action": "game",
                     "path": "/Applications/mame/mame puckman",
-                    "fullscreen": true
+                    "fullscreen": false
                 },
                 {
                     "name": "Ghost Man",

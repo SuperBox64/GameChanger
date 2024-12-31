@@ -166,8 +166,8 @@ enum Action: String, Codable {
     
     
     private func setFullScreen(for appName: String) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            guard let app = NSWorkspace.shared.runningApplications.first(where: { $0.localizedName == "mame" }) else {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
+            guard let app = NSWorkspace.shared.runningApplications.first(where: { $0.localizedName == appName }) else {
                 print("Could not find application: \(appName)")
                 return
             }

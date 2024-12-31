@@ -80,19 +80,12 @@ struct ContentView: View {
         let selectedItem = sourceItems[actualIndex]
         
         if selectedItem.actionEnum != .none {
-            let previousIndex = selectedIndex
             selectedIndex = -1  // Deselect before executing action
             selectedItem.actionEnum.execute(
                 with: selectedItem.path,
                 appName: selectedItem.name,
                 fullscreen: selectedItem.fullscreen
             )
-
-            if !uiVisibility.mouseVisible {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    selectedIndex = previousIndex
-                }
-            }
             return
         }
         
@@ -377,6 +370,9 @@ struct ContentView: View {
             }
         }
         .onDisappear {
+            // if let monitor = keyMonitor {
+            //     NSEvent.removeMonitor(monitor)
+            // }
             NotificationCenter.default.removeObserver(self)
             NSCursor.unhide()  // Make sure cursor is visible when view disappears
         }

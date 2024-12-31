@@ -14,30 +14,6 @@ class ContentViewModel: ObservableObject {
     let screenRecorder = ScreenRecorder()
     let uiVisibility = UIVisibilityState.shared
     
-    // Add missing state variables
-    @Published var selectedIndex = 0
-    @Published var currentPage = 0
-    @Published var currentSection: String = AppDataManager.shared.sections[0].rawValue
-    @Published var currentOffset: CGFloat = 0
-    @Published var nextOffset: CGFloat = 0
-    @Published var showingNextItems = false
-    @Published var windowWidth: CGFloat = 0
-    
-    // Moved from ContentView
-    @Published var keyMonitor: Any?
-    @Published var mouseMonitor: Any?
-    @Published var gameController: GCController?
-    @Published var accumulatedMouseX: CGFloat = 0
-    @Published var accumulatedMouseY: CGFloat = 0
-    @Published var isMouseInWindow = false
-    @Published var animationDirection: Int = 0
-    @Published var isTransitioning = false
-    @Published var mouseProgress: CGFloat = 0
-    @Published var mouseDirection: Int = 0
-    @Published var showingProgress = false
-    @Published var mouseTimer: Timer?
-    @Published var isAnimating = false
-    
     // Mouse handling
     private lazy var mouseHandler: MouseHandler = {
         let handler = MouseHandler(mouseState: mouseState, uiVisibility: uiVisibility)
@@ -55,6 +31,21 @@ class ContentViewModel: ObservableObject {
         }
         return handler
     }()
+    
+    // Published state
+    @Published var selectedIndex = 0
+    @Published var currentPage = 0
+    @Published var opacity: Double = 1.0
+    @Published var titleOpacity: Double = 1.0
+    @Published var currentSection: String = AppDataManager.shared.sections[0].rawValue
+    @Published var currentOffset: CGFloat = 0
+    @Published var nextOffset: CGFloat = 0
+    @Published var showingNextItems = false
+    
+    // Other state
+    var keyMonitor: Any?
+    var gameController: GCController?
+    var windowWidth: CGFloat = 0
     
     private enum KeyCode: UInt16 {
         case leftArrow = 123
@@ -183,7 +174,8 @@ class ContentViewModel: ObservableObject {
     }
 
     private func getSourceItems() -> [AppItem] {
-        return AppDataManager.shared.items(for: Section(rawValue: currentSection))
+        // Implementation needed
+        return []
     }
 
     private func setupKeyMonitor() {

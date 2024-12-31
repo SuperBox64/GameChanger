@@ -28,27 +28,7 @@ extension Array {
     }
 }
 
-extension NSAlert {
-    static func darkModeAlert(
-        title: String,
-        message: String,
-        buttonTitles: [String] = ["OK"]
-    ) -> NSAlert {
-        let alert = NSAlert()
-        alert.messageText = title
-        alert.informativeText = message
-        
-        // Force dark appearance by setting window appearance
-        alert.window.appearance = NSAppearance(named: .darkAqua)
-        
-        // Add buttons in order
-        buttonTitles.forEach { title in
-            alert.addButton(withTitle: title)
-        }
-        
-        return alert
-    }
-}
+
 
 extension NSWindow {
     func forceDarkMode() {

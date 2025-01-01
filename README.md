@@ -12,7 +12,7 @@ on macOS 13 or later:
 
 that's and it will run the app for you. Work in progress, not 100% complete, but getting there FAST!
 
-See JSON for game settings and UI parameters. App Launching and SideCar touch screen support is coming soon! 1.0 Release coming 2025 to a Mac near you.
+See JSON for game settings and UI parameters. App Launching and SideCar touch screen support in progress! 1.0 Release coming 2025 to a Mac near you.
 
 Supports: Mouse, Trackball, Spinner, Trackpad, Joystick, GamePad, Left, Middle and Right click (I think, need to check), Arcade Buttons, Keyboard!
 

@@ -16,8 +16,6 @@ struct GameChangerApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                NavigationBackgroundView()
-
                 if uiVisibility.isGridVisible {
                     GameGridView()
                 } else {

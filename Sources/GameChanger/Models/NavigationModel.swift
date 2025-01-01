@@ -26,13 +26,51 @@ class NavigationModel: ObservableObject {
             selectedIndex -= 1
         } else if currentPage == 0 {
             let itemsOnLastPage = min(4, sourceItems.count - (lastPage * 4))
-            currentPage = lastPage
-            selectedIndex = itemsOnLastPage - 1
+            
+            if SizingGuide.getCommonSettings().animations.slideEnabled {
+                showingNextItems = true
+                currentPage = lastPage      
+                selectedIndex = itemsOnLastPage - 1  
+                nextOffset = 0             
+                currentOffset = -windowWidth 
+                
+                withAnimation(.carouselSlide(settings: SizingGuide.getCommonSettings().animations)) {
+                    nextOffset = windowWidth    
+                    currentOffset = 0          
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + SizingGuide.getCommonSettings().animations.slide.duration) {
+                    self.currentOffset = 0
+                    self.showingNextItems = false
+                }
+            } else {
+                currentPage = lastPage
+                selectedIndex = itemsOnLastPage - 1
+            }
         } else {
             let nextPage = currentPage - 1
             let itemsOnNextPage = min(4, sourceItems.count - (nextPage * 4))
-            currentPage = nextPage
-            selectedIndex = itemsOnNextPage - 1
+            
+            if SizingGuide.getCommonSettings().animations.slideEnabled {
+                showingNextItems = true
+                currentPage -= 1           
+                selectedIndex = itemsOnNextPage - 1  
+                nextOffset = 0             
+                currentOffset = -windowWidth 
+                
+                withAnimation(.carouselSlide(settings: SizingGuide.getCommonSettings().animations)) {
+                    nextOffset = windowWidth    
+                    currentOffset = 0          
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + SizingGuide.getCommonSettings().animations.slide.duration) {
+                    self.currentOffset = 0
+                    self.showingNextItems = false
+                }
+            } else {
+                currentPage -= 1
+                selectedIndex = itemsOnNextPage - 1
+            }
         }
     }
     
@@ -44,11 +82,47 @@ class NavigationModel: ObservableObject {
         if selectedIndex < itemsOnCurrentPage - 1 {
             selectedIndex += 1
         } else if currentPage == lastPage {
-            currentPage = 0
-            selectedIndex = 0
+            if SizingGuide.getCommonSettings().animations.slideEnabled {
+                showingNextItems = true
+                currentPage = 0            
+                selectedIndex = 0          
+                nextOffset = 0             
+                currentOffset = windowWidth 
+                
+                withAnimation(.carouselSlide(settings: SizingGuide.getCommonSettings().animations)) {
+                    nextOffset = -windowWidth   
+                    currentOffset = 0          
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + SizingGuide.getCommonSettings().animations.slide.duration) {
+                    self.currentOffset = 0
+                    self.showingNextItems = false
+                }
+            } else {
+                currentPage = 0
+                selectedIndex = 0
+            }
         } else {
-            currentPage += 1
-            selectedIndex = 0
+            if SizingGuide.getCommonSettings().animations.slideEnabled {
+                showingNextItems = true
+                currentPage += 1           
+                selectedIndex = 0          
+                nextOffset = 0             
+                currentOffset = windowWidth 
+                
+                withAnimation(.carouselSlide(settings: SizingGuide.getCommonSettings().animations)) {
+                    nextOffset = -windowWidth   
+                    currentOffset = 0          
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + SizingGuide.getCommonSettings().animations.slide.duration) {
+                    self.currentOffset = 0
+                    self.showingNextItems = false
+                }
+            } else {
+                currentPage += 1
+                selectedIndex = 0
+            }
         }
     }
     
@@ -76,9 +150,29 @@ class NavigationModel: ObservableObject {
         }
         
         if !AppDataManager.shared.items(for: selectedItem.sectionEnum).isEmpty {
-            currentSection = selectedItem.sectionEnum.rawValue
-            selectedIndex = 0
-            currentPage = 0
+            let fadeEnabled = SizingGuide.getCommonSettings().animations.fadeEnabled
+            if fadeEnabled {
+                let fadeDuration = SizingGuide.getCommonSettings().animations.fade.duration
+                withAnimation(.linear(duration: fadeDuration / 2)) {
+                    opacity = 0.0
+                    titleOpacity = 0.0
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + (fadeDuration / 2)) {
+                    self.currentSection = selectedItem.sectionEnum.rawValue
+                    self.selectedIndex = 0
+                    self.currentPage = 0
+                    
+                    withAnimation(.linear(duration: fadeDuration / 2)) {
+                        self.opacity = 1.0
+                        self.titleOpacity = 1.0
+                    }
+                }
+            } else {
+                currentSection = selectedItem.sectionEnum.rawValue
+                selectedIndex = 0
+                currentPage = 0
+            }
         }
     }
     
@@ -86,9 +180,29 @@ class NavigationModel: ObservableObject {
         let sourceItems = getSourceItems()
         if !sourceItems.isEmpty, let parentSection = sourceItems[0].parentEnum {
             if !parentSection.rawValue.isEmpty {
-                currentSection = parentSection.rawValue
-                selectedIndex = 0
-                currentPage = 0
+                let fadeEnabled = SizingGuide.getCommonSettings().animations.fadeEnabled
+                if fadeEnabled {
+                    let fadeDuration = SizingGuide.getCommonSettings().animations.fade.duration
+                    withAnimation(.linear(duration: fadeDuration / 2)) {
+                        opacity = 0.0
+                        titleOpacity = 0.0
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + (fadeDuration / 2)) {
+                        self.currentSection = parentSection.rawValue
+                        self.selectedIndex = 0
+                        self.currentPage = 0
+                        
+                        withAnimation(.linear(duration: fadeDuration / 2)) {
+                            self.opacity = 1.0
+                            self.titleOpacity = 1.0
+                        }
+                    }
+                } else {
+                    currentSection = parentSection.rawValue
+                    selectedIndex = 0
+                    currentPage = 0
+                }
             }
         }
     }

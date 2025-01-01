@@ -1,16 +1,13 @@
 import AppKit
 
 @preconcurrency protocol MouseHandling: AnyObject {
-    // Async methods since they need to run on main actor
+    var mouseState: MouseIndicatorState? { get }
+    var uiVisibility: UIVisibilityState? { get }
+    
+    func handleMouseMovement(deltaX: CGFloat) async
     func setupMouseMonitor() async
     func setupMouseTrackingMonitor() async
-    @preconcurrency func handleMouseMovement(deltaX: CGFloat) async
-    @preconcurrency func handleMouseTracking(entered: Bool) async
     func resetMouseState() async
-    
-    // Nonisolated callbacks
-    nonisolated func setMoveLeftHandler(_ handler: @escaping () -> Void)
-    nonisolated func setMoveRightHandler(_ handler: @escaping () -> Void)
 }
 
 @MainActor
@@ -56,7 +53,7 @@ class MouseHandler: MouseHandling {
     
     func setupMouseMonitor() async {
         mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { [weak self] event in
-            Task { @MainActor in
+            Task { @MainActor [weak self] in 
                 await self?.handleMouseMovement(deltaX: event.deltaX)
             }
             return event
@@ -65,14 +62,16 @@ class MouseHandler: MouseHandling {
     
     func setupMouseTrackingMonitor() async {
         NSEvent.addLocalMonitorForEvents(matching: [.mouseEntered, .mouseExited]) { [weak self] event in
-            Task {
-                await self?.handleMouseTracking(entered: event.type == .mouseEntered)
+            if event.type == .mouseEntered {
+                self?.isMouseInWindow = true
+            } else {
+                self?.isMouseInWindow = false
             }
             return event
         }
     }
     
-    @preconcurrency func handleMouseMovement(deltaX: CGFloat) async {
+    func handleMouseMovement(deltaX: CGFloat) async {
         guard let uiVisibility = uiVisibility else { return }
         
         if !uiVisibility.mouseVisible {
@@ -111,11 +110,13 @@ class MouseHandler: MouseHandling {
         mouseProgress = min(abs(accumulatedMouseX) / SizingGuide.getCommonSettings().mouseSensitivity, 1.0)
         
         if abs(accumulatedMouseX) > SizingGuide.getCommonSettings().mouseSensitivity {
-            executeCallback {
-                if self.accumulatedMouseX < 0 {
-                    self.onMoveLeft?()
-                } else {
-                    self.onMoveRight?()
+            if accumulatedMouseX < 0 {
+                Task { @MainActor in
+                    onMoveLeft?()
+                }
+            } else {
+                Task { @MainActor in
+                    onMoveRight?()
                 }
             }
             accumulatedMouseX = 0
@@ -131,10 +132,6 @@ class MouseHandler: MouseHandling {
         mouseState?.showingProgress = mouseState?.showingProgress ?? false
         mouseState?.mouseProgress = mouseProgress
         mouseState?.mouseDirection = mouseDirection
-    }
-    
-    @preconcurrency func handleMouseTracking(entered: Bool) async {
-        isMouseInWindow = entered
     }
     
     func resetMouseState() async {

@@ -8,7 +8,7 @@ on macOS 13 or later:
 
 `chmod +x ./build.sh`
 
-`./build.sh`
+`./build.sh -r -c -a`
 
 that's and it will run the app for you. Work in progress, not 100% complete, but getting there FAST!
 

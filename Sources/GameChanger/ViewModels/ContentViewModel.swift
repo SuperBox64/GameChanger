@@ -47,9 +47,13 @@ class ContentViewModel: ObservableObject {
     var gameController: GCController?
     var windowWidth: CGFloat = 0
     
-
+    private enum KeyCode: UInt16 {
+        case leftArrow = 123
+        case rightArrow = 124
+    }
+    
     func setupMonitors() async {
-        InputModel.shared.setupKeyMonitor()
+        setupKeyMonitor()
         setupGameController()
         await mouseHandler.setupMouseMonitor()
         await mouseHandler.setupMouseTrackingMonitor()
@@ -174,7 +178,19 @@ class ContentViewModel: ObservableObject {
         return []
     }
 
-
+    private func setupKeyMonitor() {
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
+            if let keyCode = KeyCode(rawValue: event.keyCode) {
+                switch keyCode {
+                case .leftArrow:
+                    self?.moveLeft()
+                case .rightArrow:
+                    self?.moveRight()
+                }
+            }
+            return event
+        }
+    }
 
     private func setupGameController() {
         NotificationCenter.default.addObserver(

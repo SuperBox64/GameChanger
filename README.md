@@ -15,7 +15,7 @@ that's and it will run the app for you. Work in progress, not 100% complete, but
 See JSON for game settings and UI parameters. App Launching and SideCar touch screen support via mouse pointer mode in progress!
 1.0 Release coming 2025 to a Mac near you.
 
-Supports: Mouse, Trackball, Spinner, Trackpad, Joystick, GamePad, Left, Middle and Right click (I think, need to check), Arcade Buttons, Keyboard!
+Supports: Mouse, Trackball, Spinner, Trackpad, Joystick, GamePad, Left, Middle and Right click, Arcade Buttons, Keyboard!
 
 
 <img width="1280" alt="GameChanger_2024-12-24_00-59-59" src="https://github.com/user-attachments/assets/81ed8309-c340-4e1a-9b92-5f759db21af2" />

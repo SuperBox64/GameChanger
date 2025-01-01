@@ -17,7 +17,7 @@ See JSON for game settings and UI parameters. App Launching and SideCar touch sc
 
 Supports: Mouse, Trackball, Spinner, Trackpad, Joystick, GamePad, Left, Middle and Right click, Arcade Buttons, Keyboard!
 
-Game Grid with ability to launch games from populator emulators is coming soon!
+Game Grid with ability to launch games from populator emulators is planned next!
 
 
 

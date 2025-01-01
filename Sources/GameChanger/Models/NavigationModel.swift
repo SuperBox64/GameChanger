@@ -14,6 +14,8 @@ class NavigationModel: ObservableObject {
     @Published var opacity: Double = 1.0
     @Published var titleOpacity: Double = 1.0
     
+    private var previousSelection: (index: Int, page: Int)?
+    
     private func getSourceItems() -> [AppItem] {
         return AppDataManager.shared.items(for: Section(rawValue: currentSection))
     }
@@ -140,6 +142,17 @@ class NavigationModel: ObservableObject {
         let selectedItem = sourceItems[actualIndex]
         
         if selectedItem.actionEnum != .none {
+            if !UIVisibilityState.shared.mouseVisible {
+                previousSelection = (selectedIndex, currentPage)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                    guard let self = self,
+                          let previous = self.previousSelection,
+                          !UIVisibilityState.shared.mouseVisible else { return }
+                    
+                    self.currentPage = previous.page
+                    self.selectedIndex = previous.index
+                }
+            }
             selectedIndex = -1
             selectedItem.actionEnum.execute(
                 with: selectedItem.path,

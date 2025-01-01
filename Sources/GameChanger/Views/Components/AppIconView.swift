@@ -36,6 +36,18 @@ struct AppIconView: View {
                 }
                 
                 loadIcon()
+                .contentShape(Rectangle())
+                .onHover { hovering in
+                    isHighlighted = hovering
+                    if hovering && UIVisibilityState.shared.mouseVisible {
+                        onHighlight()
+                    }
+                }
+                .onTapGesture {
+                    if UIVisibilityState.shared.mouseVisible {
+                        onSelect()
+                    }
+                }
             }
             .offset(y: bounceOffset)
             
@@ -48,22 +60,26 @@ struct AppIconView: View {
                     SizingGuide.getCommonSettings().colors.text.selectedUI : 
                     SizingGuide.getCommonSettings().colors.text.unselectedUI)
                 .offset(y: bounceOffset)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onHover { hovering in
-            isHighlighted = hovering  // Always update highlight state
-            if hovering && UIVisibilityState.shared.mouseVisible {  // Only trigger highlight action in mouse mode
-                    onHighlight()
+                .contentShape(Rectangle())
+                .onHover { hovering in
+                    isHighlighted = hovering
+                    if hovering && UIVisibilityState.shared.mouseVisible {
+                        onHighlight()
+                    }
                 }
-            }
+                .onTapGesture {
+                    if UIVisibilityState.shared.mouseVisible {
+                        onSelect()
+                    }
+                }
+        }
+        .frame(
+            width: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding,
+            height: sizingManager.sizing.iconSize * multipliers.iconSize + sizingManager.sizing.selectionPadding + 40
+        )
         .onChange(of: UIVisibilityState.shared.mouseVisible) { newValue in
             if !newValue {
                 isHighlighted = false
-            }
-        }
-        .onTapGesture {
-            if UIVisibilityState.shared.mouseVisible {
-                onSelect()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .bounceItems)) { _ in

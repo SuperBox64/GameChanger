@@ -1,8 +1,8 @@
 import AppKit
 
 @preconcurrency protocol MouseHandling: AnyObject {
-    var mouseState: MouseIndicatorState? { get }
-    var uiVisibility: UIVisibilityState? { get }
+    @MainActor var mouseState: MouseIndicatorState? { get }
+    @MainActor var uiVisibility: UIVisibilityState? { get }
     
     func handleMouseMovement(deltaX: CGFloat) async
     func setupMouseMonitor() async

@@ -50,6 +50,7 @@ struct AppIconView: View {
                 .offset(y: bounceOffset)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
         .onHover { hovering in
             isHighlighted = hovering  // Always update highlight state
             if hovering && UIVisibilityState.shared.mouseVisible {  // Only trigger highlight action in mouse mode
@@ -63,7 +64,7 @@ struct AppIconView: View {
         }
         .onTapGesture {
             if UIVisibilityState.shared.mouseVisible {
-                onSelect()
+               onSelect()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .bounceItems)) { _ in

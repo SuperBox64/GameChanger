@@ -16,18 +16,17 @@ struct GameChangerApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                if uiVisibility.isGridVisible {
-                    GameGridView()
-                } else {
-                    ContentView()
-                }
-
+                ContentView()
+                
                 Group {
                     LogoView()
                     ClockView()
-                    MouseIndicatorView()
-                    NavigationOverlayView()
-                    ShortcutHintView()
+
+                    if !uiVisibility.isGridVisible {
+                        ShortcutHintView()
+                        MouseIndicatorView()
+                        NavigationOverlayView()
+                    }
                 }
                 .opacity(uiVisibility.isVisible ? 1 : 0)
                 .animation(
@@ -38,16 +37,17 @@ struct GameChangerApp: App {
                     ),
                     value: uiVisibility.isVisible
                 )
-                .onAppear {
-                    if !startupSound {
-                        startupSound.toggle()
-                        SoundPlayer.shared.playStartupSound()
-                    }
-                }
+          
             }
-            .background(Color.black)
+            .background(Color.clear)
             .frame(width: .infinity, height: .infinity)
             .environmentObject(windowSizeMonitor)
+            .onAppear {
+                if !startupSound {
+                    startupSound.toggle()
+                    SoundPlayer.shared.playStartupSound()
+                }
+            }
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.automatic)

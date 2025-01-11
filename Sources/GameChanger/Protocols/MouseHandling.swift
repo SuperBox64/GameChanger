@@ -59,7 +59,7 @@ class MouseHandler: MouseHandling {
             Task { @MainActor in
                 await self?.handleMouseMovement(deltaX: event.deltaX)
             }
-            return event
+            return nil
         }
     }
     
@@ -68,7 +68,7 @@ class MouseHandler: MouseHandling {
             Task {
                 await self?.handleMouseTracking(entered: event.type == .mouseEntered)
             }
-            return event
+            return nil
         }
     }
     

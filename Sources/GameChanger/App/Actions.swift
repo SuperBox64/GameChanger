@@ -11,6 +11,7 @@ enum Action: String, Codable {
     case activate = "activate"
     case wine = "wine"
     case game = "game"
+    case grid = "grid"
 
     func execute(with path: String? = nil, appName: String? = nil, fullscreen: Bool? = nil) {
         print("Executing action: \(self)")
@@ -21,6 +22,7 @@ enum Action: String, Codable {
             case .sleep: SystemActions.sendAppleEvent(kAESleep)
             case .logout: SystemActions.sendAppleEvent(kAEShutDown)
             case .quit: NSApplication.shared.terminate(nil)
+            case .grid: return // Grid view is handled by ContentView
             case .wine:
                 if let command: String = path, let appName, let fullscreen {
                     executeProcess(command, action: .wine, appName: appName, setFullscreen: fullscreen)

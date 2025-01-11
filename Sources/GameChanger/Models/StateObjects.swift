@@ -69,6 +69,7 @@ class UIVisibilityState: ObservableObject {
     }
     @Published var isGridVisible = false
     @Published var mouseVisible = false
+    @Published var currentGridSection: String = ""
     @Published var isExecutingPath: Bool = false {
         didSet { print("DEBUG: isExecutingPath changed from \(oldValue) to \(isExecutingPath)") }
     }

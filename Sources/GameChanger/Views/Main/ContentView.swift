@@ -59,6 +59,10 @@ struct ContentView: View {
     }
     
     private func handleSelection() {
+        // print("handleSelection() called from:")
+        // Thread.callStackSymbols.forEach { print($0) }
+        // exit(0)
+        
         let sourceItems = getSourceItems()
         
         // Guard against empty source items
@@ -78,6 +82,12 @@ struct ContentView: View {
         guard actualIndex < sourceItems.count else { return }
         
         let selectedItem = sourceItems[actualIndex]
+        
+        if selectedItem.actionEnum == .grid {
+            uiVisibility.isGridVisible = true
+            uiVisibility.currentGridSection = selectedItem.name
+            return
+        }
         
         if selectedItem.actionEnum != .none {
             selectedIndex = -1  // Deselect before executing action
@@ -130,36 +140,28 @@ struct ContentView: View {
         mouseState.mouseDirection = 0
     }
     
-    private func setupKeyMonitor() {
+    private func setupKeyMonitorForContentView() {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             // Handle screen recording shortcuts
-          
-            // Then handle other keys
             switch Int(event.keyCode) {
-                 case kVK_ANSI_R: // Cmd + R for recording
-                    Task {
-                        do {
-                            if screenRecorder.isRecording {
-                                try await screenRecorder.stopRecording()
-                            } else {
-                                try await screenRecorder.startRecording()
-                            }
-                        } catch {
-                            print("Recording error: \(error.localizedDescription)")
+            case kVK_ANSI_R: // Cmd + R for recording
+                Task {
+                    do {
+                        if screenRecorder.isRecording {
+                            try await screenRecorder.stopRecording()
+                        } else {
+                            try await screenRecorder.startRecording()
                         }
+                    } catch {
+                        print("Recording error: \(error.localizedDescription)")
                     }
-                    return nil
-                case kVK_ANSI_C: // Cmd + C for camera toggle
-                    screenRecorder.toggleCamera()
-                    return nil
-                case kVK_ANSI_M: // Cmd + M for microphone toggle
-                    screenRecorder.toggleMicrophone()
-                    return nil
-            case kVK_ANSI_G:
-                UIVisibilityState.shared.isGridVisible.toggle()
+                }
+            case kVK_ANSI_C: // Cmd + C for camera toggle
+                screenRecorder.toggleCamera()
+            case kVK_ANSI_M: // Cmd + M for microphone toggle
+                screenRecorder.toggleMicrophone()
             case kVK_ANSI_Q:
                 NSApplication.shared.terminate(nil)
-                return nil
             case kVK_Escape:
                 UIVisibilityState.shared.mouseVisible.toggle()
                 if UIVisibilityState.shared.mouseVisible {
@@ -169,27 +171,27 @@ struct ContentView: View {
                     NSCursor.hide()
                     SystemActions.sendAppleEvent(kAEActivate)
                 }
-            case kVK_UpArrow:
-                resetMouseState()
-                back()
-            case kVK_DownArrow:
-                resetMouseState()
-                handleSelection()
-            case kVK_LeftArrow:
-                resetMouseState()
-                moveLeft()
-            case kVK_RightArrow:
-                resetMouseState()
-                moveRight()
-            case kVK_Return:
-                resetMouseState()
-                handleSelection()
-            case kVK_Space:
-                resetMouseState()
-                handleSelection()
+            // case kVK_UpArrow:
+            //     resetMouseState()
+            //     back()
+            // case kVK_DownArrow:
+            //     resetMouseState()
+            //     handleSelection()
+            // case kVK_LeftArrow:
+            //     resetMouseState()
+            //     moveLeft()
+            // case kVK_RightArrow:
+            //     resetMouseState()
+            //     moveRight()
+            // case kVK_Return:
+            //     resetMouseState()
+            //     handleSelection()
+            // case kVK_Space:
+            //     resetMouseState()
+            //     handleSelection()
             default: break
             }
-            return nil
+            return event
         }
     }
     
@@ -270,131 +272,78 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            BackgroundView(onBack: back)  // Pass ContentView's back() function
+            BackgroundView(onBack: back)
             
-            // Title at the top
-            VStack {
-                Text(currentSection)
-                    .font(.custom(
-                        SizingGuide.getCommonSettings().fonts.title,
-                        size: SizingGuide.getCurrentSettings().title.size
-                    ))
-                    .foregroundColor(.white)
-                    .opacity(titleOpacity)
-                    .padding(.top, SizingGuide.getCurrentSettings().title.topPadding)
-                Spacer()
-            }
-            .opacity(uiVisibility.isVisible ? 1 : 0)
-
-            // Carousel in center
-            CarouselView(
-                visibleItems: visibleItems,
-                selectedIndex: UIVisibilityState.shared.mouseVisible ? -1 : selectedIndex,  // No selection when mouse is visible
-                sizing: sizingManager.sizing,
-                currentOffset: currentOffset,
-                showingNextItems: showingNextItems,
-                nextOffset: nextOffset,
-                nextItems: nextItems,
-                onHighlight: { index in
-                    if UIVisibilityState.shared.mouseVisible {
-                        selectedIndex = index
+            if uiVisibility.isGridVisible {
+                GameGridView(sectionName: uiVisibility.currentGridSection)
+            } else {
+                GameTimeView(
+                    currentSection: $currentSection,
+                    selectedIndex: $selectedIndex,
+                    titleOpacity: $titleOpacity,
+                    opacity: $opacity,
+                    back: back,
+                    handleSelection: handleSelection,
+                    moveLeft: moveLeft,
+                    moveRight: moveRight,
+                    resetMouseState: resetMouseState,
+                    visibleItems: visibleItems,
+                    showingNextItems: showingNextItems,
+                    nextItems: nextItems,
+                    currentOffset: currentOffset,
+                    nextOffset: nextOffset,
+                    sizingManager: sizingManager
+                )
+                .onAppear {
+                    // setupKeyMonitorForContentView()
+                    if let screen = NSScreen.main {
+                        sizingManager.updateSizing(for: screen.frame.size)
+                        windowWidth = screen.frame.width
                     }
-                },
-                onSelect: { index in
-                    selectedIndex = index
-                    resetMouseState()
-                    handleSelection()
-                },
-                onBack: { index in
-                    selectedIndex = index
-                    resetMouseState()
-                    back()
-                },
-                onSwipeLeft: {
-                    if UIVisibilityState.shared.mouseVisible {
-                        resetMouseState()
-                        moveRight()  // Swipe left moves to next page
-                    }
-                },
-                onSwipeRight: {
-                    if UIVisibilityState.shared.mouseVisible {
-                        resetMouseState()
-                        moveLeft()   // Swipe right moves to previous page
+                    updateNavigationState()
+                    
+                    // Add observer for page jumps
+                    NotificationCenter.default.addObserver(
+                        forName: .jumpToPage,
+                        object: nil,
+                        queue: .main) { notification in
+                            if let page = notification.userInfo?["page"] as? Int {
+                                currentPage = page
+                                selectedIndex = 0
+                                
+                                if SizingGuide.getCommonSettings().animations.bounceEnabled {
+                                    opacity = 0
+                                    withAnimation(.easeOut(duration: 1.0)) {
+                                        opacity = 1
+                                    }
+                                    NotificationCenter.default.post(name: .bounceItems, object: nil)
+                                } else {
+                                    opacity = 1
+                                }
+                            }
                     }
                 }
-            )
-            .opacity(opacity)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear {
-            // DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            //     if UIVisibilityState.shared.mouseVisible {
-            //         NSCursor.unhide()
-            //     } else {
-            //         NSCursor.hide()
-            //     }
-            // }
-            setupKeyMonitor()
-            setupGameController()
-            setupMouseMonitor()
-            setupMouseTrackingMonitor()
-            if let screen = NSScreen.main {
-                sizingManager.updateSizing(for: screen.frame.size)
-                windowWidth = screen.frame.width
-            }
-            updateNavigationState()
-            
-            // Add observer for page jumps
-            NotificationCenter.default.addObserver(
-                forName: .jumpToPage,
-                object: nil,
-                queue: .main) { notification in
-                    if let page = notification.userInfo?["page"] as? Int {
-                        //First fade out current items
-                            currentPage = page
-                            selectedIndex = 0
-                            
-                        // Only trigger bounce if enabled
-                        if SizingGuide.getCommonSettings().animations.bounceEnabled {
-                            opacity = 0
-
-                            withAnimation(.easeOut(duration: 1.0)) {
-                                opacity = 1
-                            }
+                .onDisappear {
+                    NotificationCenter.default.removeObserver(self)
+                }
+                .onChange(of: currentPage) { _ in
+                    updateNavigationState()
+                }
+                .onChange(of: currentSection) { _ in
+                    updateNavigationState()
+                }
+                .onChange(of: UIVisibilityState.shared.isVisible) { isVisible in
+                    if isVisible {
+                        let sourceItems = getSourceItems()
+                        let startIndex = currentPage * 4
+                        let endIndex = min(startIndex + 4, sourceItems.count)
                         
-                            NotificationCenter.default.post(name: .bounceItems, object: nil)
-                        } else {
-                            opacity = 1
+                        if startIndex + selectedIndex < endIndex {
+                            resetMouseState()
+                            ContentState.shared.selectedIndex = selectedIndex
+                            ContentState.shared.currentSection = "Game Changer"
                         }
                     }
-            }
-        }
-        .onDisappear {
-            // if let monitor = keyMonitor {
-            //     NSEvent.removeMonitor(monitor)
-            // }
-            NotificationCenter.default.removeObserver(self)
-            NSCursor.unhide()  // Make sure cursor is visible when view disappears
-        }
-        .onChange(of: currentPage) { _ in
-            updateNavigationState()
-        }
-        .onChange(of: currentSection) { _ in
-            updateNavigationState()
-        }
-        .onChange(of: UIVisibilityState.shared.isVisible) { isVisible in
-            if isVisible {
-                // When becoming visible, only set visual selection
-                let sourceItems = getSourceItems()
-                let startIndex = currentPage * 4
-                let endIndex = min(startIndex + 4, sourceItems.count)
-                
-                // Make sure selectedIndex is valid for current page
-                if startIndex + selectedIndex < endIndex {
-                resetMouseState()
-                    // Don't call handleSelection() - just reset state
-                    ContentState.shared.selectedIndex = selectedIndex
-                    ContentState.shared.currentSection = "Game Changer"
                 }
             }
         }
@@ -495,7 +444,7 @@ struct ContentView: View {
             } else {
                 resetMouseState()
             }
-            return event
+            return nil
         }
         
         // Left click and A/B buttons - Select
@@ -504,7 +453,7 @@ struct ContentView: View {
                 resetMouseState()
                 handleSelection()
             }
-            return event
+            return nil
         }
         
         // Right click - Back
@@ -516,7 +465,7 @@ struct ContentView: View {
                 resetMouseState()
                 back()
             }
-            return event
+            return nil
         }
         
         // Middle click - Quit
@@ -524,7 +473,7 @@ struct ContentView: View {
             if event.buttonNumber == 2 { // Middle click
                 NSApplication.shared.terminate(nil)
             }
-            return event
+            return nil
         }
     }
     
@@ -538,7 +487,7 @@ struct ContentView: View {
             default:
                 break
             }
-            return event
+            return nil
         }
         
         // Initial state check

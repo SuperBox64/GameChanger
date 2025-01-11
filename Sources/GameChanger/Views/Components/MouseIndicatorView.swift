@@ -7,7 +7,7 @@ class MouseIndicatorNSView: NSView {
     private let commonSettings = SizingGuide.getCommonSettings()
     
     override func draw(_ dirtyRect: NSRect) {
-        let center = NSPoint(x: bounds.midX, y: bounds.midY - settings.bottomPadding)
+        let center = NSPoint(x: bounds.midX, y: bounds.midY - settings.bottomPadding * 1.5)
         let radius = settings.size / 2
         
         // If moving right, flip the context

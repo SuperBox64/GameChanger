@@ -59,13 +59,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Set app state to loaded
+        AppState.shared.isLoaded = true
+        
         NSApp.hideOtherApplications(nil)
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
     
         let presOptions: NSApplication.PresentationOptions = [.hideDock, .hideMenuBar]
         NSApp.presentationOptions = presOptions
-
 
         if let window = NSApp.windows.first {
             window.styleMask = [.borderless, .fullSizeContentView]
@@ -104,8 +106,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 SystemActions.sendAppleEvent(kAEActivate)
             }
         }
-      
-
+        
         // Set up menu bar
         let mainMenu = NSMenu()
         NSApp.mainMenu = mainMenu

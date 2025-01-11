@@ -109,9 +109,7 @@
                     "name": "Pac Man",
                     "systemIcon": "pacman",
                     "parent": "Game Changer",
-                    "action": "game",
-                    "path": "/Applications/mame/mame puckman",
-                    "fullscreen": false
+                    "action": "grid"
                 },
                 {
                     "name": "Ghost Man",
@@ -240,6 +238,75 @@
                     "action": "logout"
                 }
             ]
+        },
+        {
+            "name": "Pac Man",
+            "items": [
+                {
+                    "name": "Pac-Man",
+                    "systemIcon": "pacman",
+                    "parent": "Pac Man",
+                    "action": "game",
+                    "path": "/Applications/mame/mame puckman",
+                    "fullscreen": false
+                },
+                {
+                    "name": "Ms. Pac-Man",
+                    "systemIcon": "mspacman",
+                    "parent": "Pac Man",
+                    "action": "game",
+                    "path": "/Applications/mame/mame mspacman",
+                    "fullscreen": false
+                },
+                {
+                    "name": "Pac-Land",
+                    "systemIcon": "pacland",
+                    "parent": "Pac Man",
+                    "action": "game",
+                    "path": "/Applications/mame/mame pacland",
+                    "fullscreen": false
+                },
+                {
+                    "name": "Pac-Mania",
+                    "systemIcon": "pacmania",
+                    "parent": "Pac Man",
+                    "action": "game",
+                    "path": "/Applications/mame/mame pacmania",
+                    "fullscreen": false
+                },
+                {
+                    "name": "Baby Pac-Man",
+                    "systemIcon": "babypac",
+                    "parent": "Pac Man",
+                    "action": "game",
+                    "path": "/Applications/mame/mame babypac",
+                    "fullscreen": false
+                },
+                {
+                    "name": "Professor Pac-Man",
+                    "systemIcon": "profpac",
+                    "parent": "Pac Man",
+                    "action": "game",
+                    "path": "/Applications/mame/mame profpac",
+                    "fullscreen": false
+                },
+                {
+                    "name": "Pac & Pal",
+                    "systemIcon": "pacnpal",
+                    "parent": "Pac Man",
+                    "action": "game",
+                    "path": "/Applications/mame/mame pacnpal",
+                    "fullscreen": false
+                },
+                {
+                    "name": "Jr. Pac-Man",
+                    "systemIcon": "jrpacman",
+                    "parent": "Pac Man",
+                    "action": "game",
+                    "path": "/Applications/mame/mame jrpacman",
+                    "fullscreen": false
+                }
+            ]
         }
     ]
-} 
+}

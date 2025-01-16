@@ -1,8 +1,9 @@
 #!/bin/bash
-source ./common.sh
 
-# Add start time tracking at the beginning
-BUILD_START_TIME=$(date +%s)
+# Start time tracking
+START_TIME=$(date +%s.%N)
+
+source ./common.sh
 
 # Default values
 BUILD_TYPE="release"
@@ -172,13 +173,6 @@ fi
 
 echo "App bundle created at GameChanger.app"
 
-# Calculate and display build time
-BUILD_END_TIME=$(date +%s)
-BUILD_DURATION=$((BUILD_END_TIME - BUILD_START_TIME))
-MINUTES=$((BUILD_DURATION / 60))
-SECONDS=$((BUILD_DURATION % 60))
-echo "Total build time: ${MINUTES}m ${SECONDS}s"
-
 # Handle opening the app if requested
 if [ "$SHOULD_OPEN" = true ] || [ "$ONLY_OPEN" = true ] || [ "$DIRECT_RUN" = true ]; then
     if [ "$DIRECT_RUN" = true ]; then
@@ -231,3 +225,10 @@ if [ "$ONLY_OPEN" = true ]; then
         exit 1
     fi
 fi
+
+# Calculate total time with millisecond precision
+END_TIME=$(date +%s.%N)
+TOTAL_TIME=$(echo "$END_TIME - $START_TIME" | bc)
+SECONDS=$(echo "($TOTAL_TIME)/1" | bc)
+MILLISECONDS=$(echo "scale=0; ($TOTAL_TIME - $SECONDS) * 1000" | bc)
+echo "Total build time: ${SECONDS}s ${MILLISECONDS}ms"

@@ -12,18 +12,38 @@ create_app_structure() {
     # Create directories
     mkdir -p GameChanger.app/Contents/{MacOS,Resources}
     mkdir -p AppIcon.iconset
+    mkdir -p .cache
 
-    # Create icon sizes
-    for size in 16 32 128 256 512; do
-        sips -z $size $size Sources/GameChanger/images/png/superbox64.png --out AppIcon.iconset/icon_${size}x${size}.png
-        if [ $size != 512 ]; then
-            sips -z $((size*2)) $((size*2)) Sources/GameChanger/images/png/superbox64.png --out AppIcon.iconset/icon_${size}x${size}@2x.png
-        fi
-    done
-    sips -z 1024 1024 Sources/GameChanger/images/png/superbox64.png --out AppIcon.iconset/icon_512x512@2x.png
+    # Check if source icon has changed
+    local ICON_SOURCE="Sources/GameChanger/images/png/superbox64.png"
+    local ICON_HASH_FILE=".cache/icon_hash"
+    local CURRENT_HASH=$(shasum -a 256 "$ICON_SOURCE" | cut -d' ' -f1)
+    local CACHED_HASH=""
+    
+    if [ -f "$ICON_HASH_FILE" ]; then
+        CACHED_HASH=$(cat "$ICON_HASH_FILE")
+    fi
 
-    # Create icns file
-    iconutil -c icns AppIcon.iconset -o GameChanger.app/Contents/Resources/AppIcon.icns
+    # Only regenerate icons if hash has changed or icons don't exist
+    if [ "$CURRENT_HASH" != "$CACHED_HASH" ] || [ ! -f "GameChanger.app/Contents/Resources/AppIcon.icns" ]; then
+        echo "Generating icons..."
+        # Create icon sizes
+        for size in 16 32 128 256 512; do
+            sips -z $size $size "$ICON_SOURCE" --out AppIcon.iconset/icon_${size}x${size}.png
+            if [ $size != 512 ]; then
+                sips -z $((size*2)) $((size*2)) "$ICON_SOURCE" --out AppIcon.iconset/icon_${size}x${size}@2x.png
+            fi
+        done
+        sips -z 1024 1024 "$ICON_SOURCE" --out AppIcon.iconset/icon_512x512@2x.png
+
+        # Create icns file
+        iconutil -c icns AppIcon.iconset -o GameChanger.app/Contents/Resources/AppIcon.icns
+        
+        # Cache the new hash
+        echo "$CURRENT_HASH" > "$ICON_HASH_FILE"
+    else
+        echo "Icons unchanged, using cached version..."
+    fi
 }
 
 # Create Info.plist
